@@ -1,29 +1,19 @@
 <script setup lang="ts">
-import {ElRow, ElCol} from "element-plus";
 import FileFunction from "./FileFunction.vue";
 const barList = [FileFunction]
 </script>
 
 <template>
-<el-row class="el-row" align="middle">
-  <el-col
-      :span="2"
-      class = "el-col"
-      v-for="(item) in barList"
-  ><component :is = item></component></el-col>
-</el-row>
+
+<div class="top-bar">
+  <component :is = item v-for="item in barList"></component>
+</div>
 </template>
 
-<style scoped>
-.el-row{
-  height: 100%;
-}
-.el-col{
+<style scoped lang="scss">
+.top-bar{
+  background-color: var(--el-color-primary-light-8);
   height: 100%;
   display: flex;
-  justify-content: center;
-}
-.el-col:hover{
-  background-color: var(--el-color-primary);
 }
 </style>

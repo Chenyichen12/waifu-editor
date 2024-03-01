@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import {ElDropdown,ElDropdownMenu,ElDropdownItem ,ElDialog} from "element-plus";
 import {ref} from "vue";
 import parsePsd from "./ParsePsd.ts";
 const showWaitDialog = ref(false);
@@ -53,12 +52,24 @@ function receive(e: Event){
   </el-dialog>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .el-dropdown {
   font-size: small;
   align-self: center;
+  height: 100%;
+  padding: 0 5px;
+  &:hover{
+    background-color: var(--el-color-primary-light-5);
+  }
+  &:active{
+    background-color: var(--el-color-primary);
+  }
+  .title{
+    margin: auto 0;
+  }
 }
 label{
   font-size: small;
 }
+
 </style>
