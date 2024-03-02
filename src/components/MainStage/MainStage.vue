@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import {compile, computed, onMounted, onUnmounted, Ref, ref, watch} from "vue";
+import {onMounted, onUnmounted, ref, watch} from "vue";
 import Project from "../Project/Project.ts";
 import Konva from "konva";
-import MainStage from "./stage.ts";
-import {height} from "@webtoon/psd/dist/utils";
 import Stage from "./stage.ts";
 
 let mainStage: Konva.Stage | null = null
@@ -31,13 +29,7 @@ watch(project, (instance) => {
     console.log("error")
     return;
   }
-  const w = computed(() => {
-    return rect.value.width
-  })
-  const h = computed(() => {
-    return rect.value.height
-  })
-  mainStage = new Stage(container.value, w, h, instance.root!, shouldDragStage);
+  mainStage = new Stage(container.value, rect, instance.root!, shouldDragStage);
 })
 
 
@@ -61,6 +53,7 @@ onMounted(() => {
 onUnmounted(() => {
   mainBox.value!.removeEventListener('keydown', stageSpaceDown);
   mainBox.value!.removeEventListener('keyup', stageKeyup);
+  resizeObserver.disconnect();
 })
 
 </script>

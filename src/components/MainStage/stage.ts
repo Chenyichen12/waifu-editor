@@ -4,25 +4,29 @@ import Layer = Konva.Layer;
 import {Root} from "../TreeStruct/LayerTree.ts";
 import {Ref, watch} from "vue";
 
-class MainStage extends Konva.Stage{
+class MainStage extends Konva.Stage {
     unWatchDraggable
     unWatchResize
-    constructor(container: HTMLDivElement,width: Ref<number>,height: Ref<number>,root:Root,shouldDrag: Ref<boolean>) {
+
+    constructor(container: HTMLDivElement, rect: Ref<{
+        width: number,
+        height: number
+    }>, root: Root, shouldDrag: Ref<boolean>) {
         super({
             container: container,
-            width: width.value,
-            height: height.value
+            width: rect.value.width,
+            height: rect.value.height
         });
         /**
          * 观察是否可以拖动
          */
-        this.unWatchDraggable = watch(shouldDrag,(value)=>{
+        this.unWatchDraggable = watch(shouldDrag, (value) => {
             this.setDraggable(value);
         })
-        this.unWatchResize = watch([width,height],(value)=>{
-            this.width(value[0])
-            this.height(value[1])
-        })
+        this.unWatchResize = watch(rect, (value) => {
+            this.width(value.width)
+            this.height(value.height)
+        }, {deep: true})
         /**
          * 鼠标滚动时候的默认方法
          */
@@ -30,21 +34,21 @@ class MainStage extends Konva.Stage{
             e.evt.preventDefault();
             let oldScale = this.scaleX()
             let pointerPosition = this.getPointerPosition()
-            if(pointerPosition == null) return
+            if (pointerPosition == null) return
             let point = {
                 x: (pointerPosition.x - this.x()) / oldScale,
                 y: (pointerPosition.y - this.y()) / oldScale
             }
             let direction = e.evt.deltaY > 0 ? 1 : -1
             const s = 1.1;
-            let newScale = direction >0 ? oldScale*s : oldScale/s;
+            let newScale = direction > 0 ? oldScale * s : oldScale / s;
             this.scale({
                 x: newScale,
-                y:newScale
+                y: newScale
             })
             let newP = {
-                x: pointerPosition.x - point.x*newScale,
-                y: pointerPosition.y - point.y*newScale
+                x: pointerPosition.x - point.x * newScale,
+                y: pointerPosition.y - point.y * newScale
             }
             this.position(newP)
         })
@@ -70,8 +74,10 @@ class MainStage extends Konva.Stage{
 
 
     destroy(): this {
+        this.unWatchResize();
         this.unWatchDraggable();
         return super.destroy();
     }
 }
+
 export default MainStage
