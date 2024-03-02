@@ -1,4 +1,4 @@
-import {uuid} from "uuidv4"
+import { v4 as uuid } from 'uuid';
 import {Ref, ref, shallowRef} from "vue";
 import {Assert,rect} from "./ProjectAsserts.ts";
 enum layerType{

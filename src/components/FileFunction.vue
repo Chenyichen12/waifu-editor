@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 import {ref} from "vue";
-import parsePsd from "./ParsePsd.ts";
+import Project from "./Project.ts";
+
 const showWaitDialog = ref(false);
 const showErrorDialog = ref(false);
-function receive(e: Event){
-  console.log(e)
+
+function receive(e: Event) {
   let files = (e.target as HTMLInputElement).files!
-  if(files.length == 0){
+  if (files.length == 0) {
     return
   }
   const file = files[0];
   showWaitDialog.value = true;
-  parsePsd(file).then(()=>{
+  Project.initFromPsd(file).then(() => {
     showWaitDialog.value = false
-    console.log(11)
-  }).catch(()=> {
+  }).catch(() => {
     showWaitDialog.value = false
     showErrorDialog.value = true
   })
@@ -32,7 +32,7 @@ function receive(e: Event){
         <el-dropdown-item>打开</el-dropdown-item>
         <el-dropdown-item>保存</el-dropdown-item>
       </el-dropdown-menu>
-      <input id="from-psd" type="file" style="display: none" accept=".psd,.psb" @change = "(e)=>receive(e)">
+      <input id="from-psd" type="file" style="display: none" accept=".psd,.psb" @change="(e)=>receive(e)">
     </template>
   </el-dropdown>
 
@@ -58,17 +58,21 @@ function receive(e: Event){
   align-self: center;
   height: 100%;
   padding: 0 5px;
-  &:hover{
+
+  &:hover {
     background-color: var(--el-color-primary-light-5);
   }
-  &:active{
+
+  &:active {
     background-color: var(--el-color-primary);
   }
-  .title{
+
+  .title {
     margin: auto 0;
   }
 }
-label{
+
+label {
   font-size: small;
 }
 
