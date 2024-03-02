@@ -48,7 +48,7 @@ function stageKeyup() {
 onMounted(() => {
   mainBox.value!.addEventListener('keydown', stageSpaceDown);
   mainBox.value!.addEventListener('keyup', stageKeyup);
-  resizeObserver.observe(container.value!)
+  resizeObserver.observe(mainBox.value!)
 })
 onUnmounted(() => {
   mainBox.value!.removeEventListener('keydown', stageSpaceDown);
@@ -59,15 +59,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div tabindex="-1" ref="mainBox" class="outer">
-    <div ref="container" style="height: 100%;width: 100%; box-sizing: content-box">
+  <div tabindex="-1" ref="mainBox" class="outer"
+       @focus="(e)=>{(e.target as HTMLDivElement).style.borderColor = 'var(--el-color-primary)'}"
+       @blur="(e)=>{(e.target as HTMLDivElement).style.borderColor = 'var(--el-menu-bg-color)'}">
+    <div ref="container" style="height: 100%;">
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .outer {
-  height: 100%;
-  width: 100%;
+  height: calc(100% - 22px);
+  padding: 10px;
+  align-self: center;
+  outline-style: none;
+  border-style: solid;
+  border-color: var(--el-menu-bg-color);
+  border-width: 1px;
 }
 </style>
