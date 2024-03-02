@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {ref} from "vue";
-import Project from "./Project.ts";
+import Project from "../Project/Project.ts";
 
 const showWaitDialog = ref(false);
 const showErrorDialog = ref(false);
@@ -22,8 +22,8 @@ function receive(e: Event) {
 </script>
 
 <template>
-  <el-dropdown trigger="click" size="small" class="el-dropdown">
-    <span class="title">文件</span>
+  <el-dropdown trigger="click" size="small">
+    <span>文件</span>
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item>
@@ -53,27 +53,5 @@ function receive(e: Event) {
 </template>
 
 <style scoped lang="scss">
-.el-dropdown {
-  font-size: small;
-  align-self: center;
-  height: 100%;
-  padding: 0 5px;
-
-  &:hover {
-    background-color: var(--el-color-primary-light-5);
-  }
-
-  &:active {
-    background-color: var(--el-color-primary);
-  }
-
-  .title {
-    margin: auto 0;
-  }
-}
-
-label {
-  font-size: small;
-}
-
+@import "BarStyle";
 </style>

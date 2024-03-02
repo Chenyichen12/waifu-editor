@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FileFunction from "./FileFunction.vue";
+import FileFunction from "./BarFunction/FileFunction.vue";
 const barList = [FileFunction]
 </script>
 

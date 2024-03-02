@@ -1,6 +1,6 @@
 import {ref, Ref, ShallowRef} from "vue";
 import { v4 as uuid } from 'uuid';
-import {ImageAssert} from "../ProjectAsserts.ts";
+import {ImageAssert} from "../Project/ProjectAsserts.ts";
 
 abstract class Layer {
     name

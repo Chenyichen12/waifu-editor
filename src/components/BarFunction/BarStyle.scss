@@ -1,0 +1,22 @@
+.el-dropdown {
+  font-size: small;
+  align-self: center;
+  height: 100%;
+  padding: 0 5px;
+
+  &:hover {
+    background-color: var(--el-color-primary-light-5);
+  }
+
+  &:active {
+    background-color: var(--el-color-primary);
+  }
+
+  span {
+    margin: auto 0;
+  }
+}
+
+label {
+  font-size: small;
+}

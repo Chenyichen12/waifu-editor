@@ -1,5 +1,5 @@
 import {Ref, ref, shallowRef} from "vue";
-import {Group, Layer, NormalLayer, Root} from "./TreeStruct/LayerTree.ts";
+import {Group, Layer, NormalLayer, Root} from "../TreeStruct/LayerTree.ts";
 import {Assert, ImageAssert, rect} from "./ProjectAsserts.ts";
 import Psd, {NodeChild} from "@webtoon/psd";
 

@@ -17,7 +17,7 @@ declare module 'vue' {
     ElHeader: typeof import('element-plus/es')['ElHeader']
     ElMain: typeof import('element-plus/es')['ElMain']
     ElRow: typeof import('element-plus/es')['ElRow']
-    FileFunction: typeof import('./src/components/FileFunction.vue')['default']
+    FileFunction: typeof import('./src/components/BarFunction/FileFunction.vue')['default']
     TopBar: typeof import('./src/components/TopBar.vue')['default']
   }
 }
