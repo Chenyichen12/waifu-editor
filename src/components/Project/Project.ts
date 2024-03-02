@@ -25,9 +25,15 @@ class Project {
         const newProject = new Project();
         const p = Psd.parse(await f.arrayBuffer());
         const children = await this.parseChild(p.children);
-        newProject.root = new Root(ref(p.name), shallowRef(children));
+        const rect: rect = {
+            width: p.width,
+            height: p.height,
+            top:0,
+            left:0
+        }
+        newProject.root = new Root(ref(p.name),rect, shallowRef(children));
         newProject.assert = ref(this.getAssertFromRoot(newProject.root));
-        this._instance.value = newProject;
+        Project._instance.value = newProject;
     }
 
     /**
@@ -85,7 +91,7 @@ class Project {
 
 
     static get instance() {
-        return this._instance
+        return Project._instance
     }
 }
 
