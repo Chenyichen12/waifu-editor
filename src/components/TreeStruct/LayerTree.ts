@@ -1,5 +1,5 @@
 import {ref, Ref, ShallowRef} from "vue";
-import { v4 as uuid } from 'uuid';
+import {v4 as uuid} from 'uuid';
 import {ImageAssert, rect} from "../Project/ProjectAsserts.ts";
 
 abstract class Layer {
@@ -32,9 +32,9 @@ class Root extends Group {
     readonly type = "Root"
     readonly isVisible = ref(true);
     readonly isSelected = ref(false)
-    rect:rect
+    rect: rect
 
-    constructor(name: Ref<string>,r:rect, c: ShallowRef<Layer[]>,) {
+    constructor(name: Ref<string>, r: rect, c: ShallowRef<Layer[]>,) {
         super(name, c);
         this.rect = r;
     }
@@ -50,4 +50,4 @@ class NormalLayer extends Layer {
     }
 }
 
-export {NormalLayer,Group,Root,Layer}
+export {NormalLayer, Group, Root, Layer}

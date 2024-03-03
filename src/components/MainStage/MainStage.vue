@@ -1,22 +1,25 @@
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, watch} from "vue";
 import Project from "../Project/Project.ts";
-import Konva from "konva";
-import Stage from "./stage.ts";
+import MainStage from "./stage.ts";
 
-let mainStage: Konva.Stage | null = null
+let mainStage: MainStage | null = null //Konva舞台
 const container = ref<HTMLDivElement | null>(null)//内层canvas
 const mainBox = ref<HTMLDivElement | null>(null)//外层main
 
 const shouldDragStage = ref(false);//是否拖动stage
-const rect = ref({width: 0, height: 0});
+const rect = ref({width: 0, height: 0}); // canvas矩形大小 应当与容器大小保持一致
+
+/**
+ * 观察container的变化以更改canvas大小
+ */
 const resizeObserver = new ResizeObserver((e) => {
   rect.value.width = e[0].contentRect.width
   rect.value.height = e[0].contentRect.height
 })
-const project = Project.instance;
+const project = Project.instance; // project快照
 /**
- * 观察project的情况，项目的入口
+ * 观察project的情况，MainStage的入口
  */
 watch(project, (instance) => {
   if (instance == null) {
@@ -29,10 +32,12 @@ watch(project, (instance) => {
     console.log("error")
     return;
   }
-  mainStage = new Stage(container.value, rect, instance.root!, shouldDragStage);
+  mainStage = new MainStage(container.value, rect, instance.root!, shouldDragStage);
 })
 
-
+/**
+ * 当空格被按下的时候应当让舞台可以被拖动
+ */
 function stageSpaceDown(e: KeyboardEvent) {
   if (e.code == "Space") {
     mainBox.value!.style.cursor = "pointer"
@@ -40,6 +45,9 @@ function stageSpaceDown(e: KeyboardEvent) {
   }
 }
 
+/**
+ * 当没有键盘事件的时候应当回到原来的状态
+ */
 function stageKeyup() {
   mainBox.value!.style.cursor = "default"
   shouldDragStage.value = false
