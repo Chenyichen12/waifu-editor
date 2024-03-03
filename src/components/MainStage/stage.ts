@@ -4,7 +4,7 @@ import Layer = Konva.Layer;
 import {Root} from "../TreeStruct/LayerTree.ts";
 import {Ref, watch} from "vue";
 
-class MainStage extends Konva.Stage {
+class WaifuStage extends Konva.Stage {
     unWatchDraggable
     unWatchResize
 
@@ -97,4 +97,4 @@ class MainStage extends Konva.Stage {
 
 }
 
-export default MainStage
+export default WaifuStage

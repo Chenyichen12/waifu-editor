@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, watch} from "vue";
 import Project from "../Project/Project.ts";
-import MainStage from "./stage.ts";
+import WaifuStage from "./stage.ts";
 
-let mainStage: MainStage | null = null //Konva舞台
+let mainStage: WaifuStage | null = null //Konva舞台
 const container = ref<HTMLDivElement | null>(null)//内层canvas
 const mainBox = ref<HTMLDivElement | null>(null)//外层main
 
@@ -32,7 +32,7 @@ watch(project, (instance) => {
     console.log("error")
     return;
   }
-  mainStage = new MainStage(container.value, rect, instance.root!, shouldDragStage);
+  mainStage = new WaifuStage(container.value, rect, instance.root!, shouldDragStage);
 })
 
 /**
