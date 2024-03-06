@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {ElContainer,ElHeader, ElFooter,ElMain} from "element-plus";
 import TopBar from "./components/TopBar.vue";
-import MainStage from "./components/MainStage/MainStage.vue";
 
 </script>
 
@@ -18,7 +17,6 @@ import MainStage from "./components/MainStage/MainStage.vue";
 
       </el-aside>
       <el-main>
-        <MainStage />
       </el-main>
     </el-container>
     <el-footer class="el-footer"></el-footer>
