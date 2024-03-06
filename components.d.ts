@@ -14,6 +14,7 @@ declare module 'vue' {
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
     FileFunction: typeof import('./src/components/BarFunction/FileFunction.vue')['default']
     MainStage: typeof import('./src/components/MainStage/MainStage.vue')['default']
+    Stage: typeof import('./src/components/MainStage/Stage.vue')['default']
     TopBar: typeof import('./src/components/TopBar.vue')['default']
   }
 }
