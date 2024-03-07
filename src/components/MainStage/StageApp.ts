@@ -1,6 +1,6 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
-import {rect} from "../Project/ProjectAsserts";
+import {ImageAssert, rect} from "../Project/ProjectAsserts";
 
 class StageApp {
     static pixiApp: PIXI.Application
@@ -18,7 +18,8 @@ class StageApp {
         for (let child of stageDomRef.children) {
             stageDomRef.removeChild(child);
         }
-        StageApp.pixiApp.destroy();
+        if(StageApp.pixiApp != null)
+            StageApp.pixiApp.destroy();
 
         StageApp.pixiApp = new PIXI.Application();
         await StageApp.pixiApp.init(({
@@ -31,6 +32,7 @@ class StageApp {
         const projectRoot = Project.instance.value.root;
         const projectRect = projectRoot.rect;
         StageApp.addBg(projectRect);
+        await StageApp.addSprite();
 
         const scaleX = StageApp.pixiApp.screen.width / projectRect.width;
         const scaleY = StageApp.pixiApp.screen.height / projectRect.height;
@@ -72,6 +74,19 @@ class StageApp {
         thisApp.stage.scale.set(scale);
         thisApp.stage.position.x += oldDx;
         thisApp.stage.position.y += oldDy
+    }
+    protected static async addSprite() {
+        const assetList = Project.instance.value!.assert.value;
+        //const rect = Project.instance.value!.root!.rect;
+        for (let assetListElement of assetList) {
+            let imageSrc = assetListElement.value as ImageAssert;
+            const imageData = new ImageData(imageSrc.pixMap, imageSrc.rec.width, imageSrc.rec.height);
+            const imageBitMap = await createImageBitmap(imageData);
+            const texture = PIXI.Texture.from(imageBitMap,false);
+            const sprite = new PIXI.Sprite(texture);
+            sprite.position.set(imageSrc.rec.left,imageSrc.rec.top);
+            StageApp.pixiApp.stage.addChild(sprite);
+        }
     }
 }
 
