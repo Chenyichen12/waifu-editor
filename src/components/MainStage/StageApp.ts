@@ -14,51 +14,55 @@ class StageApp {
         if (Project.instance.value?.root == null) {
             return
         }
-        this.pixiApp = new PIXI.Application();
-        await this.pixiApp.init(({
-            background: "#4BC1F0",
-            resizeTo: stageDomRef
-        }));
-        this.pixiApp.stage.interactive = true
+        //先销毁一开始的app
         for (let child of stageDomRef.children) {
             stageDomRef.removeChild(child);
         }
-        stageDomRef.appendChild(this.pixiApp.canvas);
+        StageApp.pixiApp.destroy();
+
+        StageApp.pixiApp = new PIXI.Application();
+        await StageApp.pixiApp.init(({
+            background: "#4BC1F0",
+            resizeTo: stageDomRef
+        }));
+        StageApp.pixiApp.stage.interactive = true
+
+        stageDomRef.appendChild(StageApp.pixiApp.canvas);
         const projectRoot = Project.instance.value.root;
         const projectRect = projectRoot.rect;
-        this.addBg(projectRect);
+        StageApp.addBg(projectRect);
 
-        const scaleX = this.pixiApp.screen.width / projectRect.width;
-        const scaleY = this.pixiApp.screen.height / projectRect.height;
+        const scaleX = StageApp.pixiApp.screen.width / projectRect.width;
+        const scaleY = StageApp.pixiApp.screen.height / projectRect.height;
         const scale = scaleX > scaleY ? scaleY : scaleX;
-        const scaleAfterX = projectRect.width*scale
-        const scaleAfterY = projectRect.height*scale
-        this.pixiApp.stage.scale.set(scale)
-        this.pixiApp.stage.position.set(this.pixiApp.screen.width/2-scaleAfterX/2,this.pixiApp.screen.height/2-scaleAfterY/2)
-        
-        this.pixiApp.canvas.onmousedown = () => {
-            this.isMousePress = true
+        const scaleAfterX = projectRect.width * scale
+        const scaleAfterY = projectRect.height * scale
+        StageApp.pixiApp.stage.scale.set(scale)
+        StageApp.pixiApp.stage.position.set(StageApp.pixiApp.screen.width / 2 - scaleAfterX / 2, StageApp.pixiApp.screen.height / 2 - scaleAfterY / 2)
+
+        StageApp.pixiApp.canvas.onmousedown = () => {
+            StageApp.isMousePress = true
         }
-        this.pixiApp.stage.onmouseup = () => {
-            this.isMousePress = false
+        StageApp.pixiApp.stage.onmouseup = () => {
+            StageApp.isMousePress = false
         }
-        this.pixiApp.canvas.onmousemove = (e) => {
-            if (this.isSpacePress && this.isMousePress) {
-                this.pixiApp.stage.position.x += e.movementX;
-                this.pixiApp.stage.position.y += e.movementY;
+        StageApp.pixiApp.canvas.onmousemove = (e) => {
+            if (StageApp.isSpacePress && StageApp.isMousePress) {
+                StageApp.pixiApp.stage.position.x += e.movementX;
+                StageApp.pixiApp.stage.position.y += e.movementY;
             }
         }
-        this.pixiApp.canvas.onwheel = this.onWheelChange;
+        StageApp.pixiApp.canvas.onwheel = StageApp.onWheelChange;
     }
 
     protected static addBg(rect: rect) {
         const bg = new PIXI.Graphics();
         bg.rect(0, 0, rect.width, rect.height);
         bg.fill(0xECECEC)
-        this.pixiApp.stage.addChild(bg);
+        StageApp.pixiApp.stage.addChild(bg);
     }
 
-    protected static onWheelChange(e:WheelEvent) {
+    protected static onWheelChange(e: WheelEvent) {
         const thisApp = StageApp.pixiApp;
         const stagePos = thisApp.stage.toLocal({x: e.offsetX, y: e.offsetY});
         const oldZoom = thisApp.stage.scale.x
@@ -70,4 +74,5 @@ class StageApp {
         thisApp.stage.position.y += oldDy
     }
 }
+
 export default StageApp
