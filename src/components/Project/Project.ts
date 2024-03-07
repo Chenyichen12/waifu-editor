@@ -21,7 +21,7 @@ class Project {
     /**
      * 用于从PSD初始化一个工程 需要进行错误处理
      */
-    static async initFromPsd(f: File) {
+    static async initFromPsd(f: File|Blob) {
         const newProject = new Project();
         const p = Psd.parse(await f.arrayBuffer());
         const children = await this.parseChild(p.children);

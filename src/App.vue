@@ -2,6 +2,15 @@
 import {ElContainer,ElHeader, ElFooter,ElMain} from "element-plus";
 import TopBar from "./components/TopBar.vue";
 import Stage from "./components/MainStage/Stage.vue";
+import {onMounted} from "vue";
+import Project from "./components/Project/Project.ts";
+
+
+onMounted(async () => {
+  //仅用于测试，生产模式下要删除
+  const f = await fetch('/example.psd')
+  await Project.initFromPsd(await f.blob());
+})
 </script>
 
 <template>
