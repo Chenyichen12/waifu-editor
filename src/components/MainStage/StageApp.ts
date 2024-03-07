@@ -7,8 +7,6 @@ class StageApp {
     static isMousePress = false
     static isSpacePress = false
 
-    private constructor() {
-    }
 
     static async create(stageDomRef: HTMLDivElement) {
         if (Project.instance.value?.root == null) {
