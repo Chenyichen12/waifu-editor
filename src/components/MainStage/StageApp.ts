@@ -1,7 +1,7 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
 import {ImageAssert, rect} from "../Project/ProjectAsserts";
-
+import MeshGraphics from "./MeshGraphics.ts";
 class StageApp {
     static pixiApp: PIXI.Application
     static isMousePress = false
@@ -80,8 +80,10 @@ class StageApp {
             let imageSrc = assetListElement.value as ImageAssert;
             const imageData = new ImageData(imageSrc.pixMap, imageSrc.rec.width, imageSrc.rec.height);
             const imageBitMap = await createImageBitmap(imageData);
-            const texture = PIXI.Texture.from(imageBitMap,false);
-            const sprite = new PIXI.Sprite(texture);
+            // const texture = PIXI.Texture.from(imageBitMap,false);
+            // const sprite = new PIXI.Sprite(texture);
+            let sw = new MeshGraphics(imageBitMap);
+            const sprite = sw.Mesh;
             sprite.position.set(imageSrc.rec.left,imageSrc.rec.top);
             StageApp.pixiApp.stage.addChild(sprite);
         }
