@@ -1,6 +1,6 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
-import {ImageAssert, rect} from "../Project/ProjectAsserts";
+import { ImageAssert, rect } from "../Project/ProjectAsserts";
 import MeshGraphics from "./MeshGraphics.ts";
 class StageApp {
     static pixiApp: PIXI.Application
@@ -16,7 +16,7 @@ class StageApp {
         for (let child of stageDomRef.children) {
             stageDomRef.removeChild(child);
         }
-        if(StageApp.pixiApp != null)
+        if (StageApp.pixiApp != null)
             StageApp.pixiApp.destroy();
 
         StageApp.pixiApp = new PIXI.Application();
@@ -64,9 +64,9 @@ class StageApp {
 
     protected static onWheelChange(e: WheelEvent) {
         const thisApp = StageApp.pixiApp;
-        const stagePos = thisApp.stage.toLocal({x: e.offsetX, y: e.offsetY});
+        const stagePos = thisApp.stage.toLocal({ x: e.offsetX, y: e.offsetY });
         const oldZoom = thisApp.stage.scale.x
-        const scale = e.deltaY > 0 ? oldZoom * 0.9 : oldZoom * 1.1;
+        const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
         const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
         const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
         thisApp.stage.scale.set(scale);
@@ -80,12 +80,9 @@ class StageApp {
             let imageSrc = assetListElement.value as ImageAssert;
             const imageData = new ImageData(imageSrc.pixMap, imageSrc.rec.width, imageSrc.rec.height);
             const imageBitMap = await createImageBitmap(imageData);
-            // const texture = PIXI.Texture.from(imageBitMap,false);
-            // const sprite = new PIXI.Sprite(texture);
-            let sw = new MeshGraphics(imageBitMap);
-            const sprite = sw.Mesh;
-            sprite.position.set(imageSrc.rec.left,imageSrc.rec.top);
-            StageApp.pixiApp.stage.addChild(sprite);
+            let Graphics = new MeshGraphics(imageBitMap);
+            Graphics.Mesh.position.set(imageSrc.rec.left, imageSrc.rec.top);
+            StageApp.pixiApp.stage.addChild(Graphics.Mesh);
         }
     }
 }
