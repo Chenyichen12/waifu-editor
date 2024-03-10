@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import {ref} from "vue";
-import Project from "../Project/Project.ts";
-
+import Project from "../Project/Project"
 const showWaitDialog = ref(false);
 const showErrorDialog = ref(false);
 

@@ -1,6 +1,5 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
-import { ImageAssert, rect } from "../Project/ProjectAsserts";
 import MeshGraphics from "./MeshGraphics.ts";
 class StageApp {
     static pixiApp: PIXI.Application
@@ -28,7 +27,7 @@ class StageApp {
 
         stageDomRef.appendChild(StageApp.pixiApp.canvas);
         const projectRoot = Project.instance.value.root;
-        const projectRect = projectRoot.rect;
+        const projectRect = projectRoot.bound;
         StageApp.addBg(projectRect);
         await StageApp.addSprite();
 
@@ -55,7 +54,7 @@ class StageApp {
         StageApp.pixiApp.canvas.onwheel = StageApp.onWheelChange;
     }
 
-    protected static addBg(rect: rect) {
+    protected static addBg(rect: { width: number, height: number }) {
         const bg = new PIXI.Graphics();
         bg.rect(0, 0, rect.width, rect.height);
         bg.fill(0xECECEC)
@@ -74,15 +73,11 @@ class StageApp {
         thisApp.stage.position.y += oldDy
     }
     protected static async addSprite() {
-        const assetList = Project.instance.value!.assert.value;
-        //const rect = Project.instance.value!.root!.rect;
-        for (let assetListElement of assetList) {
-            let imageSrc = assetListElement.value as ImageAssert;
-            const imageData = new ImageData(imageSrc.pixMap, imageSrc.rec.width, imageSrc.rec.height);
-            const imageBitMap = await createImageBitmap(imageData);
-            let Graphics = new MeshGraphics(imageBitMap);
-            Graphics.Mesh.position.set(imageSrc.rec.left, imageSrc.rec.top);
-            StageApp.pixiApp.stage.addChild(Graphics.Mesh);
+        const list = Project.instance.value!.assetList;
+        for (const item of list) {
+            const gra = new MeshGraphics(item.texture!);
+            gra.Mesh.position.set(item.bound.left, item.bound.top);
+            StageApp.pixiApp.stage.addChild(gra.Mesh);
         }
     }
 }
