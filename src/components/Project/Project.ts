@@ -1,98 +1,72 @@
-import {Ref, ref, shallowRef} from "vue";
-import {Group, Layer, NormalLayer, Root} from "../TreeStruct/LayerTree.ts";
-import {Assert, ImageAssert, rect} from "./ProjectAsserts.ts";
-import Psd, {NodeChild} from "@webtoon/psd";
-
+import { Root, Layer, NormalLayer, Group } from "./LayerStruct";
+import { ref, shallowRef } from "vue";
+import { ImageAsset } from './ProjectAssets'
+import Psd, { NodeChild } from '@webtoon/psd'
 class Project {
-    protected static _instance = shallowRef<Project | null>(null)
-    name: Ref<string> = ref("未命名")
-    /**
-     * Root在项目中不会改变
-     * 名称和项目名称相同
-     */
-    root: Root | null = null
-    /**
-     * assert列表 用于代表图片，文件等
-     * 列表为响应式的
-     * 其中的元素应也是响应式的
-     */
-    assert: Ref<Ref<Assert>[]> = ref(ref([]))
+	protected static _instance = shallowRef<Project | null>(null);
+	name: string = "未命名";
+	// root和instance的生命周期相同 root组成了所有资源的根节点
+	protected _root: Root = new Root({
+		width: 0, height: 0
+	});
+	//图片合集 内有texture
+	protected _assetsList: ImageAsset[] = [];
 
-    /**
-     * 用于从PSD初始化一个工程 需要进行错误处理
-     */
-    static async initFromPsd(f: File|Blob) {
-        const newProject = new Project();
-        const p = Psd.parse(await f.arrayBuffer());
-        const children = await this.parseChild(p.children);
-        const rect: rect = {
-            width: p.width,
-            height: p.height,
-            top:0,
-            left:0
-        }
-        newProject.root = new Root(ref(p.name),rect, shallowRef(children));
-        newProject.assert = ref(this.getAssertFromRoot(newProject.root));
-        Project._instance.value = newProject;
-    }
+	protected constructor() { }
+	static get instance() {
+		return Project._instance;
+	}
+	get root() {
+		return this._root;
+	}
+	get assetList() {
+		return this._assetsList;
+	}
 
-    /**
-     * 从Root中提取Assert，
-     */
-    protected static getAssertFromRoot(root: Root) {
-        return ref(findAssert(root));
+	static async initFromPsd(f: File | Blob) {
+		const newProject = new Project();
+		const p = Psd.parse(await f.arrayBuffer());
+		const rootChild = await parseChild(p.children);
+		const newRoot = new Root({
+			name: ref(p.name),
+			children: shallowRef(rootChild),
+			width: p.width,
+			height: p.height,
+		})
+		newProject._root = newRoot;
+		Project._instance.value = newProject;
 
-        function findAssert(group: Group) {
-            const assertList: Ref<Assert>[] = []
-            for (const child of group.children.value) {
-                if (child.type == "Normal") {
-                    assertList.push((child as NormalLayer).assert)
-                }
-                if (child.type == "Group") {
-                    assertList.push(...findAssert(child as Group));
-                }
-            }
-            return assertList;
-        }
-    }
+		async function parseChild(nodeChild: NodeChild[]): Promise<Layer[]> {
+			const res: Layer[] = [];
+			for (const child of nodeChild) {
+				if (child.type == "Group") {
+					const c = await parseChild(child.children);
+					res.push(new Group({
+						name: ref(child.name),
+						children: shallowRef(c)
+					}));
+				} else {
+					const asset = new ImageAsset({
+						top: child.top,
+						left: child.left,
+						width: child.width,
+						height: child.height
+					})
+					await asset.loadFromArray(await child.composite());
+					newProject._assetsList.push(asset);
 
-    /**
-     * 使用parsePSD库提取信息转化为Root
-     */
-    protected static async parseChild(children: NodeChild[]): Promise<Layer[]> {
-        const res: Layer[] = []
-        for (const child of children) {
-            if (child.type == "Group") {
-                const c = this.parseChild(child.children);
+					const newNormal = new NormalLayer({
+						name: ref(child.name),
+						asset: asset
+					})
+					res.push(newNormal);
+				}
+			}
+			return res;
+		}
 
-                res.push(getGroup(child.name, await c));
-            }
-            if (child.type == "Layer") {
-                const rec: rect = {
-                    height: child.height,
-                    left: child.left,
-                    top: child.top,
-                    width: child.width
-                }
-                res.push(getNormalLayer(child.name, await child.composite(), rec));
-            }
-        }
-        return res;
+	}
 
-        function getNormalLayer(name: string, buffer: Uint8ClampedArray, r: rect): NormalLayer {
-            const assert = new ImageAssert(buffer, r);
-            return new NormalLayer(ref(name), ref(assert))
-        }
-
-        function getGroup(name: string, children: Layer[]): Group {
-            return new Group(ref(name), shallowRef(children))
-        }
-    }
-
-
-    static get instance() {
-        return Project._instance
-    }
 }
 
-export default Project
+export default Project;

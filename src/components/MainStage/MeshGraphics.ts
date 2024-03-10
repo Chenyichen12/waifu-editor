@@ -7,14 +7,14 @@ import frag from './layerShader.frag?raw'
 class MeshGraphics {
 
     Mesh
-    constructor(imageSrc: ImageBitmap) {
+    constructor(texture: Texture) {
         const geometry = new Geometry({
             attributes: {
                 aPosition: [
                     0, 0,
-                    imageSrc.width, 0,
-                    imageSrc.width, imageSrc.height,
-                    0, imageSrc.height
+                    texture.width, 0,
+                    texture.width, texture.height,
+                    0, texture.height
                 ],
                 aUV: [
                     0, 0,
@@ -25,7 +25,6 @@ class MeshGraphics {
             },
             indexBuffer: [0, 1, 2, 0, 2, 3]
         })
-        const texture = Texture.from(imageSrc);
         const shader = Shader.from({
             gl: {
                 vertex: vert,
