@@ -21,7 +21,8 @@ class StageApp {
         StageApp.pixiApp = new PIXI.Application();
         await StageApp.pixiApp.init(({
             background: "#4BC1F0",
-            resizeTo: stageDomRef
+            resizeTo: stageDomRef,
+            preference: "webgl",
         }));
         StageApp.pixiApp.stage.interactive = true
 
