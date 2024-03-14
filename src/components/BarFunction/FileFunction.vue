@@ -7,6 +7,7 @@ const showErrorDialog = ref(false);
 function receive(e: Event) {
   let files = (e.target as HTMLInputElement).files!
   if (files.length == 0) {
+    
     return
   }
   const file = files[0];

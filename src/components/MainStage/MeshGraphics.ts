@@ -4,18 +4,27 @@ import frag from './layerShader.frag?raw'
 // interface MeshProp{
 //     geometry: Geometry
 // }
+interface PositionList {
+    position: number[],
+    index: number[]
+}
 class MeshGraphics {
 
     Mesh
+    pointList: PositionList
     constructor(texture: Texture) {
+        this.pointList = {
+            position: [
+                0, 0,
+                texture.width, 0,
+                texture.width, texture.height,
+                0, texture.height
+            ],
+            index: [0, 1, 2, 0, 2, 3]
+        }
         const geometry = new Geometry({
             attributes: {
-                aPosition: [
-                    0, 0,
-                    texture.width, 0,
-                    texture.width, texture.height,
-                    0, texture.height
-                ],
+                aPosition: this.pointList.position,
                 aUV: [
                     0, 0,
                     1, 0,
@@ -23,7 +32,7 @@ class MeshGraphics {
                     0, 1
                 ]
             },
-            indexBuffer: [0, 1, 2, 0, 2, 3]
+            indexBuffer: this.pointList.index
         })
         const shader = Shader.from({
             gl: {
