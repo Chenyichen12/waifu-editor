@@ -1,12 +1,30 @@
 import MeshGraphics from "../MeshGraphics";
 class MeshPoint {
-    x: number
-    y: number
+    protected _x: number
+    protected _y: number
     parent: MeshGraphics
     constructor(x: number, y: number, parent: MeshGraphics) {
-        this.x = x;
-        this.y = y;
+        this._x = x;
+        this._y = y;
         this.parent = parent;
     }
+    setPosition(x?: number, y?: number): void {
+        this._x = x ?? this._x;
+        this._y = y ?? this._y;
 
+    }
+
+    get x() {
+        return this._x;
+    }
+    get y() {
+        return this._y;
+    }
+    get xy() {
+        return {
+            x: this._x,
+            y: this._y
+        }
+    }
 }
+export default MeshPoint;

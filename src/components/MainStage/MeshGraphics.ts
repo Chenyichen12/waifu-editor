@@ -1,30 +1,71 @@
-import { Geometry, Mesh, Shader, Texture } from "pixi.js";
+import { Geometry, Mesh as pixiMesh, Shader, Texture } from "pixi.js";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
-// interface MeshProp{
-//     geometry: Geometry
-// }
+import MeshPoint from "./GraphicsBase/Point";
+import { ref, watch } from "vue";
 interface PositionList {
-    position: number[],
-    index: number[]
+    position: MeshPoint[],
+    index: number[],
 }
 class MeshGraphics {
 
-    Mesh
-    pointList: PositionList
+    Mesh: pixiMesh<Geometry, Shader>
+    pointList
+
+    unWatchPoint
+
+    createPoint(x: number, y: number) {
+        return new MeshPoint(x, y, this);
+    }
+
+    protected changeToBuffer() {
+        const res: number[] = [];
+        this.pointList.value.position.forEach((v) => {
+            res.push(v.x, v.y);
+        })
+        return res;
+    }
+
+    upDatePoint() {
+        console.log("PointUpdate");
+
+        const newPos = this.changeToBuffer();
+        const positionBuffer = this.Mesh.geometry.getAttribute("aPosition").buffer;
+
+        newPos.forEach((v, i) => {
+            positionBuffer.data[i] = v;
+        })
+        positionBuffer.update();
+    }
+
+    upDateGeometry() {
+    }
     constructor(texture: Texture) {
-        this.pointList = {
+
+        const pList = {
             position: [
-                0, 0,
-                texture.width, 0,
-                texture.width, texture.height,
-                0, texture.height
+                this.createPoint(0, 0),
+                this.createPoint(texture.width, 0),
+                this.createPoint(texture.width, texture.height),
+                this.createPoint(0, texture.height)
             ],
             index: [0, 1, 2, 0, 2, 3]
         }
+        this.pointList = ref(pList);
+
+        this.unWatchPoint = watch(this.pointList, (n, o) => {
+            if (n.position.length === o.position.length) {
+                this.upDatePoint();
+            } else {
+                this.upDateGeometry();
+            }
+        }, {
+            deep: true,
+        })
+
         const geometry = new Geometry({
             attributes: {
-                aPosition: this.pointList.position,
+                aPosition: this.changeToBuffer(),
                 aUV: [
                     0, 0,
                     1, 0,
@@ -32,7 +73,7 @@ class MeshGraphics {
                     0, 1
                 ]
             },
-            indexBuffer: this.pointList.index
+            indexBuffer: this.pointList.value.index
         })
         const shader = Shader.from({
             gl: {
@@ -44,8 +85,14 @@ class MeshGraphics {
             }
         })
 
-        this.Mesh = new Mesh({ shader: shader, geometry: geometry });
+        this.Mesh = new pixiMesh({ shader: shader, geometry: geometry });
         //console.log(this.Mesh)
+
+
+    }
+    destory() {
+        this.Mesh.destroy()
+        this.unWatchPoint();
     }
 }
 export default MeshGraphics
