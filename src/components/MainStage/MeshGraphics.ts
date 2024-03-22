@@ -1,7 +1,7 @@
 import { Geometry, Mesh as pixiMesh, Shader, Texture } from "pixi.js";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
-import MeshPoint from "./GraphicsBase/Point";
+import MeshPoint from "./GraphicsBase/MeshPoint";
 import { ref, watch } from "vue";
 interface PositionList {
     position: MeshPoint[],

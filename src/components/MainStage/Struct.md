@@ -11,8 +11,7 @@ class GraphicsLayer{
     +get state() State
     +texture: TextTureLayer
     +mesh: MeshLayer
-    +toLocal(stagePoint: Point)Point
-    +toGlobal(localPoint: Point)Point
+
     +constractor()
 
     + hide()
@@ -46,19 +45,24 @@ class MeshLayer{
     +itemAtPosition(x,y) number // index
     +selectedPointItem?: number // index 
     +selectedLineItem?: number //index
-    +upDate() // 用于重绘    #handleMousePressEvent()
+    +upDate() // 用于重绘    
+    #handleMousePressEvent()
+    +toLocal(stagePoint: Point)Point
+    +toGlobal(localPoint: Point)Point
     #handleMouseMovingEvent()
     #handleMouseUpEvent()
 }
 
 class MeshPoint{
     +constractor(x: number,y:number)
-    +lines: MeshLine[] 
+    +lines: MeshLine[]
+    +isContain() boolean
 }
 
 class MeshLine{
     +p1: MeshPoint
-    +p2: MeshPoint   
+    +p2: MeshPoint
+    +isContain() boolean   
 }
 class TextureLayer{
     
