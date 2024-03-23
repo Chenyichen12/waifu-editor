@@ -1,11 +1,11 @@
-import MeshGraphics from "../MeshGraphics";
+import MeshLayer from "./MeshLayer";
 import MeshLine from "./MeshLine";
 class MeshPoint {
     protected _x: number
     protected _y: number
-    parent: MeshGraphics
+    parent: MeshLayer
     lines: MeshLine[] = []
-    constructor(x: number, y: number, parent: MeshGraphics) {
+    constructor(x: number, y: number, parent: MeshLayer) {
         this._x = x;
         this._y = y;
         this.parent = parent;

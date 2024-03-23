@@ -1,3 +1,4 @@
+import { ImageAsset } from "../Project/ProjectAssets"
 import MeshLayer from "./GraphicsBase/MeshLayer"
 import TextureLayer from "./TextureBase/TextureLayer"
 import { Container } from "pixi.js"
@@ -7,18 +8,30 @@ enum State {
     PointMoveState,
     HideMeshState,
 }
-
+interface GraphicsLayerOption {
+    texture: ImageAsset
+}
 class GraphicsLayer extends Container {
+
     state: State = State.PointMoveState
-    mesh: MeshLayer = new MeshLayer()
-    texture: TextureLayer
+    //mesh: MeshLayer = new MeshLayer()
+    //texture: TextureLayer
+
+    layerRect: {
+        height: number,
+        width: number,
+        left: number,
+        top: number
+    }
+
     protected _show = true
     set show(isShow: boolean) {
         this._show = isShow
     }
-    constructor(mesh: MeshLayer, texture: TextureLayer) {
+    constructor(option: GraphicsLayerOption) {
         super();
-        this.texture = texture;
+        this.layerRect = option.texture.bound;
+        this.position.set(this.layerRect.left, this.layerRect.height);
     }
     protected _showMesh = false
     set showMesh(isShow: boolean) {
