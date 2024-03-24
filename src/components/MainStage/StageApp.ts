@@ -1,6 +1,7 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
 import MeshGraphics from "./MeshGraphics.ts";
+import GraphicsLayer from "./GraphicsLayer.ts";
 class StageApp {
     static pixiApp: PIXI.Application
     static isMousePress = false
@@ -75,9 +76,11 @@ class StageApp {
     protected static async addSprite() {
         const list = Project.instance.value!.assetList;
         for (const item of list) {
-            const gra = new MeshGraphics(item.texture!);
-            gra.Mesh.position.set(item.bound.left, item.bound.top);
-            StageApp.pixiApp.stage.addChild(gra.Mesh);
+            // const gra = new MeshGraphics(item.texture!);
+            // gra.Mesh.position.set(item.bound.left, item.bound.top);
+            // StageApp.pixiApp.stage.addChild(gra.Mesh);
+            const gra = new GraphicsLayer({ texture: item })
+            StageApp.pixiApp.stage.addChild(gra);
         }
     }
 }

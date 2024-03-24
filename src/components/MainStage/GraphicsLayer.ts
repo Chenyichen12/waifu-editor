@@ -14,8 +14,8 @@ interface GraphicsLayerOption {
 class GraphicsLayer extends Container {
 
     state: State = State.PointMoveState
-    //mesh: MeshLayer = new MeshLayer()
-    //texture: TextureLayer
+    mesh: MeshLayer
+    texture: TextureLayer
 
     layerRect: {
         height: number,
@@ -24,6 +24,7 @@ class GraphicsLayer extends Container {
         top: number
     }
 
+
     protected _show = true
     set show(isShow: boolean) {
         this._show = isShow
@@ -31,6 +32,11 @@ class GraphicsLayer extends Container {
     constructor(option: GraphicsLayerOption) {
         super();
         this.layerRect = option.texture.bound;
+
+        this.mesh = new MeshLayer(this);
+        this.texture = new TextureLayer(option.texture.texture!, this);
+        this.addChild(this.texture);
+        this.addChild(this.mesh);
         this.position.set(this.layerRect.left, this.layerRect.height);
     }
     protected _showMesh = false

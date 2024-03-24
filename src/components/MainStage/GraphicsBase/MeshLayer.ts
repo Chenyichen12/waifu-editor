@@ -5,6 +5,21 @@ import GraphicsLayer from "../GraphicsLayer";
 
 class MeshLayer extends Graphics {
     update() {
+        this.clear();
+        this.lineList.forEach((item) => {
+            this.moveTo(item.p1.x, item.p1.y)
+                .lineTo(item.p2.x, item.p2.y)
+                .stroke({
+                    color: 0xff0000,
+                    width: 10
+                });
+        })
+        this.pointList.forEach((item) => {
+            this.circle(item.x, item.y, 20)
+                .fill({
+                    color: 0xff0000
+                })
+        })
 
     }
     pointList: MeshPoint[] = []
@@ -29,14 +44,16 @@ class MeshLayer extends Graphics {
     constructor(parent: GraphicsLayer) {
         super()
         this.parentLayer = parent
+        this.generateFirstPoints(0, 0, this.parentLayer.layerRect.width, this.parentLayer.layerRect.height);
 
+        this.update();
     }
 
     generateFirstPoints(top: number, left: number, width: number, height: number) {
-        const topLeft = new MeshPoint(left, top, this);
-        const topRight = new MeshPoint(left + width, top, this);
-        const buttonLeft = new MeshPoint(left, top + height, this);
-        const buttonRight = new MeshPoint(left + width, top + height, this);
+        const topLeft = new MeshPoint(left, top, 0, 0, this);
+        const topRight = new MeshPoint(left + width, top, 1, 0, this);
+        const buttonLeft = new MeshPoint(left, top + height, 0, 1, this);
+        const buttonRight = new MeshPoint(left + width, top + height, 1, 1, this);
         this.pointList.push(topLeft);
         this.pointList.push(topRight);
         this.pointList.push(buttonLeft);
