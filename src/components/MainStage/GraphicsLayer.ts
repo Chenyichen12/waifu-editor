@@ -20,8 +20,6 @@ class GraphicsLayer extends Container {
     layerRect: {
         height: number,
         width: number,
-        left: number,
-        top: number
     }
 
 
@@ -37,7 +35,7 @@ class GraphicsLayer extends Container {
         this.texture = new TextureLayer(option.texture.texture!, this);
         this.addChild(this.texture);
         this.addChild(this.mesh);
-        this.position.set(this.layerRect.left, this.layerRect.height);
+
     }
     protected _showMesh = false
     set showMesh(isShow: boolean) {
