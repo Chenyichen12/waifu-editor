@@ -1,12 +1,12 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
 import GraphicsLayer from "./GraphicsLayer.ts";
+import { ref } from "vue";
 class StageApp {
     static pixiApp: PIXI.Application
     static isMousePress = false
     static isSpacePress = false
-
-
+    static scale = ref(1);
     static async create(stageDomRef: HTMLDivElement) {
         if (Project.instance.value?.root == null) {
             return
@@ -35,6 +35,7 @@ class StageApp {
         const scaleX = StageApp.pixiApp.screen.width / projectRect.width;
         const scaleY = StageApp.pixiApp.screen.height / projectRect.height;
         const scale = scaleX > scaleY ? scaleY : scaleX;
+        StageApp.scale.value = scale;
         const scaleAfterX = projectRect.width * scale
         const scaleAfterY = projectRect.height * scale
         StageApp.pixiApp.stage.scale.set(scale)
@@ -70,6 +71,7 @@ class StageApp {
         const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
         const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
         thisApp.stage.scale.set(scale);
+        StageApp.scale.value = scale;
         thisApp.stage.position.x += oldDx;
         thisApp.stage.position.y += oldDy
     }

@@ -1,9 +1,14 @@
-import { Graphics } from "pixi.js";
+import { DestroyOptions, Graphics } from "pixi.js";
 import MeshPoint from "./MeshPoint";
 import MeshLine from "./MeshLine";
 import GraphicsLayer from "../GraphicsLayer";
+import { watch } from "vue";
+import StageApp from "../StageApp";
 
 class MeshLayer extends Graphics {
+
+    protected appScale = StageApp.scale.value
+    protected unwatchScale
     update() {
         this.clear();
         this.lineList.forEach((item) => {
@@ -11,11 +16,11 @@ class MeshLayer extends Graphics {
                 .lineTo(item.p2.x, item.p2.y)
                 .stroke({
                     color: 0xff0000,
-                    width: 10
+                    width: 1 / this.appScale
                 });
         })
         this.pointList.forEach((item) => {
-            this.circle(item.x, item.y, 20)
+            this.circle(item.x, item.y, 3 / this.appScale)
                 .fill({
                     color: 0xff0000
                 })
@@ -45,7 +50,10 @@ class MeshLayer extends Graphics {
         super()
         this.parentLayer = parent
         this.generateFirstPoints(0, 0, this.parentLayer.layerRect.width, this.parentLayer.layerRect.height);
-
+        this.unwatchScale = watch(StageApp.scale, () => {
+            this.appScale = StageApp.scale.value
+            this.update()
+        })
         this.update();
     }
 
@@ -70,6 +78,9 @@ class MeshLayer extends Graphics {
         this.lineList.push(line4);
         this.lineList.push(line5);
     }
-
+    destroy(options?: DestroyOptions | undefined): void {
+        this.unwatchScale();
+        super.destroy(options);
+    }
 }
 export default MeshLayer
