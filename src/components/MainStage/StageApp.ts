@@ -1,6 +1,5 @@
 import Project from "../Project/Project";
 import * as PIXI from "pixi.js";
-import MeshGraphics from "./MeshGraphics.ts";
 import GraphicsLayer from "./GraphicsLayer.ts";
 class StageApp {
     static pixiApp: PIXI.Application
