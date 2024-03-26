@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {ElContainer,ElHeader, ElFooter,ElMain} from "element-plus";
+import { ElContainer, ElHeader, ElFooter, ElMain } from "element-plus";
 import TopBar from "./components/TopBar.vue";
 import Stage from "./components/MainStage/Stage.vue";
-import {onMounted} from "vue";
+import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
 
 
@@ -14,11 +14,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-container class = "el-container">
+  <el-container class="el-container">
     <el-header class="el-header">
       <TopBar />
     </el-header>
-    <el-container class = "main-stage">
+    <el-container class="main-stage">
       <el-aside>
       </el-aside>
       <el-aside>
@@ -33,33 +33,38 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.el-container{
+.el-container {
   height: 100%;
   background-color: var(--el-menu-bg-color);
 }
-.el-header{
+
+.el-header {
   height: 20px;
   background-color: var(--el-color-primary-light-8);
 }
 
-.el-footer{
+.el-footer {
   height: 20px;
   background-color: var(--el-color-primary-light-8);
 }
-.el-main{
+
+.el-main {
   background-color: var(--el-menu-bg-color);
 }
-.main-stage{
+
+.main-stage {
   background-color: var(--el-menu-bg-color);
   border-color: var(--el-color-primary-light-8);
-  .el-aside{
+
+  .el-aside {
     background-color: var(--el-menu-bg-color);
     border-style: none solid;
     border-color: var(--el-color-primary-light-8);
     margin: 0 1px;
     width: 200px;
   }
-  .el-main{
+
+  .el-main {
     margin: 0;
     padding: 0;
   }

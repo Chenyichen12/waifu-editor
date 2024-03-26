@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {onMounted, ref, watch} from "vue";
+import { onMounted, ref, watch } from "vue";
 import Project from "../Project/Project.ts";
 import StageApp from './StageApp'
 const stageDomRef = ref<HTMLDivElement | null>(null)
@@ -15,11 +15,11 @@ function handleKeyUp(e: KeyboardEvent) {
   StageApp.isSpacePress = false;
   (e.target as HTMLDivElement).style.cursor = "default";
 }
-watch(Project.instance,(v)=>{
-  if(v == null) return;
+watch(Project.instance, (v) => {
+  if (v == null) return;
   initApp();
 })
-function initApp(){
+function initApp() {
   StageApp.create(stageDomRef.value!);
 
 }
