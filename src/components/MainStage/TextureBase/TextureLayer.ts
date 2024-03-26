@@ -1,6 +1,6 @@
 import { Geometry, Mesh, Shader, Texture } from "pixi.js";
-import vert from '../layerShader.vert?raw'
-import frag from '../layerShader.frag?raw'
+import vert from './layerShader.vert?raw'
+import frag from './layerShader.frag?raw'
 import GraphicsLayer from "../GraphicsLayer";
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import MeshLine from "../GraphicsBase/MeshLine";
