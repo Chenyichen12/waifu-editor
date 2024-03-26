@@ -2,12 +2,12 @@ import { DestroyOptions, Graphics } from "pixi.js";
 import MeshPoint from "./MeshPoint";
 import MeshLine from "./MeshLine";
 import GraphicsLayer from "../GraphicsLayer";
-import { watch } from "vue";
-import StageApp from "../StageApp";
+import { ref, watch } from "vue";
+import { instanceApp } from "../StageApp";
 
 class MeshLayer extends Graphics {
 
-    protected appScale = StageApp.scale.value
+    protected appScale: number = instanceApp.value?.appScale.value ?? 1;
     protected unwatchScale
     update() {
         this.clear();
@@ -50,8 +50,8 @@ class MeshLayer extends Graphics {
         super()
         this.parentLayer = parent
         this.generateFirstPoints(0, 0, this.parentLayer.layerRect.width, this.parentLayer.layerRect.height);
-        this.unwatchScale = watch(StageApp.scale, () => {
-            this.appScale = StageApp.scale.value
+        this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(0), (v) => {
+            this.appScale = v;
             this.update()
         })
         this.update();

@@ -1,26 +1,33 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
 import Project from "../Project/Project.ts";
-import StageApp from './StageApp'
+import StageApp, { instanceApp } from './StageApp'
 const stageDomRef = ref<HTMLDivElement | null>(null)
 
 function shouldDragStage(e: KeyboardEvent) {
   if (e.code === "Space") {
-    StageApp.isSpacePress = true;
+    if (instanceApp.value != null) {
+      instanceApp.value.isSpacePress = true;
+    }
     (e.target as HTMLDivElement).style.cursor = "pointer";
   }
 }
 
 function handleKeyUp(e: KeyboardEvent) {
-  StageApp.isSpacePress = false;
+  if (instanceApp.value != null) {
+    instanceApp.value.isSpacePress = false;
+  }
   (e.target as HTMLDivElement).style.cursor = "default";
 }
 watch(Project.instance, (v) => {
   if (v == null) return;
+  if (instanceApp.value != null)
+    instanceApp.value.destroy();
   initApp();
 })
 function initApp() {
-  StageApp.create(stageDomRef.value!);
+  const stage = new StageApp(stageDomRef.value!);
+  stage.init();
 
 }
 onMounted(async () => {
