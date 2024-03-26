@@ -27,35 +27,45 @@ class TextureLayer extends Mesh<Geometry, Shader>{
         })
         super({ geometry: geometry, shader: shader })
     }
+    /**
+     * 给定一个mesh生成glbuffer 需要生成indexBuffer
+     * 大概存在性能问题，需要优化
+     * @param mesh 
+     * @returns 
+     */
     static generateGlBuffer(mesh: MeshLayer) {
         const tranigleList: tranigle[] = []
+        const alreadyLine = new Set<MeshLine>();
         for (const line of mesh.lineList) {
+            alreadyLine.add(line);
             const p1 = line.p1;
             const p2 = line.p2;
-            const anotherPoint = (p: MeshPoint, line: MeshLine) => {
-                if (line.p1 === p) return line.p2
-                else return line.p1;
-            }
-            for (const pl of p2.lines) {
-                const p3 = anotherPoint(p2, pl);
-                for (const l3 of p3.lines) {
-                    if (anotherPoint(p3, l3) === p1) {
-                        const newTri = new tranigle(line, pl, l3);
-                        let flag = true
-                        for (const tri of tranigleList) {
-                            if (tri.isEqual(newTri)) {
-                                flag = false;
-                                break
+            /**
+             * 三层循环，虽然采用了alreadyLine进行一定的优化
+             * 我觉得主要需要优化枚举line3的地方
+             * 或者用枚举点来解决
+             * 对每个点的边进行枚举，相邻的两个边一定存在三角形，之后标注每条边建立三角形
+             */
+            const findAll = () => {
+                for (const line2 of p1.lines) {
+                    if (alreadyLine.has(line2))
+                        continue;
+                    const p3 = line2.anotherPoint(p1)!;
+                    for (const line3 of p3.lines) {
+                        if (line3.anotherPoint(p3) === p2) {
+                            const newtri = new tranigle(line, line2, line3);
+                            const tri = tranigleList.find((v) => {
+                                return v.isEqual(newtri);
+                            });
+                            if (tri == null) {
+                                tranigleList.push(newtri);
                             }
+                            break;
                         }
-                        if (flag) {
-                            tranigleList.push(newTri);
-                        }
-                        break;
                     }
                 }
             }
-
+            findAll();
         }
 
         const positionList: number[] = [];
