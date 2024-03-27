@@ -65,10 +65,10 @@ class Root extends Group {
 }
 
 class NormalLayer extends Layer {
-	asset: ImageAsset;
-	constructor(option: LayerOptions & { asset: ImageAsset }) {
+	assetId: string;
+	constructor(option: LayerOptions & { assetId: string }) {
 		super(option);
-		this.asset = option.asset;
+		this.assetId = option.assetId;
 	}
 	get type() {
 		return LayerType.NormalLayer;

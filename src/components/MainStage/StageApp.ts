@@ -74,7 +74,8 @@ class StageApp {
     }
     protected static async addSprite() {
         const list = Project.instance.value!.assetList;
-        for (const item of list) {
+        for (const keyItem of list) {
+            const item = keyItem[1];
             const gra = new MeshGraphics(item.texture!);
             gra.Mesh.position.set(item.bound.left, item.bound.top);
             StageApp.pixiApp.stage.addChild(gra.Mesh);

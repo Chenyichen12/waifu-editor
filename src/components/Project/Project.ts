@@ -10,7 +10,7 @@ class Project {
 		width: 0, height: 0
 	});
 	//图片合集 内有texture
-	protected _assetsList: ImageAsset[] = [];
+	protected _assetsList: Map<string, ImageAsset> = new Map<string, ImageAsset>();
 
 	protected constructor() { }
 	static get instance() {
@@ -53,11 +53,11 @@ class Project {
 						height: child.height
 					})
 					await asset.loadFromArray(await child.composite());
-					newProject._assetsList.push(asset);
+					newProject._assetsList.set(asset.assetId, asset);
 
 					const newNormal = new NormalLayer({
 						name: ref(child.name),
-						asset: asset
+						assetId: asset.assetId
 					})
 					res.push(newNormal);
 				}
