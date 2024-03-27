@@ -1,4 +1,4 @@
-import { Geometry, Mesh, Shader, Texture } from "pixi.js";
+import { Geometry, Mesh, Shader } from "pixi.js";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
 import GraphicsLayer from "../GraphicsLayer";
@@ -8,10 +8,9 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 import { ImageAsset } from "../../Project/ProjectAssets";
 
 class TextureLayer extends Mesh<Geometry, Shader>{
-    graParent
-    projectTexture
+    graParent: GraphicsLayer
+    projectTexture: ImageAsset
     constructor(texture: ImageAsset, parent: GraphicsLayer) {
-
         const bufferInformation = TextureLayer.generateGlBuffer(parent.mesh);
         const geometry = new Geometry({
             attributes: {
@@ -32,6 +31,9 @@ class TextureLayer extends Mesh<Geometry, Shader>{
         super({ geometry: geometry, shader: shader })
         this.graParent = parent
         this.projectTexture = texture;
+    }
+    get textureGeometry() {
+        return this.projectTexture.bound;
     }
     /**
      * 给定一个mesh生成glbuffer 需要生成indexBuffer

@@ -2,7 +2,7 @@ import { ImageAsset } from "../Project/ProjectAssets"
 import MeshLayer from "./GraphicsBase/MeshLayer"
 import MeshPoint from "./GraphicsBase/MeshPoint"
 import TextureLayer from "./TextureBase/TextureLayer"
-import { Container, Rectangle } from "pixi.js"
+import { Container } from "pixi.js"
 
 enum State {
     MeshEditState,
@@ -36,7 +36,6 @@ class GraphicsLayer extends Container {
         this.addChild(this.texture);
         this.addChild(this.mesh);
         this.mesh.visible = false;
-        this.hitArea = new Rectangle(0, 0, this.layerRect.width, this.layerRect.height);
     }
 
     protected _showMesh = false
@@ -100,11 +99,11 @@ class GraphicsLayer extends Container {
         }
         const array = this.texture.projectTexture.array!;
 
-        const xIndex = Math.floor(this.texture.projectTexture.bound.width * uv.u);
-        const yIndex = Math.floor(this.texture.projectTexture.bound.height * uv.v);
+        const xIndex = Math.floor(this.texture.textureGeometry.width * uv.u);
+        const yIndex = Math.floor(this.texture.textureGeometry.height * uv.v);
         console.log(xIndex, yIndex);
-        const index = xIndex * 4 + this.texture.projectTexture.bound.width * yIndex * 4;
-        if (array[index + 4] === 0) {
+        const index = xIndex * 4 + this.texture.textureGeometry.width * yIndex * 4;
+        if (index + 4 >= array.length || array[index + 4] === 0) {
             return false
         }
         return true;
