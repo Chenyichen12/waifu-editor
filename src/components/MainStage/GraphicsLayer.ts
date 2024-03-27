@@ -1,8 +1,9 @@
+import { Ref, watch } from "vue"
 import { ImageAsset } from "../Project/ProjectAssets"
 import MeshLayer from "./GraphicsBase/MeshLayer"
 import MeshPoint from "./GraphicsBase/MeshPoint"
 import TextureLayer from "./TextureBase/TextureLayer"
-import { Container, Matrix } from "pixi.js"
+import { Container, DestroyOptions, Matrix } from "pixi.js"
 
 enum State {
     MeshEditState,
@@ -11,6 +12,7 @@ enum State {
 }
 interface GraphicsLayerOption {
     texture: ImageAsset
+    isShow: Ref<boolean>
 }
 class GraphicsLayer extends Container {
 
@@ -30,6 +32,7 @@ class GraphicsLayer extends Container {
 
     protected _show = true
 
+    unWatchVisible
     constructor(option: GraphicsLayerOption) {
         super();
         this.layerRect = option.texture.bound;
@@ -38,8 +41,14 @@ class GraphicsLayer extends Container {
         this.texture = new TextureLayer(option.texture, this);
         this.addChild(this.texture);
         this.mesh.visible = false;
+        this.unWatchVisible = watch(option.isShow, (v) => {
+            this.show = v;
+        })
     }
-
+    destroy(options?: DestroyOptions | undefined): void {
+        this.unWatchVisible();
+        super.destroy(options);
+    }
     protected _showMesh = false
     set showMesh(isShow: boolean) {
         this._showMesh = isShow

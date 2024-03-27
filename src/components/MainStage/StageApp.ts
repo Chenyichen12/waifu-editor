@@ -129,7 +129,7 @@ class StageApp extends Application {
                 const normal = child as NormalLayer;
                 const item = Project.instance.value!.assetList.get(normal.assetId);
                 if (item == null) continue;
-                const gra = new GraphicsLayer({ texture: item });
+                const gra = new GraphicsLayer({ texture: item, isShow: child.isVisible });
                 const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
                 gra.setFromMatrix(tranformMat);
                 this.graphicsChildren.push(gra);
@@ -167,6 +167,10 @@ abstract class StageState {
 function findFirstItemAtPosition(mousePosition: { offsetX: number, offsetY: number }, context: StageApp) {
     const stagePos = context.stage.toLocal({ x: mousePosition.offsetX, y: mousePosition.offsetY });
     for (const gra of context.graphicsChildren) {
+        //并不搜索不显示的图层
+        if (!gra.show) {
+            continue;
+        }
         if (gra.containsPoint(stagePos)) {
             return gra;
         }
@@ -178,6 +182,9 @@ function findAllItemAtPosition(mousePosition: { offsetX: number, offsetY: number
     const stagePos = context.stage.toLocal({ x: mousePosition.offsetX, y: mousePosition.offsetY });
     const res: GraphicsLayer[] = []
     for (const gra of context.graphicsChildren) {
+        if (!gra.show) {
+            continue;
+        }
         if (gra.containsPoint(stagePos)) {
             res.push(gra)
         }
