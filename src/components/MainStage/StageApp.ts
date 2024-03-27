@@ -2,6 +2,7 @@ import { Application, ApplicationOptions, EventBoundary, Graphics } from "pixi.j
 import { ref, shallowRef } from "vue";
 import Project from "../Project/Project";
 import GraphicsLayer from "./GraphicsLayer";
+import { Group, LayerType, NormalLayer, Root } from "../Project/LayerStruct";
 
 
 const instanceApp = shallowRef<StageApp | null>(null)
@@ -69,13 +70,26 @@ class StageApp extends Application {
         this.stage.addChild(bg)
     }
     protected addSprite() {
-        const list = Project.instance.value!.assetList;
-        for (const item of list) {
-            const gra = new GraphicsLayer({ texture: item })
-            this.stage.addChild(gra);
-            gra.position.set(item.bound.left, item.bound.top)
-
-            this.graphicsChildren.push(gra);
+        const proRoot = Project.instance.value!.root;
+        this.addLayer(proRoot);
+        this.graphicsChildren.reverse();
+        this.graphicsChildren.forEach((v) => {
+            this.stage.addChild(v);
+        })
+    }
+    protected addLayer(group: Root | Group) {
+        for (const child of group.children.value) {
+            if (child.type === LayerType.NormalLayer) {
+                const normal = child as NormalLayer;
+                const item = Project.instance.value!.assetList.get(normal.assetId);
+                if (item == null) continue;
+                const gra = new GraphicsLayer({ texture: item });
+                gra.position.set(item.bound.left, item.bound.top);
+                this.graphicsChildren.push(gra);
+            } else {
+                const gro = child as Group;
+                this.addLayer(gro);
+            }
         }
     }
     protected onWheelChange(e: WheelEvent) {
