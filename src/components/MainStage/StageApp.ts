@@ -9,6 +9,7 @@ const instanceApp = shallowRef<StageApp | null>(null)
 class StageApp extends Application {
     isMousePress = false; //是否鼠标按下
     isSpacePress = false; //是否空格按下
+    isShiftPress = false;
     appScale = ref(1); //视图的缩放
     stageDom //dom容器
     mouseState: StageState = new StageNormalState //鼠标的状态 状态模式
