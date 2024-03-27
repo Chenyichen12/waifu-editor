@@ -2,7 +2,7 @@ import { ImageAsset } from "../Project/ProjectAssets"
 import MeshLayer from "./GraphicsBase/MeshLayer"
 import MeshPoint from "./GraphicsBase/MeshPoint"
 import TextureLayer from "./TextureBase/TextureLayer"
-import { Container } from "pixi.js"
+import { Container, Matrix } from "pixi.js"
 
 enum State {
     MeshEditState,
@@ -23,7 +23,10 @@ class GraphicsLayer extends Container {
         height: number,
         width: number,
     }
-
+    setFromMatrix(matrix: Matrix): void {
+        this.mesh.setFromMatrix(matrix);
+        super.setFromMatrix(matrix);
+    }
 
     protected _show = true
 
@@ -42,7 +45,7 @@ class GraphicsLayer extends Container {
         this._showMesh = isShow
         if (isShow) {
             this.mesh.visible = true;
-            this.mesh.update();
+            this.mesh.alpha = 1;
         } else {
             this.mesh.visible = false;
         }
@@ -54,6 +57,17 @@ class GraphicsLayer extends Container {
         } else {
             this.showMesh = false;
             this.visible = false;
+        }
+    }
+    set showTempMesh(isShow: boolean) {
+        if (this._showMesh == true) {
+            return;
+        }
+        if (this._showMesh == false) {
+            this.mesh.visible = isShow;
+            if (isShow) {
+                this.mesh.alpha = 0.5;
+            }
         }
     }
     get show() {

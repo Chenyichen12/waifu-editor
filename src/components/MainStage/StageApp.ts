@@ -1,5 +1,5 @@
 import { Application, ApplicationOptions, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
-import { ref, shallowRef, watch } from "vue";
+import { ShallowRef, ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
 import GraphicsLayer from "./GraphicsLayer";
 import { Group, LayerType, NormalLayer, Root } from "../Project/LayerStruct";
@@ -15,6 +15,8 @@ class StageApp extends Application {
     mouseState: StageState = new StageNormalState //鼠标的状态 状态模式
     graphicsChildren: GraphicsLayer[] = [] //stage所有的图层
 
+    tempShowMesh: ShallowRef<GraphicsLayer | null> = shallowRef(null);
+    unWatchTempShowMesh
     selectGraphicsLayer // 选中的图层
     unWatchSelected // 停止监听选中图层
 
@@ -27,13 +29,21 @@ class StageApp extends Application {
             oldV.forEach((v) => {
                 v.showMesh = false;
             })
-            newV.forEach((v, i) => {
+            newV.forEach((v) => {
                 v.showMesh = true;
-                v.mesh.setFromMatrix(v.relativeGroupTransform);
-                this.stage.addChild(v.mesh);
-                v.mesh.zIndex = this.graphicsChildren.length + 1 + i;
             })
         })
+        this.unWatchTempShowMesh = watch(this.tempShowMesh, (newV, oldV) => {
+            if (newV === oldV) {
+                return;
+            }
+            if (oldV != null) {
+                oldV.showTempMesh = false;
+            }
+            if (newV != null) {
+                newV.showTempMesh = true;
+            }
+        });
         instanceApp.value = this;
     }
 
@@ -107,6 +117,9 @@ class StageApp extends Application {
         this.graphicsChildren.forEach((v, i) => {
             v.zIndex = this.graphicsChildren.length - i;
             this.stage.addChild(v);
+
+            this.stage.addChild(v.mesh);
+            v.mesh.zIndex = this.graphicsChildren.length * 2 - i;
         })
     }
     //递归添加图层
@@ -150,6 +163,27 @@ abstract class StageState {
     abstract onMouseUp(e: MouseEvent, context: StageApp): void
 }
 
+//找到第一个位置的item
+function findFirstItemAtPosition(mousePosition: { offsetX: number, offsetY: number }, context: StageApp) {
+    const stagePos = context.stage.toLocal({ x: mousePosition.offsetX, y: mousePosition.offsetY });
+    for (const gra of context.graphicsChildren) {
+        if (gra.containsPoint(stagePos)) {
+            return gra;
+        }
+    }
+    return null;
+}
+//现在还用不到
+function findAllItemAtPosition(mousePosition: { offsetX: number, offsetY: number }, context: StageApp) {
+    const stagePos = context.stage.toLocal({ x: mousePosition.offsetX, y: mousePosition.offsetY });
+    const res: GraphicsLayer[] = []
+    for (const gra of context.graphicsChildren) {
+        if (gra.containsPoint(stagePos)) {
+            res.push(gra)
+        }
+    }
+    return res;
+}
 /**
  * 正常状态鼠标事件
  */
@@ -167,20 +201,12 @@ class StageNormalState extends StageState {
             context.mouseState.onMouseDown(e, context);
             return;
         }
-        //没有进入拖动状态就搜索命中的图层
-        const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
-        for (const gra of context.graphicsChildren) {
-            if (gra.containsPoint(stagePos)) {
-                //触发watch
-                context.selectGraphicsLayer.value = [gra];
-                return
-            }
-        }
-        context.selectGraphicsLayer.value = [];
+        const gra = findFirstItemAtPosition(e, context);
+        context.selectGraphicsLayer.value = gra === null ? [] : [gra];
     }
-    //正常状态move进入图层的时候显示网格提示用户 TODO
-    onMouseMove(_e: MouseEvent, _context: StageApp): void {
-        return;
+    //正常状态move进入图层的时候显示网格提示用户
+    onMouseMove(e: MouseEvent, context: StageApp): void {
+        context.tempShowMesh.value = findFirstItemAtPosition(e, context);
     }
 
     //正常状态鼠标提起
@@ -220,14 +246,11 @@ class StageMutiState extends StageNormalState {
             context.mouseState.onMouseDown(e, context);
             return;
         }
-        const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
-        for (const gra of context.graphicsChildren) {
-            if (gra.containsPoint(stagePos)) {
-                //触发watch
-                context.selectGraphicsLayer.value = [...context.selectGraphicsLayer.value, gra];
-                return
-            }
+        const gra = findFirstItemAtPosition(e, context);
+        if (gra != null) {
+            context.selectGraphicsLayer.value = [...context.selectGraphicsLayer.value, gra];
         }
+
     }
     onMouseUp(e: MouseEvent, context: StageApp): void {
         if (context.isShiftPress === false) {
