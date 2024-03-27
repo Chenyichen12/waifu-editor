@@ -1,26 +1,51 @@
-import { Application, ApplicationOptions, EventBoundary, Graphics } from "pixi.js";
-import { ref, shallowRef } from "vue";
+import { Application, ApplicationOptions, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
+import { ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
 import GraphicsLayer from "./GraphicsLayer";
 import { Group, LayerType, NormalLayer, Root } from "../Project/LayerStruct";
 
-
 const instanceApp = shallowRef<StageApp | null>(null)
 
 class StageApp extends Application {
-    isMousePress = false;
-    isSpacePress = false;
-    appScale = ref(1);
-    stageDom
-    mouseState: StageState = new StageNormalState
-    graphicsChildren: GraphicsLayer[] = []
+    isMousePress = false; //是否鼠标按下
+    isSpacePress = false; //是否空格按下
+    appScale = ref(1); //视图的缩放
+    stageDom //dom容器
+    mouseState: StageState = new StageNormalState //鼠标的状态 状态模式
+    graphicsChildren: GraphicsLayer[] = [] //stage所有的图层
+
+    selectGraphicsLayer // 选中的图层
+    unWatchSelected // 停止监听选中图层
+
     constructor(dom: HTMLDivElement) {
         super();
         this.stageDom = dom;
         this.stage.interactive = true;
+        this.selectGraphicsLayer = shallowRef<GraphicsLayer[]>([]);
+        this.unWatchSelected = watch(this.selectGraphicsLayer, (newV, oldV) => {
+            oldV.forEach((v) => {
+                v.showMesh = false;
+            })
+            newV.forEach((v, i) => {
+                v.showMesh = true;
+                v.mesh.setFromMatrix(v.relativeGroupTransform);
+                this.stage.addChild(v.mesh);
+                v.mesh.zIndex = this.graphicsChildren.length + 1 + i;
+            })
+        })
         instanceApp.value = this;
     }
+
+    destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
+        this.unWatchSelected();
+        super.destroy(rendererDestroyOptions, options);
+    }
+    /**
+     * app初始化的地点需要异步初始化
+     * @param options 
+     */
     async init(options?: (Partial<ApplicationOptions> | undefined)): Promise<void> {
+        //当没有project的时候抛出异常
         if (Project.instance.value?.root == null) {
             throw new Error("NoProject");
         }
@@ -40,6 +65,9 @@ class StageApp extends Application {
         this.addBg(projectRect);
         this.addSprite();
 
+        /**
+         * 计算scale，以适应视图大小和位置
+         */
         const scaleX = this.screen.width / projectRect.width;
         const scaleY = this.screen.height / projectRect.height;
         const scale = scaleX > scaleY ? scaleY : scaleX;
@@ -49,10 +77,10 @@ class StageApp extends Application {
         this.stage.scale.set(scale)
         this.stage.position.set(this.screen.width / 2 - scaleAfterX / 2, this.screen.height / 2 - scaleAfterY / 2)
 
+        //绑定事件
         this.canvas.onmousedown = (e) => {
             this.mouseState.onMouseDown(e, this);
         }
-
         this.canvas.onmouseup = (e) => {
             this.mouseState.onMouseUp(e, this);
         }
@@ -63,20 +91,24 @@ class StageApp extends Application {
             this.onWheelChange(e);
         };
     }
+    //添加背景
     protected addBg(rect: { width: number, height: number }) {
         const bg = new Graphics();
         bg.rect(0, 0, rect.width, rect.height);
         bg.fill(0xECECEC)
         this.stage.addChild(bg)
     }
+
+    //添加图层并展示
     protected addSprite() {
         const proRoot = Project.instance.value!.root;
         this.addLayer(proRoot);
-        this.graphicsChildren.reverse();
-        this.graphicsChildren.forEach((v) => {
+        this.graphicsChildren.forEach((v, i) => {
+            v.zIndex = this.graphicsChildren.length - i;
             this.stage.addChild(v);
         })
     }
+    //递归添加图层
     protected addLayer(group: Root | Group) {
         for (const child of group.children.value) {
             if (child.type === LayerType.NormalLayer) {
@@ -84,7 +116,8 @@ class StageApp extends Application {
                 const item = Project.instance.value!.assetList.get(normal.assetId);
                 if (item == null) continue;
                 const gra = new GraphicsLayer({ texture: item });
-                gra.position.set(item.bound.left, item.bound.top);
+                const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
+                gra.setFromMatrix(tranformMat);
                 this.graphicsChildren.push(gra);
             } else {
                 const gro = child as Group;
@@ -92,6 +125,8 @@ class StageApp extends Application {
             }
         }
     }
+
+    //当滚轮滑动的时候放大缩小视图
     protected onWheelChange(e: WheelEvent) {
         const stagePos = this.stage.toLocal({ x: e.offsetX, y: e.offsetY });
         const oldZoom = this.stage.scale.x
@@ -105,45 +140,65 @@ class StageApp extends Application {
     }
 }
 
+/**
+ * 鼠标状态，状态模式
+ */
 abstract class StageState {
     abstract onMouseDown(e: MouseEvent, context: StageApp): void
     abstract onMouseMove(e: MouseEvent, context: StageApp): void
     abstract onMouseUp(e: MouseEvent, context: StageApp): void
 }
 
+/**
+ * 正常状态鼠标事件
+ */
 class StageNormalState extends StageState {
     onMouseDown(e: MouseEvent, context: StageApp): void {
         context.isMousePress = true;
+        //当空格和鼠标同时按下的时候进入拖动状态
         if (context.isMousePress && context.isSpacePress) {
             context.mouseState = new StageMoveState();
             return;
         }
+
+        //没有进入拖动状态就搜索命中的图层
         const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
         for (const gra of context.graphicsChildren) {
             if (gra.containsPoint(stagePos)) {
-                gra.showMesh = true;
-                break;
+                //触发watch
+                context.selectGraphicsLayer.value = [gra];
+                return
             }
         }
+        context.selectGraphicsLayer.value = [];
     }
+    //正常状态move进入图层的时候显示网格提示用户 TODO
     onMouseMove(_e: MouseEvent, _context: StageApp): void {
         return;
     }
+
+    //正常状态鼠标提起
     onMouseUp(_e: MouseEvent, context: StageApp): void {
         context.isMousePress = false;
         return;
     }
 }
-
+/**
+ * 拖动状态鼠标事件
+ */
 class StageMoveState extends StageState {
     //这个state不可能触发这个函数
     onMouseDown(_e: MouseEvent, _context: StageApp): void {
         return;
     }
+
+    //拖动状态的时候需要改变stage的位置
     onMouseMove(e: MouseEvent, context: StageApp): void {
         context.stage.position.x += e.movementX;
         context.stage.position.y += e.movementY;
     }
+
+    //当鼠标提起的时候退出拖动状态
     onMouseUp(_e: MouseEvent, context: StageApp): void {
         context.isMousePress = false;
         context.mouseState = new StageNormalState();
