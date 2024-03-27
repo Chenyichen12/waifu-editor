@@ -1,23 +1,23 @@
-import { Ref,ShallowRef,ref, shallowRef } from "vue"
+import { Ref, ShallowRef, ref, shallowRef } from "vue"
 import { v4 as uuid } from "uuid"
-import{ImageAsset}from './ProjectAssets'
-interface LayerOptions{
+import { ImageAsset } from './ProjectAssets'
+interface LayerOptions {
 	//名字 是否选择 是否可见都应该是响应式的
 	name?: Ref<string>
 	isSelected?: Ref<boolean>
 	isVisible?: Ref<boolean>
 	layerId?: string
 }
-enum LayerType{
-	Group,Root,NormalLayer
+enum LayerType {
+	Group, Root, NormalLayer
 }
-abstract class Layer{
+abstract class Layer {
 	name: Ref<string>
 	isSelected
 	isVisible
 	readonly layerId: string
 	abstract get type(): LayerType
-	constructor(option: LayerOptions){
+	constructor(option: LayerOptions) {
 		this.name = option.name ?? ref("未命名");
 		this.isSelected = option.isSelected ?? ref(false);
 		this.isVisible = option.isVisible ?? ref(true);
@@ -25,29 +25,29 @@ abstract class Layer{
 	}
 }
 
-class Group extends Layer{
-	isExpand:Ref<boolean>
+class Group extends Layer {
+	isExpand: Ref<boolean>
 	children: ShallowRef<Layer[]>
-	get type(){
+	get type() {
 		return LayerType.Group;
 	}
-	constructor(option: LayerOptions & {isExpand?: Ref<boolean>}&{children?: ShallowRef<Layer[]>}){
+	constructor(option: LayerOptions & { isExpand?: Ref<boolean> } & { children?: ShallowRef<Layer[]> }) {
 		super(option);
 		this.isExpand = option.isExpand ?? ref(true);
 		this.children = option.children ?? shallowRef([])
 	}
 }
 
-interface rect{
+interface rect {
 	top: number
 	left: number
 	width: number
 	height: number
 }
 
-class Root extends Group{
+class Root extends Group {
 	bound: rect
-	constructor(option: LayerOptions & {isExpand?: Ref<boolean>} & {top?:number, left?:number, width: number,height: number} & {children?: ShallowRef<Layer[]>}){
+	constructor(option: LayerOptions & { isExpand?: Ref<boolean> } & { top?: number, left?: number, width: number, height: number } & { children?: ShallowRef<Layer[]> }) {
 		super(option);
 		this.bound = {
 			top: option.top ?? 0,
@@ -59,19 +59,19 @@ class Root extends Group{
 	readonly isExpand: Ref<boolean> = ref(true);
 	readonly isSelected = ref(false);
 	readonly isVisible = ref(true);
-	get type(){
+	get type() {
 		return LayerType.Root;
 	}
 }
 
-class NormalLayer extends Layer{
-	asset: ImageAsset;
-	constructor(option: LayerOptions& {asset: ImageAsset}){
+class NormalLayer extends Layer {
+	assetId: string;
+	constructor(option: LayerOptions & { assetId: string }) {
 		super(option);
-		this.asset = option.asset;
+		this.assetId = option.assetId;
 	}
-	get type(){
+	get type() {
 		return LayerType.NormalLayer;
 	}
 }
-export {Layer,LayerType,Group,Root,NormalLayer}
+export { Layer, LayerType, Group, Root, NormalLayer }

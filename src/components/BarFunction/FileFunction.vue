@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {ref} from "vue";
+import { ref } from "vue";
 import Project from "../Project/Project"
 const showWaitDialog = ref(false);
 const showErrorDialog = ref(false);
@@ -7,6 +7,7 @@ const showErrorDialog = ref(false);
 function receive(e: Event) {
   let files = (e.target as HTMLInputElement).files!
   if (files.length == 0) {
+
     return
   }
   const file = files[0];
@@ -31,22 +32,14 @@ function receive(e: Event) {
         <el-dropdown-item>打开</el-dropdown-item>
         <el-dropdown-item>保存</el-dropdown-item>
       </el-dropdown-menu>
-      <input id="from-psd" type="file" style="display: none" accept=".psd,.psb" @change="(e)=>receive(e)">
+      <input id="from-psd" type="file" style="display: none" accept=".psd,.psb" @change="(e) => receive(e)">
     </template>
   </el-dropdown>
 
 
-  <el-dialog
-      v-model="showWaitDialog"
-      title="等待中"
-      :show-close="false"
-      :close-on-click-modal="false"
-  >
+  <el-dialog v-model="showWaitDialog" title="等待中" :show-close="false" :close-on-click-modal="false">
   </el-dialog>
-  <el-dialog
-      v-model="showErrorDialog"
-      title="读取失败，请检查PSD文件"
-  >
+  <el-dialog v-model="showErrorDialog" title="读取失败，请检查PSD文件">
 
   </el-dialog>
 </template>

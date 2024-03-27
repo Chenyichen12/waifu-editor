@@ -1,86 +1,210 @@
+import { Application, ApplicationOptions, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
+import { ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
-import * as PIXI from "pixi.js";
-import MeshGraphics from "./MeshGraphics.ts";
-class StageApp {
-    static pixiApp: PIXI.Application
-    static isMousePress = false
-    static isSpacePress = false
+import GraphicsLayer from "./GraphicsLayer";
+import { Group, LayerType, NormalLayer, Root } from "../Project/LayerStruct";
 
+const instanceApp = shallowRef<StageApp | null>(null)
 
-    static async create(stageDomRef: HTMLDivElement) {
+class StageApp extends Application {
+    isMousePress = false; //是否鼠标按下
+    isSpacePress = false; //是否空格按下
+    appScale = ref(1); //视图的缩放
+    stageDom //dom容器
+    mouseState: StageState = new StageNormalState //鼠标的状态 状态模式
+    graphicsChildren: GraphicsLayer[] = [] //stage所有的图层
+
+    selectGraphicsLayer // 选中的图层
+    unWatchSelected // 停止监听选中图层
+
+    constructor(dom: HTMLDivElement) {
+        super();
+        this.stageDom = dom;
+        this.stage.interactive = true;
+        this.selectGraphicsLayer = shallowRef<GraphicsLayer[]>([]);
+        this.unWatchSelected = watch(this.selectGraphicsLayer, (newV, oldV) => {
+            oldV.forEach((v) => {
+                v.showMesh = false;
+            })
+            newV.forEach((v, i) => {
+                v.showMesh = true;
+                v.mesh.setFromMatrix(v.relativeGroupTransform);
+                this.stage.addChild(v.mesh);
+                v.mesh.zIndex = this.graphicsChildren.length + 1 + i;
+            })
+        })
+        instanceApp.value = this;
+    }
+
+    destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
+        this.unWatchSelected();
+        super.destroy(rendererDestroyOptions, options);
+    }
+    /**
+     * app初始化的地点需要异步初始化
+     * @param options 
+     */
+    async init(options?: (Partial<ApplicationOptions> | undefined)): Promise<void> {
+        //当没有project的时候抛出异常
         if (Project.instance.value?.root == null) {
-            return
+            throw new Error("NoProject");
         }
-        //先销毁一开始的app
-        for (let child of stageDomRef.children) {
-            stageDomRef.removeChild(child);
+        for (let child of this.stageDom.children) {
+            this.stageDom.removeChild(child);
         }
-        if (StageApp.pixiApp != null)
-            StageApp.pixiApp.destroy();
-
-        StageApp.pixiApp = new PIXI.Application();
-        await StageApp.pixiApp.init(({
+        await super.init({
+            ...options,
             background: "#4BC1F0",
-            resizeTo: stageDomRef,
+            resizeTo: this.stageDom,
             preference: "webgl",
-        }));
-        StageApp.pixiApp.stage.interactive = true
+        });
+        this.stageDom.appendChild(this.canvas);
 
-        stageDomRef.appendChild(StageApp.pixiApp.canvas);
         const projectRoot = Project.instance.value.root;
         const projectRect = projectRoot.bound;
-        StageApp.addBg(projectRect);
-        await StageApp.addSprite();
+        this.addBg(projectRect);
+        this.addSprite();
 
-        const scaleX = StageApp.pixiApp.screen.width / projectRect.width;
-        const scaleY = StageApp.pixiApp.screen.height / projectRect.height;
+        /**
+         * 计算scale，以适应视图大小和位置
+         */
+        const scaleX = this.screen.width / projectRect.width;
+        const scaleY = this.screen.height / projectRect.height;
         const scale = scaleX > scaleY ? scaleY : scaleX;
+        this.appScale.value = scale;
         const scaleAfterX = projectRect.width * scale
         const scaleAfterY = projectRect.height * scale
-        StageApp.pixiApp.stage.scale.set(scale)
-        StageApp.pixiApp.stage.position.set(StageApp.pixiApp.screen.width / 2 - scaleAfterX / 2, StageApp.pixiApp.screen.height / 2 - scaleAfterY / 2)
+        this.stage.scale.set(scale)
+        this.stage.position.set(this.screen.width / 2 - scaleAfterX / 2, this.screen.height / 2 - scaleAfterY / 2)
 
-        StageApp.pixiApp.canvas.onmousedown = () => {
-            StageApp.isMousePress = true
+        //绑定事件
+        this.canvas.onmousedown = (e) => {
+            this.mouseState.onMouseDown(e, this);
         }
-        StageApp.pixiApp.stage.onmouseup = () => {
-            StageApp.isMousePress = false
+        this.canvas.onmouseup = (e) => {
+            this.mouseState.onMouseUp(e, this);
         }
-        StageApp.pixiApp.canvas.onmousemove = (e) => {
-            if (StageApp.isSpacePress && StageApp.isMousePress) {
-                StageApp.pixiApp.stage.position.x += e.movementX;
-                StageApp.pixiApp.stage.position.y += e.movementY;
-            }
+        this.canvas.onmousemove = (e) => {
+            this.mouseState.onMouseMove(e, this);
         }
-        StageApp.pixiApp.canvas.onwheel = StageApp.onWheelChange;
+        this.canvas.onwheel = (e) => {
+            this.onWheelChange(e);
+        };
     }
-
-    protected static addBg(rect: { width: number, height: number }) {
-        const bg = new PIXI.Graphics();
+    //添加背景
+    protected addBg(rect: { width: number, height: number }) {
+        const bg = new Graphics();
         bg.rect(0, 0, rect.width, rect.height);
         bg.fill(0xECECEC)
-        StageApp.pixiApp.stage.addChild(bg);
+        this.stage.addChild(bg)
     }
 
-    protected static onWheelChange(e: WheelEvent) {
-        const thisApp = StageApp.pixiApp;
-        const stagePos = thisApp.stage.toLocal({ x: e.offsetX, y: e.offsetY });
-        const oldZoom = thisApp.stage.scale.x
+    //添加图层并展示
+    protected addSprite() {
+        const proRoot = Project.instance.value!.root;
+        this.addLayer(proRoot);
+        this.graphicsChildren.forEach((v, i) => {
+            v.zIndex = this.graphicsChildren.length - i;
+            this.stage.addChild(v);
+        })
+    }
+    //递归添加图层
+    protected addLayer(group: Root | Group) {
+        for (const child of group.children.value) {
+            if (child.type === LayerType.NormalLayer) {
+                const normal = child as NormalLayer;
+                const item = Project.instance.value!.assetList.get(normal.assetId);
+                if (item == null) continue;
+                const gra = new GraphicsLayer({ texture: item });
+                const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
+                gra.setFromMatrix(tranformMat);
+                this.graphicsChildren.push(gra);
+            } else {
+                const gro = child as Group;
+                this.addLayer(gro);
+            }
+        }
+    }
+
+    //当滚轮滑动的时候放大缩小视图
+    protected onWheelChange(e: WheelEvent) {
+        const stagePos = this.stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        const oldZoom = this.stage.scale.x
         const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
         const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
         const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
-        thisApp.stage.scale.set(scale);
-        thisApp.stage.position.x += oldDx;
-        thisApp.stage.position.y += oldDy
+        this.stage.scale.set(scale);
+        this.appScale.value = scale;
+        this.stage.position.x += oldDx;
+        this.stage.position.y += oldDy
     }
-    protected static async addSprite() {
-        const list = Project.instance.value!.assetList;
-        for (const item of list) {
-            const gra = new MeshGraphics(item.texture!);
-            gra.Mesh.position.set(item.bound.left, item.bound.top);
-            StageApp.pixiApp.stage.addChild(gra.Mesh);
+}
+
+/**
+ * 鼠标状态，状态模式
+ */
+abstract class StageState {
+    abstract onMouseDown(e: MouseEvent, context: StageApp): void
+    abstract onMouseMove(e: MouseEvent, context: StageApp): void
+    abstract onMouseUp(e: MouseEvent, context: StageApp): void
+}
+
+/**
+ * 正常状态鼠标事件
+ */
+class StageNormalState extends StageState {
+    onMouseDown(e: MouseEvent, context: StageApp): void {
+        context.isMousePress = true;
+        //当空格和鼠标同时按下的时候进入拖动状态
+        if (context.isMousePress && context.isSpacePress) {
+            context.mouseState = new StageMoveState();
+            return;
         }
+
+        //没有进入拖动状态就搜索命中的图层
+        const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        for (const gra of context.graphicsChildren) {
+            if (gra.containsPoint(stagePos)) {
+                //触发watch
+                context.selectGraphicsLayer.value = [gra];
+                return
+            }
+        }
+        context.selectGraphicsLayer.value = [];
+    }
+    //正常状态move进入图层的时候显示网格提示用户 TODO
+    onMouseMove(_e: MouseEvent, _context: StageApp): void {
+        return;
+    }
+
+    //正常状态鼠标提起
+    onMouseUp(_e: MouseEvent, context: StageApp): void {
+        context.isMousePress = false;
+        return;
+    }
+}
+/**
+ * 拖动状态鼠标事件
+ */
+class StageMoveState extends StageState {
+    //这个state不可能触发这个函数
+    onMouseDown(_e: MouseEvent, _context: StageApp): void {
+        return;
+    }
+
+    //拖动状态的时候需要改变stage的位置
+    onMouseMove(e: MouseEvent, context: StageApp): void {
+        context.stage.position.x += e.movementX;
+        context.stage.position.y += e.movementY;
+    }
+
+    //当鼠标提起的时候退出拖动状态
+    onMouseUp(_e: MouseEvent, context: StageApp): void {
+        context.isMousePress = false;
+        context.mouseState = new StageNormalState();
+        return;
     }
 }
 
 export default StageApp
+export { instanceApp }
