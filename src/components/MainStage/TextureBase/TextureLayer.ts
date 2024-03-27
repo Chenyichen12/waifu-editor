@@ -5,9 +5,13 @@ import GraphicsLayer from "../GraphicsLayer";
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import MeshLine from "../GraphicsBase/MeshLine";
 import MeshPoint from "../GraphicsBase/MeshPoint";
+import { ImageAsset } from "../../Project/ProjectAssets";
 
 class TextureLayer extends Mesh<Geometry, Shader>{
-    constructor(texture: Texture, parent: GraphicsLayer) {
+    graParent
+    projectTexture
+    constructor(texture: ImageAsset, parent: GraphicsLayer) {
+
         const bufferInformation = TextureLayer.generateGlBuffer(parent.mesh);
         const geometry = new Geometry({
             attributes: {
@@ -22,10 +26,12 @@ class TextureLayer extends Mesh<Geometry, Shader>{
                 fragment: frag
             },
             resources: {
-                uTexture: texture.source
+                uTexture: texture.texture!.source
             }
         })
         super({ geometry: geometry, shader: shader })
+        this.graParent = parent
+        this.projectTexture = texture;
     }
     /**
      * 给定一个mesh生成glbuffer 需要生成indexBuffer
@@ -33,6 +39,18 @@ class TextureLayer extends Mesh<Geometry, Shader>{
      * @param mesh 
      * @returns 
      */
+
+    updatePositionBuffer() {
+        const positionList: number[] = [];
+        this.graParent.mesh.pointList.forEach((item) => {
+            positionList.push(item.x, item.y);
+        })
+        const { buffer } = this.geometry.getAttribute("aPosition");
+        buffer.data.forEach((_v, i) => {
+            buffer.data[i] = positionList[i];
+        });
+        buffer.update();
+    }
     static generateGlBuffer(mesh: MeshLayer) {
         const tranigleList: tranigle[] = []
         const alreadyLine = new Set<MeshLine>();
@@ -122,3 +140,4 @@ class tranigle {
 }
 
 export default TextureLayer
+export { tranigle }
