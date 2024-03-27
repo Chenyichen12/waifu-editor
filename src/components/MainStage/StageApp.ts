@@ -1,86 +1,155 @@
+import { Application, ApplicationOptions, EventBoundary, Graphics } from "pixi.js";
+import { ref, shallowRef } from "vue";
 import Project from "../Project/Project";
-import * as PIXI from "pixi.js";
-import MeshGraphics from "./MeshGraphics.ts";
-class StageApp {
-    static pixiApp: PIXI.Application
-    static isMousePress = false
-    static isSpacePress = false
+import GraphicsLayer from "./GraphicsLayer";
+import { Group, LayerType, NormalLayer, Root } from "../Project/LayerStruct";
 
 
-    static async create(stageDomRef: HTMLDivElement) {
+const instanceApp = shallowRef<StageApp | null>(null)
+
+class StageApp extends Application {
+    isMousePress = false;
+    isSpacePress = false;
+    appScale = ref(1);
+    stageDom
+    mouseState: StageState = new StageNormalState
+    graphicsChildren: GraphicsLayer[] = []
+    constructor(dom: HTMLDivElement) {
+        super();
+        this.stageDom = dom;
+        this.stage.interactive = true;
+        instanceApp.value = this;
+    }
+    async init(options?: (Partial<ApplicationOptions> | undefined)): Promise<void> {
         if (Project.instance.value?.root == null) {
-            return
+            throw new Error("NoProject");
         }
-        //先销毁一开始的app
-        for (let child of stageDomRef.children) {
-            stageDomRef.removeChild(child);
+        for (let child of this.stageDom.children) {
+            this.stageDom.removeChild(child);
         }
-        if (StageApp.pixiApp != null)
-            StageApp.pixiApp.destroy();
-
-        StageApp.pixiApp = new PIXI.Application();
-        await StageApp.pixiApp.init(({
+        await super.init({
+            ...options,
             background: "#4BC1F0",
-            resizeTo: stageDomRef
-        }));
-        StageApp.pixiApp.stage.interactive = true
+            resizeTo: this.stageDom,
+            preference: "webgl",
+        });
+        this.stageDom.appendChild(this.canvas);
 
-        stageDomRef.appendChild(StageApp.pixiApp.canvas);
         const projectRoot = Project.instance.value.root;
         const projectRect = projectRoot.bound;
-        StageApp.addBg(projectRect);
-        await StageApp.addSprite();
+        this.addBg(projectRect);
+        this.addSprite();
 
-        const scaleX = StageApp.pixiApp.screen.width / projectRect.width;
-        const scaleY = StageApp.pixiApp.screen.height / projectRect.height;
+        const scaleX = this.screen.width / projectRect.width;
+        const scaleY = this.screen.height / projectRect.height;
         const scale = scaleX > scaleY ? scaleY : scaleX;
+        this.appScale.value = scale;
         const scaleAfterX = projectRect.width * scale
         const scaleAfterY = projectRect.height * scale
-        StageApp.pixiApp.stage.scale.set(scale)
-        StageApp.pixiApp.stage.position.set(StageApp.pixiApp.screen.width / 2 - scaleAfterX / 2, StageApp.pixiApp.screen.height / 2 - scaleAfterY / 2)
+        this.stage.scale.set(scale)
+        this.stage.position.set(this.screen.width / 2 - scaleAfterX / 2, this.screen.height / 2 - scaleAfterY / 2)
 
-        StageApp.pixiApp.canvas.onmousedown = () => {
-            StageApp.isMousePress = true
+        this.canvas.onmousedown = (e) => {
+            this.mouseState.onMouseDown(e, this);
         }
-        StageApp.pixiApp.stage.onmouseup = () => {
-            StageApp.isMousePress = false
+
+        this.canvas.onmouseup = (e) => {
+            this.mouseState.onMouseUp(e, this);
         }
-        StageApp.pixiApp.canvas.onmousemove = (e) => {
-            if (StageApp.isSpacePress && StageApp.isMousePress) {
-                StageApp.pixiApp.stage.position.x += e.movementX;
-                StageApp.pixiApp.stage.position.y += e.movementY;
-            }
+        this.canvas.onmousemove = (e) => {
+            this.mouseState.onMouseMove(e, this);
         }
-        StageApp.pixiApp.canvas.onwheel = StageApp.onWheelChange;
+        this.canvas.onwheel = (e) => {
+            this.onWheelChange(e);
+        };
     }
-
-    protected static addBg(rect: { width: number, height: number }) {
-        const bg = new PIXI.Graphics();
+    protected addBg(rect: { width: number, height: number }) {
+        const bg = new Graphics();
         bg.rect(0, 0, rect.width, rect.height);
         bg.fill(0xECECEC)
-        StageApp.pixiApp.stage.addChild(bg);
+        this.stage.addChild(bg)
     }
-
-    protected static onWheelChange(e: WheelEvent) {
-        const thisApp = StageApp.pixiApp;
-        const stagePos = thisApp.stage.toLocal({ x: e.offsetX, y: e.offsetY });
-        const oldZoom = thisApp.stage.scale.x
+    protected addSprite() {
+        const proRoot = Project.instance.value!.root;
+        this.addLayer(proRoot);
+        this.graphicsChildren.reverse();
+        this.graphicsChildren.forEach((v) => {
+            this.stage.addChild(v);
+        })
+    }
+    protected addLayer(group: Root | Group) {
+        for (const child of group.children.value) {
+            if (child.type === LayerType.NormalLayer) {
+                const normal = child as NormalLayer;
+                const item = Project.instance.value!.assetList.get(normal.assetId);
+                if (item == null) continue;
+                const gra = new GraphicsLayer({ texture: item });
+                gra.position.set(item.bound.left, item.bound.top);
+                this.graphicsChildren.push(gra);
+            } else {
+                const gro = child as Group;
+                this.addLayer(gro);
+            }
+        }
+    }
+    protected onWheelChange(e: WheelEvent) {
+        const stagePos = this.stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        const oldZoom = this.stage.scale.x
         const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
         const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
         const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
-        thisApp.stage.scale.set(scale);
-        thisApp.stage.position.x += oldDx;
-        thisApp.stage.position.y += oldDy
+        this.stage.scale.set(scale);
+        this.appScale.value = scale;
+        this.stage.position.x += oldDx;
+        this.stage.position.y += oldDy
     }
-    protected static async addSprite() {
-        const list = Project.instance.value!.assetList;
-        for (const keyItem of list) {
-            const item = keyItem[1];
-            const gra = new MeshGraphics(item.texture!);
-            gra.Mesh.position.set(item.bound.left, item.bound.top);
-            StageApp.pixiApp.stage.addChild(gra.Mesh);
+}
+
+abstract class StageState {
+    abstract onMouseDown(e: MouseEvent, context: StageApp): void
+    abstract onMouseMove(e: MouseEvent, context: StageApp): void
+    abstract onMouseUp(e: MouseEvent, context: StageApp): void
+}
+
+class StageNormalState extends StageState {
+    onMouseDown(e: MouseEvent, context: StageApp): void {
+        context.isMousePress = true;
+        if (context.isMousePress && context.isSpacePress) {
+            context.mouseState = new StageMoveState();
+            return;
         }
+        const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        for (const gra of context.graphicsChildren) {
+            if (gra.containsPoint(stagePos)) {
+                gra.showMesh = true;
+                break;
+            }
+        }
+    }
+    onMouseMove(_e: MouseEvent, _context: StageApp): void {
+        return;
+    }
+    onMouseUp(_e: MouseEvent, context: StageApp): void {
+        context.isMousePress = false;
+        return;
+    }
+}
+
+class StageMoveState extends StageState {
+    //这个state不可能触发这个函数
+    onMouseDown(_e: MouseEvent, _context: StageApp): void {
+        return;
+    }
+    onMouseMove(e: MouseEvent, context: StageApp): void {
+        context.stage.position.x += e.movementX;
+        context.stage.position.y += e.movementY;
+    }
+    onMouseUp(_e: MouseEvent, context: StageApp): void {
+        context.isMousePress = false;
+        context.mouseState = new StageNormalState();
+        return;
     }
 }
 
 export default StageApp
+export { instanceApp }
