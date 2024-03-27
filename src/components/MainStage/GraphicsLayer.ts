@@ -100,7 +100,6 @@ class GraphicsLayer extends Container {
 
         const xIndex = Math.floor(this.texture.textureGeometry.width * uv.u);
         const yIndex = Math.floor(this.texture.textureGeometry.height * uv.v);
-        console.log(xIndex, yIndex);
         const index = xIndex * 4 + this.texture.textureGeometry.width * yIndex * 4;
         if (index + 4 >= array.length || array[index + 4] === 0) {
             return false

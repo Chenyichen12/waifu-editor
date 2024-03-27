@@ -11,7 +11,8 @@ function shouldDragStage(e: KeyboardEvent) {
         }
         (e.target as HTMLDivElement).style.cursor = "pointer";
     }
-    if (e.code === "Shift") {
+    console.log(e.code);
+    if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
         if (instanceApp.value != null) {
             instanceApp.value.isShiftPress = true;
         }

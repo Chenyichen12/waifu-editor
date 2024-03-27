@@ -161,7 +161,12 @@ class StageNormalState extends StageState {
             context.mouseState = new StageMoveState();
             return;
         }
-
+        //当shift和鼠标一起按下的时候触发多选模式
+        if (context.isMousePress && context.isShiftPress) {
+            context.mouseState = new StageMutiState();
+            context.mouseState.onMouseDown(e, context);
+            return;
+        }
         //没有进入拖动状态就搜索命中的图层
         const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
         for (const gra of context.graphicsChildren) {
@@ -204,6 +209,33 @@ class StageMoveState extends StageState {
         context.isMousePress = false;
         context.mouseState = new StageNormalState();
         return;
+    }
+}
+//多选模式
+class StageMutiState extends StageNormalState {
+    onMouseDown(e: MouseEvent, context: StageApp): void {
+        context.isMousePress = true;
+        if (context.isShiftPress === false) {
+            context.mouseState = new StageNormalState();
+            context.mouseState.onMouseDown(e, context);
+            return;
+        }
+        const stagePos = context.stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        for (const gra of context.graphicsChildren) {
+            if (gra.containsPoint(stagePos)) {
+                //触发watch
+                context.selectGraphicsLayer.value = [...context.selectGraphicsLayer.value, gra];
+                return
+            }
+        }
+    }
+    onMouseUp(e: MouseEvent, context: StageApp): void {
+        if (context.isShiftPress === false) {
+            context.mouseState = new StageNormalState();
+            context.mouseState.onMouseUp(e, context);
+            return;
+        }
+        context.isMousePress = false;
     }
 }
 
