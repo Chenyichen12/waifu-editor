@@ -34,7 +34,6 @@ class GraphicsLayer extends Container {
         this.mesh = new MeshLayer(this);
         this.texture = new TextureLayer(option.texture, this);
         this.addChild(this.texture);
-        this.addChild(this.mesh);
         this.mesh.visible = false;
     }
 
