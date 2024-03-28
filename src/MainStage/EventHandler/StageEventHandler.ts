@@ -5,10 +5,12 @@ abstract class StageEventState {
     constructor(context: StageApp) {
         this.context = context;
     }
+
     changeToState(state: StageEventState) {
         this.context.eventHandler = state;
+        state.stateEffect(this);
     }
-
+    stateEffect(_preState: StageEventState) { return }
     handleMouseDown(_e: MouseEvent): void { return }
     handleMouseUp(_e: MouseEvent): void { return }
     handleMouseMove(_e: MouseEvent): void { return }
@@ -16,7 +18,16 @@ abstract class StageEventState {
     handleKeyUp(_e: KeyboardEvent): void { return }
 
     handleWheelChange(e: WheelEvent) {
-
+        const stage = this.context.stage;
+        const stagePos = stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        const oldZoom = stage.scale.x
+        const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
+        const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
+        const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
+        stage.scale.set(scale);
+        this.context.appScale.value = scale;
+        stage.position.x += oldDx;
+        stage.position.y += oldDy
     }
 }
 
@@ -59,8 +70,18 @@ class StageDragEvent extends StageEventState {
     }
 
     handleMouseMove(e: MouseEvent): void {
-
+        if (!this.isMousePress) return;
+        this.context.stage.x += e.movementX;
+        this.context.stage.y += e.movementY;
     }
+    stateEffect(_preState: StageEventState): void {
+        this.context.containerDom.style.cursor = "pointer"
+    }
+    changeToState(state: StageEventState): void {
+        super.changeToState(state);
+        this.context.containerDom.style.cursor = "default"
+    }
+
 }
 
 class StageMutiSelectEvent extends StageEventState {

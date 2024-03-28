@@ -1,48 +1,31 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
 import Project from "../Project/Project.ts";
-import StageApp, { instanceApp } from './StageApp'
+import StageApp, { instanceApp } from '../../MainStage/StageApp'
 const stageDomRef = ref<HTMLDivElement | null>(null)
 
-function shouldDragStage(e: KeyboardEvent) {
-    if (e.code === "Space") {
-        if (instanceApp.value != null) {
-            instanceApp.value.isSpacePress = true;
-        }
-        (e.target as HTMLDivElement).style.cursor = "pointer";
-    }
-    console.log(e.code);
-    if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-        if (instanceApp.value != null) {
-            instanceApp.value.isShiftPress = true;
-        }
-    }
-}
-
-function handleKeyUp(e: KeyboardEvent) {
-    if (instanceApp.value != null) {
-        instanceApp.value.isSpacePress = false;
-        instanceApp.value.isShiftPress = false;
-    }
-    (e.target as HTMLDivElement).style.cursor = "default";
-}
 watch(Project.instance, (v) => {
     if (v == null) return;
     if (instanceApp.value != null)
         instanceApp.value.destroy();
-    initApp();
-})
-function initApp() {
     const stage = new StageApp(stageDomRef.value!);
-    stage.init();
+    stage.initFromProject(v);
+})
 
+function handleKeyDown(e: KeyboardEvent){
+    if(instanceApp.value != null)
+        instanceApp.value.eventHandler.handleKeyDown(e);
+}
+function handleKeyUp(e: KeyboardEvent){
+    if(instanceApp.value != null)
+        instanceApp.value.eventHandler.handleKeyUp(e);
 }
 onMounted(async () => {
 })
 </script>
 
 <template>
-    <div class="container" tabindex="1" @keydown="shouldDragStage" @keyup="handleKeyUp">
+    <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>
     </div>
 </template>

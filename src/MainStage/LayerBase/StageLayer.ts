@@ -10,16 +10,18 @@ type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
 interface StageLayerOption {
     isShow: Ref<boolean>,
-    texture: ImageAsset
+    texture: ImageAsset,
+    layerId: string
 }
 class StageLayer extends Container {
-
+    readonly layerId: string
     protected unWatchShow
 
     protected _selected: boolean = false
     protected _show: boolean = true;
 
     protected faceMesh: MeshLayer
+    get mesh() { return this.faceMesh }
     protected textureLayer: TextureLayer
     public editMesh?: MeshLayer
 
@@ -70,9 +72,11 @@ class StageLayer extends Container {
         this.selected = false;
         this.addChild(this.textureLayer);
 
+        this.layerId = option.layerId
         this.unWatchShow = watch(option.isShow, (newV) => {
             this.show = newV;
         })
+
     }
 
     transformFormStage(stagePoint: xy) {
