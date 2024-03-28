@@ -68,12 +68,6 @@ class StageApp extends Application {
         }
         this.canvas.onwheel = (e) => {
             this.eventHandler.handleWheelChange(e);
-        };
-        this.canvas.onkeydown = (e) => {
-            this.eventHandler.handleKeyDown(e);
-        }
-        this.canvas.onkeyup = (e) => {
-            this.eventHandler.handleKeyUp(e);
         }
     }
     protected addSprite(project: Project) {

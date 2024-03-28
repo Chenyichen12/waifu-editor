@@ -5,6 +5,7 @@ import TextureLayer from "../TextureBase/TextureLayer";
 import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
+import LayerEventState, { LayerNormalState } from "../EventHandler/LayerEventHandler";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
@@ -20,9 +21,12 @@ class StageLayer extends Container {
     protected _selected: boolean = false
     protected _show: boolean = true;
 
+    mouseState: LayerEventState = new LayerNormalState(this);
+
     protected faceMesh: MeshLayer
     get mesh() { return this.faceMesh }
-    protected textureLayer: TextureLayer
+    protected _textureLayer: TextureLayer
+    get textureLayer() { return this._textureLayer }
     public editMesh?: MeshLayer
 
     set selected(isSelected: boolean) {
@@ -64,7 +68,7 @@ class StageLayer extends Container {
         this.faceMesh = new MeshLayer({
             initRect: option.texture.bound
         })
-        this.textureLayer = new TextureLayer({
+        this._textureLayer = new TextureLayer({
             texture: option.texture,
             points: this.faceMesh.listPoint,
             lines: this.faceMesh.listLine
@@ -122,5 +126,6 @@ class StageLayer extends Container {
         this.unWatchShow();
         super.destroy(options)
     }
+
 }
 export default StageLayer

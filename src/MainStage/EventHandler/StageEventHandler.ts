@@ -29,6 +29,10 @@ abstract class StageEventState {
         stage.position.x += oldDx;
         stage.position.y += oldDy
     }
+
+    toStagePos(x: number, y: number) {
+        return this.context.stage.toLocal({ x, y });
+    }
 }
 
 class StageNormalEvent extends StageEventState {
@@ -47,7 +51,26 @@ class StageNormalEvent extends StageEventState {
     }
 
     handleMouseDown(e: MouseEvent): void {
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+        for (const selectChild of this.context.selectedLayer.value) {
+            const point = selectChild.transformFormStage(stagePos);
+            if (selectChild.hitLayer(point)) {
+                selectChild.mouseState.handleMouseDownEvent({ point });
+                //其他图层需要去除选中
+                this.context.selectedLayer.value = this.context.selectedLayer.value.filter((v) => {
+                    return v === selectChild;
+                });
+                return;
+            }
+        }
 
+        this.context.selectedLayer.value = [];
+        for (const child of this.context.childLayer) {
+            const point = child.transformFormStage(stagePos);
+            if (child.hitLayer(point)) {
+                this.context.selectedLayer.value = [child]
+            }
+        }
     }
 }
 

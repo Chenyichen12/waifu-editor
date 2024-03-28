@@ -24,6 +24,7 @@ class MeshLayer extends Graphics {
     get listLine() { return this.lineList }
 
 
+
     protected selectPointList: ShallowRef<MeshPoint[]> = shallowRef([])
     get selectedPoints() { return this.selectPointList.value }
     protected unWatchSelectedPoint
@@ -34,7 +35,7 @@ class MeshLayer extends Graphics {
         const newPointList: MeshPoint[] = []
         p.forEach((item) => {
             if (!this.pointIsSelected(item))
-                newPointList.push(item)
+                this.selectPointList.value.push(item);
         })
         this.selectPointList.value = [...this.selectPointList.value, ...newPointList];
         const newLineList: MeshLine[] = [];
@@ -157,17 +158,17 @@ class MeshLayer extends Graphics {
         return false;
     }
 
-    pointAtPosition(x: number, y: number): MeshPoint | null {
+    pointAtPosition(x: number, y: number): MeshPoint | undefined {
         const r = 5 / this.appScale;
         for (const p of this.pointList) {
             const d = (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y);
             if (d < r * r)
                 return p;
         }
-        return null
+        return undefined
     }
 
-    lineAtPosition(x: number, y: number): MeshLine | null {
+    lineAtPosition(x: number, y: number): MeshLine | undefined {
         const r = 3 / this.appScale;
         for (const l of this.lineList) {
             const d = this.distanceFromLine(x, y, l);
@@ -175,8 +176,9 @@ class MeshLayer extends Graphics {
                 return l
             }
         }
-        return null
+        return undefined
     }
+
     distanceFromLine(x: number, y: number, line: MeshLine): number {
         const A = line.p1.y - line.p2.y;
         const B = line.p2.x - line.p1.x;
@@ -184,5 +186,7 @@ class MeshLayer extends Graphics {
         const f = A * x + B * y + C;
         return (f * f) / (A * A + B * B);
     }
+
+
 }
 export default MeshLayer;
