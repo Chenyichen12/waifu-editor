@@ -1,4 +1,4 @@
-import { Ref, watch } from "vue"
+import { Ref, ref, watch } from "vue"
 import { ImageAsset } from "../Project/ProjectAssets"
 import MeshLayer from "./GraphicsBase/MeshLayer"
 import MeshPoint from "./GraphicsBase/MeshPoint"
@@ -16,7 +16,7 @@ interface GraphicsLayerOption {
 }
 class GraphicsLayer extends Container {
 
-
+    isSelected: Ref<boolean> = ref(false);
     state: State = State.PointMoveState
     mesh: MeshLayer
     texture: TextureLayer
@@ -31,7 +31,6 @@ class GraphicsLayer extends Container {
     }
 
     protected _show = true
-
     unWatchVisible
     constructor(option: GraphicsLayerOption) {
         super();
@@ -185,5 +184,55 @@ function uvCalculate(pa: MeshPoint, pb: MeshPoint, pc: MeshPoint, p: xy) {
         u, v
     }
 }
+
+interface GraphicsLayerEvent {
+    preventDefault: boolean
+    context: GraphicsLayer
+}
+/**  如果鼠标位置在命中图层，则给图层派发事件，选中的图层优先派发
+ * 鼠标按下，如果图层没有被选中，说明要选中图层
+ * 如果图层被选中，需要给graphicslayer派发事件
+ * 如果线被选中，阻止state的行为
+ * 如果点被选中，阻止Stage的行为，进入PointDragState，需要拖动点。
+ * 如果图层处于编辑模式，不改变texture，仅改变point的位置
+ * 鼠标提起任何状态回到normalState
+ */
+abstract class MouseState {
+    abstract handleMouseDown(position: xy, context: GraphicsLayer): GraphicsLayerEvent
+    abstract handleMouseMove(position: xy, context: GraphicsLayer): GraphicsLayerEvent
+    abstract handleMouseUp(position: xy, context: GraphicsLayer): GraphicsLayerEvent
+}
+
+class MouseNormalState extends MouseState {
+    handleMouseDown(position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        const prevent = false;
+        if (!context.isSelected.value) {
+            context.isSelected.value = false;
+            return {
+                preventDefault: prevent,
+                context
+            }
+        }
+        const p = context.mesh
+        return {
+            preventDefault: prevent,
+            context
+        }
+    }
+    handleMouseMove(position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        return {
+            preventDefault: false,
+            context
+        }
+    }
+    handleMouseUp(position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        return {
+            preventDefault: false,
+            context
+        }
+    }
+
+}
+
 
 export default GraphicsLayer

@@ -1,5 +1,5 @@
 import { Application, ApplicationOptions, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
-import { ShallowRef, ref, shallowRef, watch } from "vue";
+import { ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
 import GraphicsLayer from "./GraphicsLayer";
 import { Group, LayerType, NormalLayer, Root } from "../Project/LayerStruct";
@@ -11,14 +11,12 @@ class StageApp extends Application {
     isSpacePress = false; //是否空格按下
     isShiftPress = false;
     appScale = ref(1); //视图的缩放
-    stageDom //dom容器
+    protected stageDom //dom容器
     mouseState: StageState = new StageNormalState //鼠标的状态 状态模式
     graphicsChildren: GraphicsLayer[] = [] //stage所有的图层
 
-    tempShowMesh: ShallowRef<GraphicsLayer | null> = shallowRef(null);
-    unWatchTempShowMesh
     selectGraphicsLayer // 选中的图层
-    unWatchSelected // 停止监听选中图层
+    protected unWatchSelected // 停止监听选中图层
 
     constructor(dom: HTMLDivElement) {
         super();
@@ -33,17 +31,6 @@ class StageApp extends Application {
                 v.showMesh = true;
             })
         })
-        this.unWatchTempShowMesh = watch(this.tempShowMesh, (newV, oldV) => {
-            if (newV === oldV) {
-                return;
-            }
-            if (oldV != null) {
-                oldV.showTempMesh = false;
-            }
-            if (newV != null) {
-                newV.showTempMesh = true;
-            }
-        });
         instanceApp.value = this;
     }
 
@@ -213,7 +200,7 @@ class StageNormalState extends StageState {
     }
     //正常状态move进入图层的时候显示网格提示用户
     onMouseMove(e: MouseEvent, context: StageApp): void {
-        context.tempShowMesh.value = findFirstItemAtPosition(e, context);
+        //TODO
     }
 
     //正常状态鼠标提起
