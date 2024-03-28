@@ -4,7 +4,7 @@ import MeshLine from "./MeshLine";
 import GraphicsLayer from "../GraphicsLayer";
 import { ref, watch } from "vue";
 import { instanceApp } from "../StageApp";
-import selectedRect from "../selectedRect";
+import selectedRect from "../SelectedRect";
 
 class MeshLayer extends Graphics {
 

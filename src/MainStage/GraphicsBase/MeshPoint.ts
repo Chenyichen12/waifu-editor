@@ -1,0 +1,44 @@
+import MeshLine from "./MeshLine";
+class MeshPoint {
+    protected _x: number
+    protected _y: number
+    lines: MeshLine[] = []
+    protected _u: number
+    protected _v: number
+    constructor(x: number, y: number, u: number, v: number) {
+        this._x = x;
+        this._y = y;
+        this._u = u;
+        this._v = v;
+    }
+    setPosition(x?: number, y?: number): void {
+        this._x = x ?? this._x;
+        this._y = y ?? this._y;
+
+    }
+    setUV(u?: number, v?: number) {
+        this._u = u ?? this._u;
+        this._v = v ?? this._v;
+    }
+
+    get x() {
+        return this._x;
+    }
+    get y() {
+        return this._y;
+    }
+    get xy() {
+        return {
+            x: this._x,
+            y: this._y
+        }
+    }
+
+    get u() {
+        return this._u;
+    }
+    get v() {
+        return this._v;
+    }
+}
+export default MeshPoint;
