@@ -4,11 +4,13 @@ import MeshLine from "./MeshLine";
 import GraphicsLayer from "../GraphicsLayer";
 import { ref, watch } from "vue";
 import { instanceApp } from "../StageApp";
+import selectedRect from "../selectedRect";
 
 class MeshLayer extends Graphics {
 
     protected appScale: number = instanceApp.value?.appScale.value ?? 1;
     protected unwatchScale
+
     update() {
         this.clear();
         this.lineList.forEach((item) => {
@@ -25,12 +27,68 @@ class MeshLayer extends Graphics {
                     color: 0xff0000
                 })
         })
-
+        this.selectedLine.forEach((item) => {
+            this.moveTo(item.p1.x, item.p1.y)
+                .lineTo(item.p2.x, item.p2.y)
+                .stroke({
+                    color: 0xff0000,
+                    width: 2 / this.appScale
+                });
+        })
+        this.selectedPoint.forEach((item) => {
+            this.circle(item.x, item.y, 6 / this.appScale)
+                .stroke({
+                    color: 0xff0000,
+                    width: 2 / this.appScale
+                })
+        })
+        if (this.selectedPoint.length > 1) {
+            selectedRect.upDateSelected(this.selectedPoint);
+        }
     }
     pointList: MeshPoint[] = []
     lineList: MeshLine[] = []
-    selectedPoint?: MeshPoint
-    selectedLine?: MeshLine
+    selectedPoint: MeshPoint[] = []
+    selectedLine: MeshLine[] = []
+
+    addSelectedItems(points: MeshPoint[], lines: MeshLine[]) {
+        this.selectedPoint.push(...points);
+        this.selectedLine.push(...lines);
+        selectedRect.upDateSelected(this.pointList);
+    }
+    addSelectedItem(point: MeshPoint | null, line: MeshLine | null) {
+        if (point != null && line != null) {
+            this.addSelectedItems([point], [line]);
+            return;
+        }
+        if (point != null) {
+            this.addSelectedItems([point], []);
+            return
+        }
+        if (line != null) {
+            this.addSelectedItems([], [line]);
+            return
+        }
+
+    }
+    emptySelectedItems() {
+        this.selectedPoint = [];
+        this.selectedLine = [];
+        selectedRect.upDateSelected(this.pointList);
+    }
+    removeSelectedItem(point: MeshPoint | null, line: MeshLine | null) {
+        if (point != null) {
+            this.selectedPoint = this.selectedPoint.filter((v) => {
+                return v !== point;
+            })
+        }
+        if (line != null) {
+            this.lineList = this.lineList.filter((v) => {
+                return v !== line;
+            })
+        }
+        selectedRect.upDateSelected(this.pointList);
+    }
     /**
      * 只能由GraphicsLayer创建
      */
@@ -40,11 +98,32 @@ class MeshLayer extends Graphics {
      * AtPosition的函数以局部为坐标系
      * @returns 
      */
-    pointAtPosition(): number | null {
-        return 0;
+    pointAtPosition(x: number, y: number): MeshPoint | null {
+        const r = 5 / this.appScale;
+        for (const p of this.pointList) {
+            const d = (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y);
+            if (d < r * r)
+                return p;
+        }
+        return null
     }
-    lineAtPosition(): number | null {
-        return 0;
+    lineAtPosition(x: number, y: number): MeshLine | null {
+        const r = 3 / this.appScale;
+        for (const l of this.lineList) {
+            const d = this.distanceFromLine(x, y, l);
+            if (d < r * r) {
+                return l
+            }
+        }
+        return null
+    }
+    //返回的是平方距离
+    distanceFromLine(x: number, y: number, line: MeshLine): number {
+        const A = line.p1.y - line.p2.y;
+        const B = line.p2.x - line.p1.x;
+        const C = line.p1.x * line.p2.y - line.p2.x * line.p1.y
+        const f = A * x + B * y + C;
+        return (f * f) / (A * A + B * B);
     }
     constructor(parent: GraphicsLayer) {
         super()

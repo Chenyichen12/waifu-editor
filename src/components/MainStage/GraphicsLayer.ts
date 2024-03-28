@@ -4,11 +4,14 @@ import MeshLayer from "./GraphicsBase/MeshLayer"
 import MeshPoint from "./GraphicsBase/MeshPoint"
 import TextureLayer from "./TextureBase/TextureLayer"
 import { Container, DestroyOptions, Matrix } from "pixi.js"
+import { instanceApp } from "./StageApp"
+import MeshLine from "./GraphicsBase/MeshLine"
 
 enum State {
     MeshEditState,
     PointMoveState,
     HideMeshState,
+    NormalState,
 }
 interface GraphicsLayerOption {
     texture: ImageAsset
@@ -20,6 +23,9 @@ class GraphicsLayer extends Container {
     state: State = State.PointMoveState
     mesh: MeshLayer
     texture: TextureLayer
+
+    editMesh?: MeshLayer
+    mouseState: MouseState = new MouseNormalState();
 
     layerRect: {
         height: number,
@@ -89,30 +95,19 @@ class GraphicsLayer extends Container {
      * 大概也有一些性能问题需要解决
      * 也许判断uv和判断是否在三角形内可以一起计算
      */
-    containsPoint(localPoint: { x: number, y: number }): boolean {
+    containsPoint(point: { x: number, y: number }): boolean {
         /**
          * 判断点在哪个三角形内，根据三角形算出uv，判断uv的点是不是透明的
          */
-
-        const indexBuffer = this.texture.geometry.getIndex().data;
-
-        const point = {
-            x: localPoint.x - this.x,
-            y: localPoint.y - this.y
-        }
         let uv: {
             u: number,
             v: number
         } | null = null
-        for (let i = 0; i < indexBuffer.length; i += 3) {
-            const p1 = this.mesh.pointList[indexBuffer[i]];
-            const p2 = this.mesh.pointList[indexBuffer[i + 1]];
-            const p3 = this.mesh.pointList[indexBuffer[i + 2]];
-            if (contains(p1, p2, p3, point)) {
-                //判断uv
-                uv = uvCalculate(p1, p2, p3, point);
-                break;
-            }
+
+
+        const tri = this.containsPointTri(point);
+        if (tri != null) {
+            uv = uvCalculate(tri.p1, tri.p2, tri.p3, point);
         }
 
         if (uv == null) {
@@ -127,6 +122,27 @@ class GraphicsLayer extends Container {
             return false
         }
         return true;
+    }
+
+    tranformToLocal(localPoint: { x: number, y: number }) {
+        return {
+            x: localPoint.x - this.x,
+            y: localPoint.y - this.y,
+        }
+    }
+
+    containsPointTri(point: { x: number, y: number }): { p1: MeshPoint, p2: MeshPoint, p3: MeshPoint } | null {
+        const indexBuffer = this.texture.geometry.getIndex().data;
+
+        for (let i = 0; i < indexBuffer.length; i += 3) {
+            const p1 = this.mesh.pointList[indexBuffer[i]];
+            const p2 = this.mesh.pointList[indexBuffer[i + 1]];
+            const p3 = this.mesh.pointList[indexBuffer[i + 2]];
+            if (contains(p1, p2, p3, point)) {
+                return { p1, p2, p3 };
+            }
+        }
+        return null;
     }
 }
 
@@ -186,7 +202,7 @@ function uvCalculate(pa: MeshPoint, pb: MeshPoint, pc: MeshPoint, p: xy) {
 }
 
 interface GraphicsLayerEvent {
-    preventDefault: boolean
+    preventDefault: boolean //当为false的时候调用者会继续事件处理
     context: GraphicsLayer
 }
 /**  如果鼠标位置在命中图层，则给图层派发事件，选中的图层优先派发
@@ -201,31 +217,116 @@ abstract class MouseState {
     abstract handleMouseDown(position: xy, context: GraphicsLayer): GraphicsLayerEvent
     abstract handleMouseMove(position: xy, context: GraphicsLayer): GraphicsLayerEvent
     abstract handleMouseUp(position: xy, context: GraphicsLayer): GraphicsLayerEvent
+    //在编辑模式下面，返回编辑的mesh
+    getCurrentMesh(context: GraphicsLayer) {
+        if (context.state == State.MeshEditState) {
+            return context.editMesh!;
+        }
+        return context.mesh;
+    }
 }
 
 class MouseNormalState extends MouseState {
     handleMouseDown(position: xy, context: GraphicsLayer): GraphicsLayerEvent {
-        const prevent = false;
+        let preventDefault = false;
         if (!context.isSelected.value) {
-            context.isSelected.value = false;
+            context.isSelected.value = true;
             return {
-                preventDefault: prevent,
+                preventDefault,
                 context
             }
         }
-        const p = context.mesh
+        let p: MeshPoint | null = null;
+        let l: MeshLine | null = null;
+        const currentMesh = this.getCurrentMesh(context);
+        p = currentMesh.pointAtPosition(position.x, position.y);
+        if (p == null) {
+            l = currentMesh.lineAtPosition(position.x, position.y);
+        }
+
+        if (p == null && l == null) {
+            return {
+                preventDefault,
+                context
+            }
+        }
+
+        //选中了线或者点，避免stage处理
+        preventDefault = true;
+        //多选模式
+        if (instanceApp.value!.isShiftPress) {
+            currentMesh.addSelectedItem(p, l);
+        } else {
+            currentMesh.emptySelectedItems();
+            currentMesh.addSelectedItem(p, l);
+        }
+        if (currentMesh.selectedPoint.length == 1)
+            context.mouseState = new MouseSingleItemGragState();
         return {
-            preventDefault: prevent,
+            preventDefault,
+            context
+        }
+    }
+    handleMouseMove(_position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        return {
+            preventDefault: false,
+            context
+        }
+    }
+    handleMouseUp(_position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        return {
+            preventDefault: false,
+            context
+        }
+    }
+
+}
+class MouseSingleItemGragState extends MouseState {
+    handleMouseDown(_position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        return {
+            preventDefault: false,
             context
         }
     }
     handleMouseMove(position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        if (context.state === State.NormalState) {
+            context.mesh.selectedPoint[0].setPosition(position.x, position.y);
+            context.mesh.update();
+            return {
+                preventDefault: false,
+                context
+            }
+        }
+        if (context.state === State.MeshEditState) {
+            const editMesh = context.editMesh!;
+            editMesh.selectedPoint[0].setPosition(position.x, position.y);
+            const tri = context.containsPointTri(position);
+            if (tri != null) {
+                const uv = uvCalculate(tri.p1, tri.p2, tri.p3, position);
+                editMesh.selectedPoint[0].setUV(uv.u, uv.v);
+            } else {
+                editMesh.selectedPoint[0].setUV(position.x / context.layerRect.width, position.y / context.layerRect.height);
+            }
+            editMesh.update();
+        }
         return {
             preventDefault: false,
             context
         }
     }
     handleMouseUp(position: xy, context: GraphicsLayer): GraphicsLayerEvent {
+        if (context.state === State.MeshEditState) {
+            const editMesh = context.editMesh!;
+            editMesh.selectedPoint[0].setPosition(position.x, position.y);
+            const tri = context.containsPointTri(position);
+            if (tri != null) {
+                const uv = uvCalculate(tri.p1, tri.p2, tri.p3, position);
+                editMesh.selectedPoint[0].setUV(uv.u, uv.v);
+            } else {
+                editMesh.selectedPoint[0].setUV(position.x / context.layerRect.width, position.y / context.layerRect.height);
+            }
+        }
+        context.mouseState = new MouseNormalState();
         return {
             preventDefault: false,
             context
@@ -233,6 +334,5 @@ class MouseNormalState extends MouseState {
     }
 
 }
-
 
 export default GraphicsLayer

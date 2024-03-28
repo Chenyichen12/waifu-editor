@@ -19,6 +19,10 @@ class MeshPoint {
         this._y = y ?? this._y;
 
     }
+    setUV(u?: number, v?: number) {
+        this._u = u ?? this._u;
+        this._v = v ?? this._v;
+    }
 
     get x() {
         return this._x;

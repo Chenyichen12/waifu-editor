@@ -152,7 +152,19 @@ abstract class StageState {
 
 //找到第一个位置的item
 function findFirstItemAtPosition(mousePosition: { offsetX: number, offsetY: number }, context: StageApp) {
+
     const stagePos = context.stage.toLocal({ x: mousePosition.offsetX, y: mousePosition.offsetY });
+
+    //优先select的item
+    for (const gra of context.selectGraphicsLayer.value) {
+        const point = gra.tranformToLocal(stagePos);
+        if (!gra.show) {
+            continue;
+        }
+        if (gra.containsPoint(point)) {
+            return gra;
+        }
+    }
     for (const gra of context.graphicsChildren) {
         //并不搜索不显示的图层
         if (!gra.show) {
@@ -195,12 +207,30 @@ class StageNormalState extends StageState {
             context.mouseState.onMouseDown(e, context);
             return;
         }
+
+        context.selectGraphicsLayer.value.forEach((item) => {
+            item.isSelected.value = false;
+        })
         const gra = findFirstItemAtPosition(e, context);
-        context.selectGraphicsLayer.value = gra === null ? [] : [gra];
+        if (gra == null) {
+            context.selectGraphicsLayer.value = [];
+            return
+        }
+        gra.mouseState.handleMouseDown(gra.tranformToLocal({
+            x: e.offsetX, y: e.offsetY
+        }), gra);
+        context.selectGraphicsLayer.value = [gra];
+
     }
     //正常状态move进入图层的时候显示网格提示用户
     onMouseMove(e: MouseEvent, context: StageApp): void {
         //TODO
+        const gra = findFirstItemAtPosition(e, context);
+        gra?.mouseState.handleMouseMove(gra.tranformToLocal(
+            context.stage.toLocal({ x: e.offsetX, y: e.offsetY })
+        ), gra);
+
+
     }
 
     //正常状态鼠标提起
