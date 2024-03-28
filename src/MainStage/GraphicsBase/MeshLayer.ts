@@ -65,11 +65,13 @@ class MeshLayer extends Graphics {
         super()
         this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(1), (v) => {
             this.appScale = v;
+            this.upDate();
         })
         this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
         this.unWatchSelectedPoint = watch(this.selectPointList, () => {
             this.upDate();
         });
+        this.upDate();
     }
 
     upDate() {

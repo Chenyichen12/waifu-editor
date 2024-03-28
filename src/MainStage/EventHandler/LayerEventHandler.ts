@@ -1,3 +1,4 @@
+import MeshLine from "../GraphicsBase/MeshLine"
 import StageLayer from "../LayerBase/StageLayer"
 
 type localPos = { x: number, y: number }
@@ -6,10 +7,14 @@ interface LayerEventOption {
     point: localPos,
     modifyKey?: string,
 }
+
+interface result {
+    prevent: boolean
+}
 abstract class LayerEventState {
-    handleMouseDownEvent(_option: LayerEventOption) { return }
-    handleMouseMoveEvent(_option: LayerEventOption) { return }
-    handleMouseUpEvent(_option: LayerEventOption) { return }
+    handleMouseDownEvent(_option: LayerEventOption): result | undefined { return }
+    handleMouseMoveEvent(_option: LayerEventOption): result | undefined { return }
+    handleMouseUpEvent(_option: LayerEventOption): result | undefined { return }
 
 
     context: StageLayer
@@ -21,27 +26,31 @@ abstract class LayerEventState {
 class LayerNormalState extends LayerEventState {
     protected meshTarget
     protected isMousePress = false
-    handleMouseDownEvent(option: LayerEventOption): void {
+    handleMouseDownEvent(option: LayerEventOption): undefined {
         if (option.modifyKey == "ShiftLeft" || option.modifyKey == "ShiftRight") {
             this.changeToMutiState();
             this.context.mouseState.handleMouseDownEvent(option);
             return;
         }
         this.selectOneItem(option.point);
+
         this.isMousePress = true;
     }
-    handleMouseMoveEvent(option: LayerEventOption): void {
+    handleMouseMoveEvent(option: LayerEventOption): result {
         if (this.meshTarget.selectedPoints.length != 1 || !this.isMousePress) {
-            return
+            return { prevent: false }
         }
         const point = this.meshTarget.selectedPoints[0];
         const move = option.point
         point.setPosition(point.x + move.x, point.y + move.y);
         this.upDatePosition();
+        return { prevent: true }
     }
     selectOneItem(point: localPos) {
         const p = this.meshTarget.pointAtPosition(point.x, point.y);
-        const l = this.meshTarget.lineAtPosition(point.x, point.y);
+        let l: MeshLine | undefined
+        if (p == undefined)
+            l = this.meshTarget.lineAtPosition(point.x, point.y);
         this.meshTarget.removeAllSelected();
         this.meshTarget.addSelected(
             p != undefined ? [p] : [],
@@ -50,8 +59,8 @@ class LayerNormalState extends LayerEventState {
 
     }
 
-    handleMouseUpEvent(_option: LayerEventOption): void {
-        this.isMousePress = true;
+    handleMouseUpEvent(_option: LayerEventOption): undefined {
+        this.isMousePress = false;
     }
     upDatePosition() {
         this.meshTarget.upDate();
@@ -68,7 +77,7 @@ class LayerNormalState extends LayerEventState {
 
 class LayerMutiSelectedState extends LayerEventState {
     protected meshTarget
-    handleMouseDownEvent(option: LayerEventOption): void {
+    handleMouseDownEvent(option: LayerEventOption): undefined {
         if (option.modifyKey != "ShiftLeft" && option.modifyKey != "ShiftRight") {
             this.changeToNormalState();
             this.context.mouseState.handleMouseDownEvent(option);

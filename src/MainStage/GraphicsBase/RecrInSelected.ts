@@ -13,7 +13,7 @@ class RectInSelected {
             })
     }
 
-    private static getBound(points: MeshPoint[]) {
+    static getBound(points: MeshPoint[]) {
         const xList = points.map((p) => {
             return p.x;
         });
@@ -22,8 +22,8 @@ class RectInSelected {
         });
         const left = Math.min(...xList);
         const right = Math.max(...xList);
-        const top = Math.max(...yList);
-        const button = Math.min(...yList);
+        const top = Math.min(...yList);
+        const button = Math.max(...yList);
         return { left, top, right, button };
     }
 }

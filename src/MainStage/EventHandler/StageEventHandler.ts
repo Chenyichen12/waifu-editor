@@ -1,4 +1,6 @@
+import { Matrix } from "pixi.js";
 import StageApp from "../StageApp";
+import StageLayer from "../LayerBase/StageLayer";
 
 abstract class StageEventState {
     context: StageApp
@@ -24,10 +26,13 @@ abstract class StageEventState {
         const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
         const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
         const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
-        stage.scale.set(scale);
+
         this.context.appScale.value = scale;
-        stage.position.x += oldDx;
-        stage.position.y += oldDy
+        stage.setFromMatrix(
+            new Matrix(scale, 0, 0, scale,
+                stage.position.x + oldDx, stage.position.y + oldDy
+            )
+        );
     }
 
     toStagePos(x: number, y: number) {
@@ -36,6 +41,8 @@ abstract class StageEventState {
 }
 
 class StageNormalEvent extends StageEventState {
+
+    tempMeshToShow: StageLayer | undefined
     handleKeyDown(e: KeyboardEvent): void {
         if (e.code === "Space") {
             const newState = new StageDragEvent(this.context);
@@ -52,9 +59,11 @@ class StageNormalEvent extends StageEventState {
 
     handleMouseDown(e: MouseEvent): void {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+
         for (const selectChild of this.context.selectedLayer.value) {
             const point = selectChild.transformFormStage(stagePos);
-            if (selectChild.hitLayer(point)) {
+
+            if (selectChild.hitLayerRect(point)) {
                 selectChild.mouseState.handleMouseDownEvent({ point });
                 //其他图层需要去除选中
                 this.context.selectedLayer.value = this.context.selectedLayer.value.filter((v) => {
@@ -69,8 +78,48 @@ class StageNormalEvent extends StageEventState {
             const point = child.transformFormStage(stagePos);
             if (child.hitLayer(point)) {
                 this.context.selectedLayer.value = [child]
+                break;
             }
         }
+    }
+
+    handleMouseMove(e: MouseEvent): void {
+        let showTempFlag = true;
+        this.context.selectedLayer.value.forEach((item) => {
+            const point = {
+                x: e.movementX / this.context.appScale.value,
+                y: e.movementY / this.context.appScale.value
+            }
+            const res = item.mouseState.handleMouseMoveEvent({
+                point
+            })
+            if (res != undefined && res.prevent) {
+                showTempFlag = false
+            }
+        });
+        if (showTempFlag) {
+            const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+            for (const child of this.context.childLayer) {
+                if (child.selected) continue;
+                const point = child.transformFormStage(stagePos);
+                if (child.hitLayer(point)) {
+                    if (this.tempMeshToShow === child)
+                        return;
+                    this.tempMeshToShow?.showTempMesh(false)
+                    this.tempMeshToShow = child;
+                    this.tempMeshToShow.showTempMesh(true);
+                    return;
+                }
+            }
+            this.tempMeshToShow?.showTempMesh(false);
+        }
+    }
+    handleMouseUp(e: MouseEvent): void {
+        this.context.selectedLayer.value.forEach((item) => {
+            item.mouseState.handleMouseUpEvent({
+                point: item.transformFormStage(this.toStagePos(e.offsetX, e.offsetY))
+            })
+        })
     }
 }
 

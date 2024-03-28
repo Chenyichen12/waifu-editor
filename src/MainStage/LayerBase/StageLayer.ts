@@ -6,6 +6,8 @@ import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
 import LayerEventState, { LayerNormalState } from "../EventHandler/LayerEventHandler";
+import RectInSelected from "../GraphicsBase/RecrInSelected";
+import { instanceApp } from "../StageApp";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
@@ -21,7 +23,7 @@ class StageLayer extends Container {
     protected _selected: boolean = false
     protected _show: boolean = true;
 
-    mouseState: LayerEventState = new LayerNormalState(this);
+    mouseState: LayerEventState
 
     protected faceMesh: MeshLayer
     get mesh() { return this.faceMesh }
@@ -80,6 +82,7 @@ class StageLayer extends Container {
         this.unWatchShow = watch(option.isShow, (newV) => {
             this.show = newV;
         })
+        this.mouseState = new LayerNormalState(this);
 
     }
 
@@ -122,6 +125,17 @@ class StageLayer extends Container {
         return true;
     }
 
+    hitLayerRect(point: xy): boolean {
+        const rect = RectInSelected.getBound(this.getPointList());
+        const padding = 15 / (instanceApp.value?.appScale.value ?? 1);
+        rect.top -= padding;
+        rect.left -= padding;
+        rect.button += padding;
+        rect.right += padding;
+
+        return point.x <= rect.right && point.x >= rect.left
+            && point.y <= rect.button && point.y >= rect.top
+    }
     destroy(options?: DestroyOptions | undefined): void {
         this.unWatchShow();
         super.destroy(options)
