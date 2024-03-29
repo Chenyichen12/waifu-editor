@@ -1,4 +1,5 @@
 import MeshLine from "../GraphicsBase/MeshLine"
+import MeshPoint from "../GraphicsBase/MeshPoint"
 import StageLayer from "../LayerBase/StageLayer"
 
 type localPos = { x: number, y: number }
@@ -37,7 +38,7 @@ abstract class LayerEventState {
 class LayerNormalState extends LayerEventState {
     protected meshTarget //正常状态下对应的mesh目标
     protected isMousePress = false
-
+    protected dragItem: MeshPoint | undefined
     /**
      * 鼠标按下之后处理，如果Shift按下说明多选，转化到多选模式
      */
@@ -57,12 +58,12 @@ class LayerNormalState extends LayerEventState {
      * 反之直接对点进行拖动
      */
     handleMouseMoveEvent(option: LayerEventOption): result {
-        if (this.meshTarget.selectedPoints.length != 1 || !this.isMousePress) {
+        if (this.dragItem == undefined || !this.isMousePress) {
             return { prevent: false }
         }
-        const point = this.meshTarget.selectedPoints[0];
+
         const move = option.point
-        point.setPosition(point.x + move.x, point.y + move.y);
+        this.dragItem.setPosition(this.dragItem.x + move.x, this.dragItem.y + move.y);
         this.upDatePosition();
         return { prevent: true }
     }
@@ -73,6 +74,7 @@ class LayerNormalState extends LayerEventState {
      */
     selectOneItem(point: localPos) {
         const p = this.meshTarget.pointAtPosition(point.x, point.y);
+        this.dragItem = p;
         let l: MeshLine | undefined
         if (p == undefined)
             l = this.meshTarget.lineAtPosition(point.x, point.y);

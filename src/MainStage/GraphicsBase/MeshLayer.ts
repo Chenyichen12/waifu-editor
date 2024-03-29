@@ -25,38 +25,36 @@ class MeshLayer extends Graphics {
 
 
 
-    protected selectPointList: ShallowRef<MeshPoint[]> = shallowRef([])
-    get selectedPoints() { return this.selectPointList.value }
-    protected unWatchSelectedPoint
-    protected selectLineList: ShallowRef<MeshLine[]> = shallowRef([])
-    get selectedLines() { return this.selectLineList.value }
+    protected selectPointList = new Set<MeshPoint>();
+    get selectedPoints() { return [...this.selectPointList] }
+    protected selectLineList = new Set<MeshLine>();
+    get selectedLines() { return [...this.selectLineList] }
 
     addSelected(p: MeshPoint[], l: MeshLine[]) {
-        const newPointList: MeshPoint[] = []
-        p.forEach((item) => {
-            if (!this.pointIsSelected(item))
-                this.selectPointList.value.push(item);
+        const lengthPoint = this.selectPointList.size;
+        p.forEach((v) => {
+            this.selectPointList.add(v);
         })
-        this.selectPointList.value = [...this.selectPointList.value, ...newPointList];
-        const newLineList: MeshLine[] = [];
-        l.forEach((item) => {
-            if (!this.lineIsSelected(item))
-                newLineList.push(item);
+        l.forEach((v) => {
+            this.selectLineList.add(v);
         })
-        this.selectLineList.value = [...this.selectLineList.value, ...newLineList];
+
+        if (this.selectPointList.size == lengthPoint)
+            this.upDate();
     }
 
     removeAllSelected() {
-        this.selectPointList.value = [];
-        this.selectLineList.value = [];
+        this.selectPointList.clear();
+        this.selectLineList.clear();
+        this.upDate();
     }
 
     removeSelected(p: MeshPoint[], l: MeshLine[]) {
-        this.selectPointList.value = this.selectPointList.value.filter((item) => {
-            return p.find((v) => v === item) == undefined
+        p.forEach((v) => {
+            this.selectPointList.delete(v);
         })
-        this.selectLineList.value = this.selectLineList.value.filter((item) => {
-            return l.find((v) => v === item) == undefined
+        l.forEach((v) => {
+            this.selectLineList.delete(v);
         })
     }
 
@@ -68,9 +66,7 @@ class MeshLayer extends Graphics {
             this.upDate();
         })
         this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
-        this.unWatchSelectedPoint = watch(this.selectPointList, () => {
-            this.upDate();
-        });
+
         this.upDate();
     }
 
@@ -90,7 +86,7 @@ class MeshLayer extends Graphics {
                     color: 0xff0000
                 })
         })
-        this.selectLineList.value.forEach((item) => {
+        this.selectLineList.forEach((item) => {
             this.moveTo(item.p1.x, item.p1.y)
                 .lineTo(item.p2.x, item.p2.y)
                 .stroke({
@@ -98,21 +94,20 @@ class MeshLayer extends Graphics {
                     width: 2 / this.appScale
                 });
         })
-        this.selectPointList.value.forEach((item) => {
+        this.selectPointList.forEach((item) => {
             this.circle(item.x, item.y, 6 / this.appScale)
                 .stroke({
                     color: 0xff0000,
                     width: 2 / this.appScale
                 })
         })
-        if (this.selectPointList.value.length > 1) {
-            RectInSelected.upDate(this.selectPointList.value, this);
+        if (this.selectPointList.size > 1) {
+            RectInSelected.upDate([...this.selectPointList], this);
         }
     }
 
     destroy(options?: DestroyOptions | undefined): void {
         this.unwatchScale();
-        this.unWatchSelectedPoint();
         super.destroy(options);
     }
 
@@ -146,18 +141,10 @@ class MeshLayer extends Graphics {
     }
 
     pointIsSelected(point: MeshPoint): boolean {
-        for (const p of this.selectPointList.value) {
-            if (p === point)
-                return true;
-        }
-        return false;
+        return this.selectPointList.has(point);
     }
     lineIsSelected(line: MeshLine): boolean {
-        for (const p of this.selectLineList.value) {
-            if (p === line)
-                return true;
-        }
-        return false;
+        return this.selectLineList.has(line);
     }
 
     pointAtPosition(x: number, y: number): MeshPoint | undefined {
