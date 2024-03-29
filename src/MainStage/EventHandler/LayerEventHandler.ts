@@ -4,13 +4,21 @@ import StageLayer from "../LayerBase/StageLayer"
 type localPos = { x: number, y: number }
 
 interface LayerEventOption {
-    point: localPos,
+    point: localPos, // layer的局部坐标，和Stage的坐标不同 可以用StageLayer的transformFormStage转换
     modifyKey?: string,
 }
 
+/**
+ * 事件处理回馈
+ * prevent： 是否阻止Stage的事件处理
+ */
 interface result {
     prevent: boolean
 }
+/**
+ * StageLayer 处理鼠标事件抽象类
+ * 仅在selected的时候才会派发这一类的事件
+ */
 abstract class LayerEventState {
     handleMouseDownEvent(_option: LayerEventOption): result | undefined { return }
     handleMouseMoveEvent(_option: LayerEventOption): result | undefined { return }
@@ -23,9 +31,16 @@ abstract class LayerEventState {
     }
 }
 
+/**
+ * 在StageLayer非编辑状态下（正常状态下） 处理鼠标事件
+ */
 class LayerNormalState extends LayerEventState {
-    protected meshTarget
+    protected meshTarget //正常状态下对应的mesh目标
     protected isMousePress = false
+
+    /**
+     * 鼠标按下之后处理，如果Shift按下说明多选，转化到多选模式
+     */
     handleMouseDownEvent(option: LayerEventOption): undefined {
         if (option.modifyKey == "ShiftLeft" || option.modifyKey == "ShiftRight") {
             this.changeToMutiState();
@@ -36,6 +51,11 @@ class LayerNormalState extends LayerEventState {
 
         this.isMousePress = true;
     }
+
+    /**
+     * 鼠标移动的事件，当鼠标没有按下或者选中的点的数量不是1，说明不能拖动点 直接返回
+     * 反之直接对点进行拖动
+     */
     handleMouseMoveEvent(option: LayerEventOption): result {
         if (this.meshTarget.selectedPoints.length != 1 || !this.isMousePress) {
             return { prevent: false }
@@ -46,6 +66,11 @@ class LayerNormalState extends LayerEventState {
         this.upDatePosition();
         return { prevent: true }
     }
+
+    /**
+     * 
+     * @param point 
+     */
     selectOneItem(point: localPos) {
         const p = this.meshTarget.pointAtPosition(point.x, point.y);
         let l: MeshLine | undefined
