@@ -1,5 +1,9 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-28 22:33:05
+ */
 import { DestroyOptions, Graphics } from "pixi.js";
-import { ShallowRef, ref, shallowRef, watch } from "vue";
+import { ref, watch } from "vue";
 import { instanceApp } from "../StageApp";
 import MeshPoint from "./MeshPoint";
 import MeshLine from "./MeshLine";
