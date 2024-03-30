@@ -30,7 +30,13 @@ class MeshLine {
             return this.p1;
         return null
     }
-
+    /**
+     * 判断点是否命中这条线
+     * @param x 点x坐标
+     * @param y 点y坐标
+     * @param hitDistance 判断的容错距离
+     * @returns 是否命中
+     */
     ifHitLine(x: number, y: number, hitDistance: number = 1): boolean {
         const top = this.p1.y > this.p2.y ? this.p2.y : this.p1.y;
         const button = this.p1.y > this.p2.y ? this.p1.y : this.p2.y;
