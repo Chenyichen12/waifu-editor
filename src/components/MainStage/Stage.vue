@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
-import Project from "../Project/Project.ts";
+import Project from "../Project/Project";
 import StageApp, { instanceApp } from '../../MainStage/StageApp'
 const stageDomRef = ref<HTMLDivElement | null>(null)
 
@@ -12,12 +12,12 @@ watch(Project.instance, (v) => {
     stage.initFromProject(v);
 })
 
-function handleKeyDown(e: KeyboardEvent){
-    if(instanceApp.value != null)
+function handleKeyDown(e: KeyboardEvent) {
+    if (instanceApp.value != null)
         instanceApp.value.eventHandler.handleKeyDown(e);
 }
-function handleKeyUp(e: KeyboardEvent){
-    if(instanceApp.value != null)
+function handleKeyUp(e: KeyboardEvent) {
+    if (instanceApp.value != null)
         instanceApp.value.eventHandler.handleKeyUp(e);
 }
 onMounted(async () => {
