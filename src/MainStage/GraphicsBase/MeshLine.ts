@@ -39,14 +39,14 @@ class MeshLine {
 
         if (x > right + hitDistance || x < left - hitDistance || y > button + hitDistance || y < top - hitDistance)
             return false;
-        return hitDistance >= MeshLine.distanceFromLine(x, y, this);
+        return hitDistance * hitDistance >= MeshLine.distanceFromLine(x, y, this);
     }
     /**
-     * 点距离线的距离
+     * 点距离线的平方距离
      * @param x 
      * @param y 
-     * @param line 
-     * @returns 
+     * @param line 选定的线
+     * @returns 返回平方距离
      */
     static distanceFromLine(x: number, y: number, line: MeshLine): number {
         const A = line.p1.y - line.p2.y;

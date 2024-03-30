@@ -214,8 +214,7 @@ class MeshLayer extends Graphics {
      * @returns 找到的MeshLine，未找到返回undefined
      */
     lineAtPosition(x: number, y: number): MeshLine | undefined {
-
-        const r = 50 / this.appScale;
+        const r = 5 / this.appScale;
         for (const l of this.lineList) {
             if (l.ifHitLine(x, y, r)) {
                 return l
