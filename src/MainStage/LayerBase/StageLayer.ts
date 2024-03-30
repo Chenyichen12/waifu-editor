@@ -6,31 +6,40 @@ import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
 import LayerEventState, { LayerNormalState } from "../EventHandler/LayerEventHandler";
-import RectInSelected from "../GraphicsBase/RecrInSelected";
+import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
+/**
+ * StageLayer构造参数
+ */
 interface StageLayerOption {
-    isShow: Ref<boolean>,
-    texture: ImageAsset,
-    layerId: string
+    isShow: Ref<boolean>, //是否展示
+    texture: ImageAsset, //图像资产
+    layerId: string //Project对应的LayerId
 }
 class StageLayer extends Container {
-    readonly layerId: string
+    readonly layerId: string //Project对应的LayerId
     protected unWatchShow
 
+    /**是否被选中，是否可见 */
     protected _selected: boolean = false
     protected _show: boolean = true;
 
+    /**鼠标事件处理 */
     mouseState: LayerEventState
 
+    /**layer下面的mesh展示图层 */
     protected faceMesh: MeshLayer
     get mesh() { return this.faceMesh }
+    /**底部展示图片的图层 */
     protected _textureLayer: TextureLayer
     get textureLayer() { return this._textureLayer }
+    /**如果在编辑状态展示的时编辑的网格 */
     public editMesh?: MeshLayer
 
+    /**是否选中，如果不可见直接返回 */
     set selected(isSelected: boolean) {
         if (!this._show) return
 
@@ -40,6 +49,7 @@ class StageLayer extends Container {
     }
     get selected() { return this._selected }
 
+    /**设置是否可见 */
     set show(isShow: boolean) {
         this._show = isShow;
         this.visible = isShow;
@@ -51,15 +61,18 @@ class StageLayer extends Container {
         return this._show;
     }
 
+    /**返回mesh层的所有点和线 */
     getPointList() { return this.faceMesh.listPoint; }
     getLineList() { return this.faceMesh.listLine; }
 
+    /**展示预览的mesh */
     showTempMesh(isShow: boolean) {
         if (this.selected) return;
         if (isShow) this.faceMesh.alpha = 0.5;
         else this.faceMesh.alpha = 0;
     }
 
+    /**当图层几何位置变化的时候mesh由于不是图层的孩子，需要手动同步 */
     setFromMatrix(matrix: Matrix): void {
         this.faceMesh.setFromMatrix(matrix);
         super.setFromMatrix(matrix);
@@ -86,6 +99,11 @@ class StageLayer extends Container {
 
     }
 
+    /**
+     * 返回layer的局部坐标
+     * @param stagePoint stage坐标 
+     * @returns 局部坐标
+     */
     transformFormStage(stagePoint: xy) {
         return {
             x: stagePoint.x - this.position.x,
@@ -93,6 +111,11 @@ class StageLayer extends Container {
         }
     }
 
+    /**
+     * 
+     * @param point 局部坐标 
+     * @returns 当局部坐标点在该mesh的一个三角形内时 返回三角形的三个点，反之返回undefined
+     */
     pointInTri(point: xy): { p1: xyuv, p2: xyuv, p3: xyuv } | undefined {
         const indexBuffer = this.textureLayer.geometry.getIndex().data;
         for (let i = 0; i < indexBuffer.length; i += 3) {
@@ -106,6 +129,11 @@ class StageLayer extends Container {
         return undefined;
     }
 
+    /**
+     * 
+     * @param point 局部坐标点
+     * @returns 当局部坐标点命中了非透明像素的时候返回true，其余返回false
+     */
     hitLayer(point: xy): boolean {
         const tri = this.pointInTri(point);
         if (tri == undefined) return false;
@@ -125,6 +153,11 @@ class StageLayer extends Container {
         return true;
     }
 
+    /**
+     * 相当于hitLayer的弱化版
+     * @param point 局部坐标
+     * @returns 当坐标点包括在这个layer的矩形内时返回true
+     */
     hitLayerRect(point: xy): boolean {
         const rect = RectInSelected.getBound(this.getPointList());
         const padding = 15 / (instanceApp.value?.appScale.value ?? 1);
@@ -136,6 +169,11 @@ class StageLayer extends Container {
         return point.x <= rect.right && point.x >= rect.left
             && point.y <= rect.button && point.y >= rect.top
     }
+
+    /**
+     * 销毁监听器
+     * @param options 
+     */
     destroy(options?: DestroyOptions | undefined): void {
         this.unWatchShow();
         super.destroy(options)

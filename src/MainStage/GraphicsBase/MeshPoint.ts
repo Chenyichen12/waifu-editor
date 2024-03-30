@@ -1,3 +1,7 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-28 12:43:46
+ */
 import MeshLine from "./MeshLine";
 class MeshPoint {
     protected _x: number
@@ -11,11 +15,13 @@ class MeshPoint {
         this._u = u;
         this._v = v;
     }
+    /**更改坐标，如果未指定参数用原先的坐标 */
     setPosition(x?: number, y?: number): void {
         this._x = x ?? this._x;
         this._y = y ?? this._y;
-
     }
+
+    /**更改uv */
     setUV(u?: number, v?: number) {
         this._u = u ?? this._u;
         this._v = v ?? this._v;

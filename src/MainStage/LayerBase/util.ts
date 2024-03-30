@@ -7,39 +7,45 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 */
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
+/**
+ * 向量操作
+ */
 class vec {
+    /**点乘法 */
     static dot(v1: xy, v2: xy) {
         return v1.x * v2.x + v1.y * v2.y;
     }
+    /**减法 */
     static sub(v1: xy, v2: xy) {
         return {
             x: v1.x - v2.x,
             y: v1.y - v2.y
         }
     }
+    /**叉乘 */
+    static cross(v1: xy, v2: xy) {
+        return v1.x * v2.y - v1.y * v2.x;
+    }
 }
 class ContainesPoint {
+    /**判断点是否在三角形内 */
     static contains(p1: xy, p2: xy, p3: xy, p: xy): boolean {
-        const v0 = vec.sub(p2, p1);
-        const v1 = vec.sub(p3, p1);
-        const v2 = vec.sub(p, p1);
+        const pa = vec.sub(p, p1);
+        const pb = vec.sub(p, p2);
+        const pc = vec.sub(p, p3);
 
-        const dot00 = vec.dot(v0, v0);
-        const dot01 = vec.dot(v0, v1);
-        const dot02 = vec.dot(v0, v2);
-        const dot11 = vec.dot(v1, v1);
-        const dot12 = vec.dot(v1, v2);
+        const t1 = vec.cross(pa, pb);
+        const t2 = vec.cross(pb, pc);
+        const t3 = vec.cross(pc, pa);
 
-        const inverDeno = 1 / (dot00 * dot11 - dot00 * dot01);
-        const u = (dot11 * dot02 - dot01 * dot12) * inverDeno;
-        if (u < 0 || u > 1)
-            return false;
-        const v = (dot00 * dot12 - dot01 * dot02) * inverDeno;
-        if (v < 0 || v > 1)
-            return false;
-        return u + v <= 1;
+        if (t1 <= 0 && t2 <= 0 && t3 <= 0)
+            return true;
+        if (t1 >= 0 && t2 >= 0 && t3 >= 0)
+            return true
+        return false;
     }
 
+    /**根据三角形的三个点判断一个点的uv */
     static uvCalculate(pa: xyuv, pb: xyuv, pc: xyuv, p: xy) {
 
         const ppb = vec.sub(p, pb);
@@ -59,6 +65,7 @@ class ContainesPoint {
         }
     }
 }
+/**三角形类 */
 class tranigle {
     line1: MeshLine
     line2: MeshLine
@@ -69,6 +76,7 @@ class tranigle {
         this.line3 = l3;
     }
 
+    /**判断两个三角形是否是一个 */
     isEqual(tra: tranigle) {
         const isContain = (line: MeshLine) => {
             return line === this.line1
@@ -81,6 +89,7 @@ class tranigle {
     }
 }
 
+/**根据mesh几何生成glbuffer */
 class GenerateGlBuffer {
     static generate(pointList: MeshPoint[], lineList: MeshLine[]) {
         const tranigleList: tranigle[] = []
@@ -124,6 +133,7 @@ class GenerateGlBuffer {
             positionList.push(item.x, item.y);
             uvList.push(item.u, item.v);
         })
+        //添加indexBuffer
         for (const tri of tranigleList) {
             const p1 = tri.line1.p1;
             const p2 = tri.line1.p2;
@@ -146,6 +156,7 @@ class GenerateGlBuffer {
             indexBuffer
         }
     }
+    /**根据MeshLayer生成glbuffer */
     static generateFromLayer(mesh: MeshLayer) {
         return this.generate(mesh.listPoint, mesh.listLine);
     }
