@@ -6,7 +6,7 @@ import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
 import LayerEventState, { LayerNormalState } from "../EventHandler/LayerEventHandler";
-import RectInSelected from "../GraphicsBase/RecrInSelected";
+import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
 
 type xy = { x: number, y: number }

@@ -7,7 +7,7 @@ import { ref, watch } from "vue";
 import { instanceApp } from "../StageApp";
 import MeshPoint from "./MeshPoint";
 import MeshLine from "./MeshLine";
-import RectInSelected from "./RecrInSelected";
+import RectInSelected from "./RectInSelected";
 /** MeshLayer的构造信息*/
 interface MeshOption {
     /**几何信息 */
