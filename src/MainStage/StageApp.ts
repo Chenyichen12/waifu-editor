@@ -1,3 +1,8 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-30 11:34:21
+ * PIXIApp类
+ */
 import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
 import { ref, shallowRef, watch } from "vue";

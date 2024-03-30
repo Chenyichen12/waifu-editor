@@ -1,3 +1,7 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-27 18:03:33
+ */
 import { Texture } from "pixi.js"
 import { v4 as uuid } from "uuid"
 interface rect {

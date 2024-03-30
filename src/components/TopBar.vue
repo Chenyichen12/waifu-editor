@@ -1,3 +1,7 @@
+<!--
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-27 18:03:33
+-->
 <script setup lang="ts">
 import FileFunction from "./BarFunction/FileFunction.vue";
 const barList = [FileFunction]

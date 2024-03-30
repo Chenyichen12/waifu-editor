@@ -1,3 +1,7 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-11 23:03:44
+ */
 import { createApp } from 'vue'
 import './style.css'
 import 'element-plus/dist/index.css'
