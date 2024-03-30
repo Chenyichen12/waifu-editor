@@ -1,3 +1,10 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-30 08:46:47
+ * 
+ * 用于处理LayerStage的事件，处理键盘事件
+ */
+
 import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
 import StageLayer from "../LayerBase/StageLayer"

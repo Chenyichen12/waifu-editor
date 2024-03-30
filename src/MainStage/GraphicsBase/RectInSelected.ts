@@ -1,8 +1,17 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-28 12:42:02
+ */
 import { instanceApp } from "../StageApp";
 import MeshLayer from "./MeshLayer";
 import MeshPoint from "./MeshPoint";
 
+/**
+ * 当多选点的时候，出现一个包括点的矩形框，该矩形框用于管理多选的点，可以移动
+ */
 class RectInSelected {
+
+    /**绘制多选框 */
     static upDate(points: MeshPoint[], canvas: MeshLayer) {
         const { left, top, right, button } = this.getBound(points);
         const padding = 10 / (instanceApp.value?.appScale.value ?? 1);
@@ -13,6 +22,11 @@ class RectInSelected {
             })
     }
 
+    /**
+     * 对于一系列点，找到最小包围住点的正矩形框
+     * @param points 点集合
+     * @returns 矩形四个角
+     */
     static getBound(points: MeshPoint[]) {
         const xList = points.map((p) => {
             return p.x;

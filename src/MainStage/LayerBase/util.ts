@@ -7,21 +7,28 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 */
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
+/**
+ * 向量操作
+ */
 class vec {
+    /**点乘法 */
     static dot(v1: xy, v2: xy) {
         return v1.x * v2.x + v1.y * v2.y;
     }
+    /**减法 */
     static sub(v1: xy, v2: xy) {
         return {
             x: v1.x - v2.x,
             y: v1.y - v2.y
         }
     }
+    /**叉乘 */
     static cross(v1: xy, v2: xy) {
         return v1.x * v2.y - v1.y * v2.x;
     }
 }
 class ContainesPoint {
+    /**判断点是否在三角形内 */
     static contains(p1: xy, p2: xy, p3: xy, p: xy): boolean {
         const pa = vec.sub(p, p1);
         const pb = vec.sub(p, p2);
@@ -38,6 +45,7 @@ class ContainesPoint {
         return false;
     }
 
+    /**根据三角形的三个点判断一个点的uv */
     static uvCalculate(pa: xyuv, pb: xyuv, pc: xyuv, p: xy) {
 
         const ppb = vec.sub(p, pb);
@@ -57,6 +65,7 @@ class ContainesPoint {
         }
     }
 }
+/**三角形类 */
 class tranigle {
     line1: MeshLine
     line2: MeshLine
@@ -67,6 +76,7 @@ class tranigle {
         this.line3 = l3;
     }
 
+    /**判断两个三角形是否是一个 */
     isEqual(tra: tranigle) {
         const isContain = (line: MeshLine) => {
             return line === this.line1
@@ -79,6 +89,7 @@ class tranigle {
     }
 }
 
+/**根据mesh几何生成glbuffer */
 class GenerateGlBuffer {
     static generate(pointList: MeshPoint[], lineList: MeshLine[]) {
         const tranigleList: tranigle[] = []
@@ -122,6 +133,7 @@ class GenerateGlBuffer {
             positionList.push(item.x, item.y);
             uvList.push(item.u, item.v);
         })
+        //添加indexBuffer
         for (const tri of tranigleList) {
             const p1 = tri.line1.p1;
             const p2 = tri.line1.p2;
@@ -144,6 +156,7 @@ class GenerateGlBuffer {
             indexBuffer
         }
     }
+    /**根据MeshLayer生成glbuffer */
     static generateFromLayer(mesh: MeshLayer) {
         return this.generate(mesh.listPoint, mesh.listLine);
     }

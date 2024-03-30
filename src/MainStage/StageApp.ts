@@ -5,19 +5,26 @@ import StageEventState, { StageNormalEvent } from "./EventHandler/StageEventHand
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
 
+//在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
 
 class StageApp extends Application {
+    /**App承载的Dom元素 */
     protected stageDom
     get containerDom() { return this.stageDom }
+
+    /**选中的图层 */
     public selectedLayer
     protected unWatchSelected
 
+    /**所有子图层 */
     protected _childLayer: StageLayer[] = []
     get childLayer() { return this._childLayer }
 
+    /**Stage的缩放 */
     appScale = ref(1)
 
+    /**事件处理器 */
     eventHandler: StageEventState = new StageNormalEvent(this);
 
     constructor(dom: HTMLDivElement) {
@@ -38,6 +45,7 @@ class StageApp extends Application {
         instanceApp.value = this;
     }
 
+    /**从project中提取信息构建App */
     async initFromProject(project: Project) {
         await this.init({
             background: "#4BC1F0",
@@ -70,6 +78,11 @@ class StageApp extends Application {
             this.eventHandler.handleWheelChange(e);
         }
     }
+
+    /**
+     * 添加StageLayer并指定zIndex，注意mesh层在最上面
+     * @param project 
+     */
     protected addSprite(project: Project) {
         const proRoot = project.root
         this.addLayer(proRoot);
@@ -81,6 +94,11 @@ class StageApp extends Application {
             v.mesh.zIndex = this.childLayer.length * 2 - i;
         })
     }
+
+    /**
+     * 递归添加到childLayer
+     * @param group 
+     */
     protected addLayer(group: Root | Group) {
         for (const child of group.children.value) {
             if (child.type === LayerType.NormalLayer) {
@@ -97,24 +115,29 @@ class StageApp extends Application {
             }
         }
     }
+
+    /**
+     * 添加背景
+     * @param rect 长宽 
+     */
     protected addBg(rect: { width: number, height: number }) {
         const bg = new Graphics();
         bg.rect(0, 0, rect.width, rect.height);
         bg.fill(0xECECEC)
         this.stage.addChild(bg)
     }
+    /**
+    * 计算scale，以适应视图大小和位置
+    */
     protected calculateScale(project: Project) {
-        /**
-         * 计算scale，以适应视图大小和位置
-         */
         const projectRect = project.root.bound
         const scaleX = this.screen.width / projectRect.width;
         const scaleY = this.screen.height / projectRect.height;
         const scale = scaleX > scaleY ? scaleY : scaleX;
         return scale;
-
     }
 
+    /**销毁监听器 */
     destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
         this.unWatchSelected();
         super.destroy(rendererDestroyOptions, options);
