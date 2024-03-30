@@ -10,5 +10,5 @@ yarn
 yarn dev
 ```
 
-### Struct
-1. MainStage: 编辑器的窗口类
+### Licensing
+The source code is licensed under GPL v3. License is available [here](/LICENSE).

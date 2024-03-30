@@ -1,6 +1,9 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-27 18:03:33
+ */
 import { Ref, ShallowRef, ref, shallowRef } from "vue"
 import { v4 as uuid } from "uuid"
-import { ImageAsset } from './ProjectAssets'
 interface LayerOptions {
 	//名字 是否选择 是否可见都应该是响应式的
 	name?: Ref<string>
