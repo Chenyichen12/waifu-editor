@@ -1,3 +1,7 @@
+<!--
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-27 18:03:33
+-->
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElFooter, ElMain } from "element-plus";
 import TopBar from "./components/TopBar.vue";
@@ -8,7 +12,7 @@ import Project from "./components/Project/Project.ts";
 
 onMounted(async () => {
   //仅用于测试，生产模式下要删除
-  const f = await fetch('/example.psd')
+  const f = await fetch('/kuyaxi.psd')
   await Project.initFromPsd(await f.blob());
 })
 </script>
