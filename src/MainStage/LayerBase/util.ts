@@ -17,27 +17,25 @@ class vec {
             y: v1.y - v2.y
         }
     }
+    static cross(v1: xy, v2: xy) {
+        return v1.x * v2.y - v1.y * v2.x;
+    }
 }
 class ContainesPoint {
     static contains(p1: xy, p2: xy, p3: xy, p: xy): boolean {
-        const v0 = vec.sub(p2, p1);
-        const v1 = vec.sub(p3, p1);
-        const v2 = vec.sub(p, p1);
+        const pa = vec.sub(p, p1);
+        const pb = vec.sub(p, p2);
+        const pc = vec.sub(p, p3);
 
-        const dot00 = vec.dot(v0, v0);
-        const dot01 = vec.dot(v0, v1);
-        const dot02 = vec.dot(v0, v2);
-        const dot11 = vec.dot(v1, v1);
-        const dot12 = vec.dot(v1, v2);
+        const t1 = vec.cross(pa, pb);
+        const t2 = vec.cross(pb, pc);
+        const t3 = vec.cross(pc, pa);
 
-        const inverDeno = 1 / (dot00 * dot11 - dot00 * dot01);
-        const u = (dot11 * dot02 - dot01 * dot12) * inverDeno;
-        if (u < 0 || u > 1)
-            return false;
-        const v = (dot00 * dot12 - dot01 * dot02) * inverDeno;
-        if (v < 0 || v > 1)
-            return false;
-        return u + v <= 1;
+        if (t1 <= 0 && t2 <= 0 && t3 <= 0)
+            return true;
+        if (t1 >= 0 && t2 >= 0 && t3 >= 0)
+            return true
+        return false;
     }
 
     static uvCalculate(pa: xyuv, pb: xyuv, pc: xyuv, p: xy) {

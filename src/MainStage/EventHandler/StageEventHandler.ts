@@ -82,17 +82,44 @@ class StageNormalEvent extends StageEventState {
 			}
 		}
 	}
-
+	showTempLayer: StageLayer | undefined
+	shouldShowTempLayer: boolean = false
 	handleMouseMove(e: MouseEvent): void {
+		let prevent = false;
 		this.context.selectedLayer.value.forEach((item) => {
 			const point = {
 				x: e.movementX / this.context.appScale.value,
 				y: e.movementY / this.context.appScale.value
 			}
-			item.mouseState.handleMouseMoveEvent({
+			const res = item.mouseState.handleMouseMoveEvent({
 				point
 			})
+			if (res != undefined && res.prevent == true)
+				prevent = true
 		});
+		if (prevent) return;
+		//修改showShowTempLayer决定是否开启tempLayer
+		if (this.shouldShowTempLayer) {
+			let hasHitLayer = false;
+			for (const tempMesh of this.context.childLayer) {
+				const point = tempMesh.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
+				if (tempMesh.hitLayer(point)) {
+					if (tempMesh == this.showTempLayer) {
+						hasHitLayer = true;
+						break;
+					}
+					this.showTempLayer?.showTempMesh(false);
+					this.showTempLayer = tempMesh;
+					this.showTempLayer.showTempMesh(true);
+					hasHitLayer = true;
+					break;
+				}
+			}
+			if (!hasHitLayer) {
+				this.showTempLayer?.showTempMesh(false);
+				this.showTempLayer = undefined;
+			}
+		}
 	}
 
 	handleMouseUp(e: MouseEvent): void {
