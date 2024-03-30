@@ -1,3 +1,8 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-30 11:34:21
+ * 处理Layer中数学计算
+ */
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import MeshLine from "../GraphicsBase/MeshLine";
 import MeshPoint from "../GraphicsBase/MeshPoint";
