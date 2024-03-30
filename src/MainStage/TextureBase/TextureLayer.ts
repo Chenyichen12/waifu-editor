@@ -1,3 +1,7 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-03-28 12:44:17
+ */
 import { Geometry, Mesh, Shader } from "pixi.js";
 import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { GenerateGlBuffer } from "../LayerBase/util";
@@ -5,8 +9,12 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 import MeshLine from "../GraphicsBase/MeshLine";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
+/**
+ * texture所需信息
+ */
 interface TextureLayerOption {
-    texture: ImageAsset,
+    texture: ImageAsset, //所需的图像信息
+    /**用于构造mesh的几何信息 */
     points: MeshPoint[],
     lines: MeshLine[]
 }
@@ -38,6 +46,10 @@ class TextureLayer extends Mesh<Geometry, Shader> {
         this._textureId = option.texture.assetId;
     }
 
+    /**
+     * 当点发生变化，需要更新textureMesh
+     * @param points 点的位置信息
+     */
     upDatePositionBuffer(points: MeshPoint[]) {
         const positionList: number[] = [];
         points.forEach((item) => {
