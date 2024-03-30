@@ -223,9 +223,5 @@ class MeshLayer extends Graphics {
         return undefined
     }
 
-
-
-
-
 }
 export default MeshLayer;
