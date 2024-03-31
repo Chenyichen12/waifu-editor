@@ -162,7 +162,11 @@ class LayerMutiSelectedState extends LayerEventState {
      */
     selectMutiItem(point: localPos) {
         const p = this.meshTarget.pointAtPosition(point.x, point.y);
-        const l = this.meshTarget.lineAtPosition(point.x, point.y);
+
+        let l: MeshLine | undefined;
+        if (p == undefined) {
+            l = this.meshTarget.lineAtPosition(point.x, point.y);
+        }
         this.meshTarget.addSelected(
             p != undefined ? [p] : [],
             l != undefined ? [l] : []

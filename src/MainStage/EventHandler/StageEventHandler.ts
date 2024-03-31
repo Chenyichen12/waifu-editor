@@ -246,7 +246,27 @@ class StageMutiSelectEvent extends StageEventState {
 	}
 
 	handleMouseDown(e: MouseEvent): void {
+		const StagePos = this.toStagePos(e.offsetX, e.offsetY);
+		/**给选中的图层派发事件 */
+		for (const item of this.context.selectedLayer.value) {
+			const point = item.transformFormStage(StagePos);
+			if (item.hitLayerRect(point)) {
+				item.mouseState.handleMouseDownEvent({
+					modifyKey: "ShiftLeft",
+					point
+				})
+				return;
+			}
+		}
 
+		/**如果没有命中选择图层，说明需要选择其他图层 */
+		for (const item of this.context.childLayer) {
+			const point = item.transformFormStage(StagePos);
+			if (item.hitLayer(point)) {
+				this.context.selectedLayer.value = [...this.context.selectedLayer.value, item];
+				break;
+			}
+		}
 	}
 }
 

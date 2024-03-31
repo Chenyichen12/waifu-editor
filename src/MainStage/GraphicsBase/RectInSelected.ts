@@ -15,7 +15,7 @@ class RectInSelected {
     static upDate(points: MeshPoint[], canvas: MeshLayer) {
         const { left, top, right, button } = this.getBound(points);
         const padding = 10 / (instanceApp.value?.appScale.value ?? 1);
-        canvas.rect(left - padding, top - padding, right - left + 2 * padding, top - button + 2 * padding)
+        canvas.rect(left - padding, top - padding, right - left + 2 * padding, button - top + 2 * padding)
             .stroke({
                 color: 0xff0000,
                 width: 2 / (instanceApp.value?.appScale.value ?? 1)
