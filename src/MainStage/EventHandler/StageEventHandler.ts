@@ -6,7 +6,7 @@
  */
 
 
-import { Matrix } from "pixi.js";
+import { Graphics, Matrix, alphaFrag } from "pixi.js";
 import StageApp from "../StageApp";
 import StageLayer from "../LayerBase/StageLayer";
 
@@ -105,29 +105,33 @@ class StageNormalEvent extends StageEventState {
 		const stagePos = this.toStagePos(e.offsetX, e.offsetY)
 
 		//首先遍历选中的图层
+		let prevent = false;
 		for (const selectChild of this.context.selectedLayer.value) {
 			const point = selectChild.transformFormStage(stagePos);
 
 			if (selectChild.hitLayerRect(point)) {
 				//选中的图层派发事件
-				selectChild.mouseState.handleMouseDownEvent({ point });
+				prevent = selectChild.mouseState.handleMouseDownEvent({ point })?.prevent ?? false;
 				//其他图层需要去除选中
-				this.context.selectedLayer.value = this.context.selectedLayer.value.filter((v) => {
-					return v === selectChild;
-				});
-				return;
-			}
-		}
-
-		//清除所有选中的图层并重新选择图层
-		this.context.selectedLayer.value = [];
-		for (const child of this.context.childLayer) {
-			const point = child.transformFormStage(stagePos);
-			if (child.hitLayer(point)) {
-				this.context.selectedLayer.value = [child]
+				this.context.selectedLayer.value = [selectChild];
 				break;
 			}
 		}
+
+		if (prevent)
+			return;
+
+		//清除所有选中的图层并重新选择图层
+		// this.context.selectedLayer.value = [];
+		// for (const child of this.context.childLayer) {
+		// 	const point = child.transformFormStage(stagePos);
+		// 	if (child.hitLayer(point)) {
+		// 		this.context.selectedLayer.value = [child]
+		// 		break;
+		// 	}
+		// }
+		this.changeToState(new RectSelectedMode(this.context));
+		this.context.eventHandler.handleMouseDown(e);
 	}
 
 	/**在鼠标移动的时候可以选择是否显示TempMesh即显示alpha为0.5的网格，在Debug的时候有用处，不过应该消耗性能 */
@@ -269,7 +273,47 @@ class StageMutiSelectEvent extends StageEventState {
 		}
 	}
 }
+class RectSelectedMode extends StageEventState {
+	protected firstDragPoint?: { x: number, y: number };
+	protected movePoint?: { x: number, y: number };
+	protected rect: Graphics;
 
+	constructor(context: StageApp) {
+		super(context);
+		this.rect = new Graphics();
+		this.rect.fillStyle = {
+			alpha: 0.3,
+			color: 0xc0c0c0
+		}
+		context.stage.addChild(this.rect);
+	}
+	handleMouseDown(e: MouseEvent): void {
+		this.firstDragPoint = this.toStagePos(e.offsetX, e.offsetY);
+	}
+
+	handleMouseMove(e: MouseEvent): void {
+		this.movePoint = this.toStagePos(e.offsetX, e.offsetY);
+		this.upDateRect();
+	}
+
+	upDateRect(): void {
+		if (this.firstDragPoint == undefined || this.movePoint == undefined)
+			return;
+		this.rect.clear();
+		const start: { x: number, y: number } = { x: 0, y: 0 };
+		start.x = this.firstDragPoint.x < this.movePoint.x ? this.firstDragPoint.x : this.movePoint.x;
+		start.y = this.firstDragPoint.y < this.movePoint.y ? this.firstDragPoint.y : this.movePoint.y;
+		this.rect.rect(start.x, start.y,
+			Math.abs(this.firstDragPoint.x - this.movePoint.x), Math.abs(this.firstDragPoint.y - this.movePoint.y)).fill().stroke({
+				width: 1 / this.context.appScale.value,
+				color: 0xc0c0c0,
+			});
+	}
+	handleMouseUp(_e: MouseEvent): void {
+		this.rect.destroy();
+		this.changeToState(new StageNormalEvent(this.context));
+	}
+}
 export default StageEventState
 
 export { StageNormalEvent, StageDragEvent, StageMutiSelectEvent }

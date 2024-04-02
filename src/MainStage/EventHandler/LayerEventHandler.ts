@@ -51,15 +51,17 @@ class LayerNormalState extends LayerEventState {
      * 鼠标按下之后处理，如果Shift按下说明多选，转化到多选模式
      * @param option 事件信息
      */
-    handleMouseDownEvent(option: LayerEventOption): undefined {
+    handleMouseDownEvent(option: LayerEventOption): result | undefined {
         if (option.modifyKey == "ShiftLeft" || option.modifyKey == "ShiftRight") {
             this.changeToMutiState();
             this.context.mouseState.handleMouseDownEvent(option);
             return;
         }
         this.selectOneItem(option.point);
-
         this.isMousePress = true;
+        if (this.dragItem != undefined)
+            return { prevent: true }
+        else return { prevent: false }
     }
 
     /**
