@@ -6,7 +6,7 @@
  */
 
 
-import { Graphics, Matrix, alphaFrag } from "pixi.js";
+import { Graphics, Matrix } from "pixi.js";
 import StageApp from "../StageApp";
 import StageLayer from "../LayerBase/StageLayer";
 
@@ -76,6 +76,14 @@ abstract class StageEventState {
 
 class StageNormalEvent extends StageEventState {
 
+	ifHandleSelect: boolean = true;
+	protected stateEffect(preState: StageEventState): void {
+		if (preState instanceof RectSelectedMode) {
+			this.ifHandleSelect = !preState.ifMove;
+			console.log(this.ifHandleSelect);
+
+		}
+	}
 	/**
 	 * 处理键盘点击，当有空格的时候进入dragStage，当有Shift的时候进入ShiftState，空格的优先级更高
 	 * @param e 浏览器事件
@@ -102,34 +110,7 @@ class StageNormalEvent extends StageEventState {
 	 * @returns 
 	 */
 	handleMouseDown(e: MouseEvent): void {
-		const stagePos = this.toStagePos(e.offsetX, e.offsetY)
 
-		//首先遍历选中的图层
-		let prevent = false;
-		for (const selectChild of this.context.selectedLayer.value) {
-			const point = selectChild.transformFormStage(stagePos);
-
-			if (selectChild.hitLayerRect(point)) {
-				//选中的图层派发事件
-				prevent = selectChild.mouseState.handleMouseDownEvent({ point })?.prevent ?? false;
-				//其他图层需要去除选中
-				this.context.selectedLayer.value = [selectChild];
-				break;
-			}
-		}
-
-		if (prevent)
-			return;
-
-		//清除所有选中的图层并重新选择图层
-		// this.context.selectedLayer.value = [];
-		// for (const child of this.context.childLayer) {
-		// 	const point = child.transformFormStage(stagePos);
-		// 	if (child.hitLayer(point)) {
-		// 		this.context.selectedLayer.value = [child]
-		// 		break;
-		// 	}
-		// }
 		this.changeToState(new RectSelectedMode(this.context));
 		this.context.eventHandler.handleMouseDown(e);
 	}
@@ -181,6 +162,37 @@ class StageNormalEvent extends StageEventState {
 	 * @param e 鼠标事件
 	 */
 	handleMouseUp(e: MouseEvent): void {
+
+		if (this.ifHandleSelect) {
+			const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+
+			//首先遍历选中的图层
+			let prevent = false;
+			for (const selectChild of this.context.selectedLayer.value) {
+				const point = selectChild.transformFormStage(stagePos);
+
+				if (selectChild.hitLayerRect(point)) {
+					//选中的图层派发事件
+					selectChild.mouseState.handleMouseDownEvent({ point })?.prevent ?? false;
+					prevent = true;
+					//其他图层需要去除选中
+					this.context.selectedLayer.value = [selectChild];
+					break;
+				}
+			}
+			//清除所有选中的图层并重新选择图层
+			if (!prevent) {
+				this.context.selectedLayer.value = [];
+				for (const child of this.context.childLayer) {
+					const point = child.transformFormStage(stagePos);
+					if (child.hitLayer(point)) {
+						this.context.selectedLayer.value = [child]
+						break;
+					}
+				}
+			}
+		}
+
 		this.context.selectedLayer.value.forEach((item) => {
 			item.mouseState.handleMouseUpEvent({
 				point: item.transformFormStage(this.toStagePos(e.offsetX, e.offsetY))
@@ -277,14 +289,18 @@ class RectSelectedMode extends StageEventState {
 	protected firstDragPoint?: { x: number, y: number };
 	protected movePoint?: { x: number, y: number };
 	protected rect: Graphics;
-
+	protected _ifMove: boolean = false;
+	get ifMove() {
+		return this._ifMove;
+	}
 	constructor(context: StageApp) {
 		super(context);
 		this.rect = new Graphics();
 		this.rect.fillStyle = {
 			alpha: 0.3,
-			color: 0xc0c0c0
+			color: 0xc0c0c0,
 		}
+		this.rect.zIndex = context.stage.children.length;
 		context.stage.addChild(this.rect);
 	}
 	handleMouseDown(e: MouseEvent): void {
@@ -292,7 +308,16 @@ class RectSelectedMode extends StageEventState {
 	}
 
 	handleMouseMove(e: MouseEvent): void {
+
 		this.movePoint = this.toStagePos(e.offsetX, e.offsetY);
+		const x = this.firstDragPoint!.x - this.movePoint!.x;
+		const y = this.firstDragPoint!.y - this.movePoint!.y;
+		const distance = Math.sqrt(x * x + y * y);
+		if (distance < 10 / this.context.appScale.value) {
+			this._ifMove = false;
+			return;
+		}
+		this._ifMove = true;
 		this.upDateRect();
 	}
 
@@ -309,9 +334,13 @@ class RectSelectedMode extends StageEventState {
 				color: 0xc0c0c0,
 			});
 	}
-	handleMouseUp(_e: MouseEvent): void {
+	handleMouseUp(e: MouseEvent): void {
 		this.rect.destroy();
+		if (this.ifMove) {
+
+		}
 		this.changeToState(new StageNormalEvent(this.context));
+		this.context.eventHandler.handleMouseUp(e)
 	}
 }
 export default StageEventState
