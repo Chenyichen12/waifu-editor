@@ -2,6 +2,7 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-28 12:43:31
  */
+import { rect } from '../TwoDType';
 import MeshPoint from './MeshPoint'
 class MeshLine {
     p1: MeshPoint
@@ -60,6 +61,9 @@ class MeshLine {
         const C = line.p1.x * line.p2.y - line.p2.x * line.p1.y
         const f = A * x + B * y + C;
         return (f * f) / (A * A + B * B);
+    }
+    containInRect(rec: rect) {
+        return this.p1.containInRect(rec) && this.p2.containInRect(rec);
     }
 }
 export default MeshLine

@@ -9,7 +9,7 @@ import TextureLayer from "../TextureBase/TextureLayer";
 import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
-import LayerEventState, { LayerNormalState } from "../EventHandler/LayerEventHandler";
+import LayerEventState, { SelectState } from "../EventHandler/LayerEventHandler";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
 
@@ -40,8 +40,6 @@ class StageLayer extends Container {
     /**底部展示图片的图层 */
     protected _textureLayer: TextureLayer
     get textureLayer() { return this._textureLayer }
-    /**如果在编辑状态展示的时编辑的网格 */
-    public editMesh?: MeshLayer
 
     /**是否选中，如果不可见直接返回 */
     set selected(isSelected: boolean) {
@@ -49,7 +47,10 @@ class StageLayer extends Container {
 
         this._selected = isSelected
         if (isSelected) this.faceMesh.alpha = 1;
-        else this.faceMesh.alpha = 0;
+        else {
+            this.faceMesh.alpha = 0;
+            this.faceMesh.removeAllSelected();
+        }
     }
     get selected() { return this._selected }
 
@@ -79,6 +80,7 @@ class StageLayer extends Container {
     /**当图层几何位置变化的时候mesh由于不是图层的孩子，需要手动同步 */
     setFromMatrix(matrix: Matrix): void {
         this.faceMesh.setFromMatrix(matrix);
+        this.textureLayer.setFromMatrix(matrix);
         super.setFromMatrix(matrix);
     }
 
@@ -93,13 +95,12 @@ class StageLayer extends Container {
             lines: this.faceMesh.listLine
         })
         this.selected = false;
-        this.addChild(this.textureLayer);
 
         this.layerId = option.layerId
         this.unWatchShow = watch(option.isShow, (newV) => {
             this.show = newV;
         })
-        this.mouseState = new LayerNormalState(this);
+        this.mouseState = new SelectState(this);
 
     }
 
@@ -181,6 +182,16 @@ class StageLayer extends Container {
     destroy(options?: DestroyOptions | undefined): void {
         this.unWatchShow();
         super.destroy(options)
+        this.faceMesh.destroy(options);
+        this._textureLayer.destroy(options);
+    }
+
+    /**
+     * 当点发生变化的时候更新图层
+     */
+    upDatePoint() {
+        this.faceMesh.upDate();
+        this.textureLayer.upDatePositionBuffer(this.getPointList());
     }
 
 }

@@ -68,6 +68,16 @@ class MeshLayer extends Graphics {
         this.upDate();
     }
 
+    addSelectItem(p: MeshPoint | undefined, l: MeshLine | undefined) {
+        if (p != undefined) {
+            this.selectPointList.add(p);
+        }
+        if (l != undefined) {
+            this.selectLineList.add(l);
+        }
+        this.upDate();
+    }
+
     /**
      * 移除选中的点
      * @param p 
