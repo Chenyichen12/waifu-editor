@@ -9,6 +9,7 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 import MeshLine from "../GraphicsBase/MeshLine";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
+import { xy } from "../TwoDType";
 /**
  * texture所需信息
  */
@@ -50,7 +51,7 @@ class TextureLayer extends Mesh<Geometry, Shader> {
      * 当点发生变化，需要更新textureMesh
      * @param points 点的位置信息
      */
-    upDatePositionBuffer(points: MeshPoint[]) {
+    upDatePositionBuffer(points: xy[]) {
         const positionList: number[] = [];
         points.forEach((item) => {
             positionList.push(item.x, item.y);

@@ -6,9 +6,10 @@
 import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
 import { ref, shallowRef, watch } from "vue";
-import StageEventState, { StageNormalEvent } from "./EventHandler/StageEventHandler";
+import StageEventState, { SelectEvent } from "./EventHandler/StageEventHandler";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
+import StageLayerContainer from "./LayerBase/StageContainer";
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
@@ -30,7 +31,8 @@ class StageApp extends Application {
     appScale = ref(1)
 
     /**事件处理器 */
-    eventHandler: StageEventState = new StageNormalEvent(this);
+    eventHandler: StageEventState = new SelectEvent(this);
+    layerContainer: StageLayerContainer = new StageLayerContainer([]);
 
     constructor(dom: HTMLDivElement) {
         super();
@@ -90,36 +92,35 @@ class StageApp extends Application {
      */
     protected addSprite(project: Project) {
         const proRoot = project.root
-        this.addLayer(proRoot);
-        this.childLayer.forEach((v, i) => {
-            v.zIndex = this.childLayer.length - i;
-            this.stage.addChild(v);
-
-            this.stage.addChild(v.mesh);
-            v.mesh.zIndex = this.childLayer.length * 2 - i;
-        })
-    }
-
-    /**
-     * 递归添加到childLayer
-     * @param group 
-     */
-    protected addLayer(group: Root | Group) {
-        for (const child of group.children.value) {
-            if (child.type === LayerType.NormalLayer) {
-                const normal = child as NormalLayer;
-                const item = Project.instance.value!.assetList.get(normal.assetId);
-                if (item == null) continue;
-                const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
-                const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
-                gra.setFromMatrix(tranformMat);
-                this.childLayer.push(gra);
-            } else {
-                const gro = child as Group;
-                this.addLayer(gro);
+        const layers: StageLayer[] = []
+        addLayer(proRoot);
+        this.layerContainer = new StageLayerContainer(layers);
+        const { mesh, texture } = this.layerContainer.getMeshAndTexture();
+        this.stage.addChild(texture);
+        this.stage.addChild(mesh);
+        /**
+         * 递归添加到childLayer
+         * @param group 
+         */
+        function addLayer(group: Root | Group) {
+            for (const child of group.children.value) {
+                if (child.type === LayerType.NormalLayer) {
+                    const normal = child as NormalLayer;
+                    const item = Project.instance.value!.assetList.get(normal.assetId);
+                    if (item == null) continue;
+                    const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
+                    const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
+                    gra.setFromMatrix(tranformMat);
+                    layers.push(gra);
+                } else {
+                    const gro = child as Group;
+                    addLayer(gro);
+                }
             }
         }
     }
+
+
 
     /**
      * 添加背景
