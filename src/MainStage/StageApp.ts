@@ -6,10 +6,10 @@
 import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
 import { ref, shallowRef, watch } from "vue";
-import StageEventState, { SelectEvent } from "./EventHandler/StageEventHandler";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
 import StageLayerContainer from "./LayerBase/StageContainer";
+import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
@@ -31,7 +31,8 @@ class StageApp extends Application {
     appScale = ref(1)
 
     /**事件处理器 */
-    eventHandler: StageEventState = new SelectEvent(this);
+    eventHandler: StageEventHandler = new SelectedEventHandler(this);
+
     layerContainer: StageLayerContainer = new StageLayerContainer([]);
 
     constructor(dom: HTMLDivElement) {
@@ -73,16 +74,16 @@ class StageApp extends Application {
         this.stage.position.set(this.screen.width / 2 - scaleAfterX / 2, this.screen.height / 2 - scaleAfterY / 2)
 
         this.canvas.onmousedown = (e) => {
-            this.eventHandler.handleMouseDown(e);
+            this.eventHandler.handleMouseDownEvent(e);
         }
         this.canvas.onmouseup = (e) => {
-            this.eventHandler.handleMouseUp(e);
+            this.eventHandler.handleMouseUpEvent(e);
         }
         this.canvas.onmousemove = (e) => {
-            this.eventHandler.handleMouseMove(e);
+            this.eventHandler.handleMouseMoveEvent(e);
         }
         this.canvas.onwheel = (e) => {
-            this.eventHandler.handleWheelChange(e);
+            this.eventHandler.handleWheelEvent(e);
         }
     }
 

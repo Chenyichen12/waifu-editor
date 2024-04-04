@@ -47,7 +47,10 @@ class StageLayer extends Container {
 
         this._selected = isSelected
         if (isSelected) this.faceMesh.alpha = 1;
-        else this.faceMesh.alpha = 0;
+        else {
+            this.faceMesh.alpha = 0;
+            this.faceMesh.removeAllSelected();
+        }
     }
     get selected() { return this._selected }
 
