@@ -18,11 +18,11 @@ watch(Project.instance, (v) => {
 
 function handleKeyDown(e: KeyboardEvent) {
     if (instanceApp.value != null)
-        instanceApp.value.eventHandler.handleKeyDown(e);
+        instanceApp.value.eventHandler.handleKeyDownEvent(e);
 }
 function handleKeyUp(e: KeyboardEvent) {
     if (instanceApp.value != null)
-        instanceApp.value.eventHandler.handleKeyUp(e);
+        instanceApp.value.eventHandler.handleKeyUpEvent(e);
 }
 onMounted(async () => {
 })

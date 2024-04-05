@@ -1,255 +1,326 @@
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
- * @Date: 2024-03-30 00:45:35
- * 
- * 用于处理Application的最外层的事件，鼠标事件和键盘事件
+ * @Date: 2024-04-04 12:44:56
  */
 
+import { Graphics, Matrix } from "pixi.js"
+import StageApp from "../StageApp"
+import StageLayer from "../LayerBase/StageLayer"
+import { result } from "./LayerEventHandler"
+import { xy } from "../TwoDType"
+import RectInSelected from "../GraphicsBase/RectInSelected"
 
-import { Matrix } from "pixi.js";
-import StageApp from "../StageApp";
-import StageLayer from "../LayerBase/StageLayer";
+enum StageEventRes {
+    DEFAULT,
+    DRAG_STAGE,
 
-/**
- * 事件处理的基类
- */
-abstract class StageEventState {
-	context: StageApp // 事件处理的App实例
-	constructor(context: StageApp) {
-		this.context = context;
-	}
+    SELECT_LAYER,
+    CLICK,
 
-	/**
-	 * 切换到对应的状态
-	 * @param state 切换状态目标 
-	 */
-	changeToState(state: StageEventState) {
-		this.context.eventHandler = state;
-		state.stateEffect(this);
-	}
-	/**
-	 * 切换状态的目标副作用，在其他的状态进入该状态的时候自动触发该方法
-	 * @param _preState 先前的状态
-	 */
-	protected stateEffect(_preState: StageEventState) { return }
+    SELECT_RECT_MOVE
+}
+abstract class StageEventHandler {
 
-	/**
-	 * 处理鼠标事件和键盘事件
-	 * @param _e 浏览器事件
-	 */
-	handleMouseDown(_e: MouseEvent): void { return }
-	handleMouseUp(_e: MouseEvent): void { return }
-	handleMouseMove(_e: MouseEvent): void { return }
-	handleKeyDown(_e: KeyboardEvent): void { return }
-	handleKeyUp(_e: KeyboardEvent): void { return }
+    protected clickTimeOut?: number
+    handleClickEvent(_e: MouseEvent): StageEventRes {
+        return StageEventRes.DEFAULT
+    }
+    handleMouseDownEvent(e: MouseEvent): StageEventRes {
+        this.clickTimeOut = setTimeout(() => {
+            this.handleLongPressEvent(e)
+            this.clickTimeOut = undefined;
+        }, 100)
+        return StageEventRes.DEFAULT
+    }
+    handleLongPressEvent(_e: MouseEvent): StageEventRes {
+        return StageEventRes.DEFAULT
+    }
 
-	/**
-	 * 当鼠标滚轮变化的时候需要缩放视图
-	 * @param e 浏览器事件
-	 */
-	handleWheelChange(e: WheelEvent) {
-		const stage = this.context.stage;
-		const stagePos = stage.toLocal({ x: e.offsetX, y: e.offsetY });
-		const oldZoom = stage.scale.x
-		const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
-		const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
-		const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
+    handleMouseMoveEvent(_e: MouseEvent): StageEventRes { return StageEventRes.DEFAULT }
+    handleMouseUpEvent(e: MouseEvent): StageEventRes {
+        if (this.clickTimeOut != undefined) {
+            clearTimeout(this.clickTimeOut);
+            this.handleClickEvent(e);
+            return StageEventRes.CLICK;
+        }
+        return StageEventRes.DEFAULT
+    }
 
-		this.context.appScale.value = scale;
-		stage.setFromMatrix(
-			new Matrix(scale, 0, 0, scale,
-				stage.position.x + oldDx, stage.position.y + oldDy
-			)
-		);
-	}
+    handleKeyDownEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
+    handleKeyUpEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
+    handleWheelEvent(e: WheelEvent): StageEventRes {
+        const stage = this.context.stage;
+        const stagePos = stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        const oldZoom = stage.scale.x
+        const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
+        const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
+        const oldDy = stagePos.y * oldZoom - stagePos.y * scale;
 
-	/**
-	 * 将浏览器的坐标转化为当前App的Stage坐标 xy一般取 offsetX，offsetY
-	 * @param x 浏览器的X坐标
-	 * @param y 浏览器的Y坐标
-	 * @returns Stage坐标
-	 */
-	toStagePos(x: number, y: number) {
-		return this.context.stage.toLocal({ x, y });
-	}
+        this.context.appScale.value = scale;
+        stage.setFromMatrix(
+            new Matrix(scale, 0, 0, scale,
+                stage.position.x + oldDx, stage.position.y + oldDy
+            )
+        );
+
+        return StageEventRes.DEFAULT
+    }
+
+    context: StageApp // 事件处理的App实例
+    constructor(context: StageApp) {
+        this.context = context;
+    }
+    /**
+     * 切换到对应的状态
+     * @param state 切换状态目标 
+     */
+    changeToState(state: StageEventHandler) {
+        this.context.eventHandler = state;
+        state.stateEffect(this);
+    }
+    /**
+     * 切换状态的目标副作用，在其他的状态进入该状态的时候自动触发该方法
+     * @param _preState 先前的状态
+     */
+    protected stateEffect(_preState: StageEventHandler) { return }
+
+    toStagePos(x: number, y: number) {
+        return this.context.stage.toLocal({ x, y });
+    }
 }
 
-class StageNormalEvent extends StageEventState {
+class SelectedEventHandler extends StageEventHandler {
+    handleKeyDownEvent(e: KeyboardEvent): StageEventRes {
+        if (e.code === "Space") {
+            const newState = new DragStageEventHandler(this.context);
+            this.changeToState(newState);
+        }
+        return super.handleKeyDownEvent(e);
+    }
+    handleLongPressEvent(e: MouseEvent): StageEventRes {
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+        for (const selectedLayer of this.context.layerContainer.selectedLayer) {
+            const layerPos = selectedLayer.transformFormStage(stagePos);
+            const res = selectedLayer.mouseState.handleLongPressEvent({
+                point: layerPos,
+                mouseEvent: e
+            })
+            if (res == result.TRANSFORM_DRAG) {
+                return StageEventRes.DEFAULT;
+            }
+            if (res == result.TRANSFORM_DRAG_RECT) {
+                return StageEventRes.DEFAULT;
+            }
+        }
 
-	/**
-	 * 处理键盘点击，当有空格的时候进入dragStage，当有Shift的时候进入ShiftState，空格的优先级更高
-	 * @param e 浏览器事件
-	 */
-	handleKeyDown(e: KeyboardEvent): void {
-		if (e.code === "Space") {
-			const newState = new StageDragEvent(this.context);
-			this.changeToState(newState);
-			newState.handleKeyDown(e)
-			return;
-		}
+        this.changeToState(new RectSelectEventHandler(stagePos, this.context));
+        return StageEventRes.DEFAULT;
+    }
 
-		if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-			const newState = new StageMutiSelectEvent(this.context);
-			this.changeToState(newState);
-			newState.handleKeyDown(e)
-			return;
-		}
-	}
+    handleClickEvent(e: MouseEvent): StageEventRes {
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+        const hitSelect = this.context.layerContainer.pointHitSelectedLayer(stagePos);
+        if (hitSelect == undefined) {
+            const hitLayer = this.context.layerContainer.pointHitLayer(stagePos);
+            if (!e.shiftKey) {
+                this.context.layerContainer.removeAllSelected();
+            }
+            if (hitLayer != undefined) {
+                this.context.layerContainer.addSelected([hitLayer]);
+                return StageEventRes.SELECT_LAYER;
+            }
+            return StageEventRes.DEFAULT;
+        }
+        if (!e.shiftKey) {
+            const noSelect: StageLayer[] = [];
+            this.context.layerContainer.selectedLayer.forEach((v) => {
+                if (v != hitSelect) {
+                    noSelect.push(v);
+                }
+            })
+            this.context.layerContainer.removeSelected(noSelect);
+        }
 
-	/**
-	 * 鼠标点击事件，只能选择一个GraphicsLayer
-	 * @param e 浏览器事件
-	 * @returns 
-	 */
-	handleMouseDown(e: MouseEvent): void {
-		const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+        hitSelect.mouseState.handleMouseClickEvent({
+            point: hitSelect.transformFormStage(stagePos),
+            mouseEvent: e
+        });
 
-		//首先遍历选中的图层
-		for (const selectChild of this.context.selectedLayer.value) {
-			const point = selectChild.transformFormStage(stagePos);
+        return StageEventRes.DEFAULT;
+    }
 
-			if (selectChild.hitLayerRect(point)) {
-				//选中的图层派发事件
-				selectChild.mouseState.handleMouseDownEvent({ point });
-				//其他图层需要去除选中
-				this.context.selectedLayer.value = this.context.selectedLayer.value.filter((v) => {
-					return v === selectChild;
-				});
-				return;
-			}
-		}
+    handleMouseMoveEvent(e: MouseEvent): StageEventRes {
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+        let ifInRect = false;
+        for (const child of this.context.layerContainer.selectedLayer) {
+            const res = child.mouseState.handleMouseMoveEvent({
+                point: child.transformFormStage(stagePos),
+                mouseEvent: e
+            })
+            if (res == result.DRAG_ITEM || res == result.DRAG_RECT) {
+                return StageEventRes.DEFAULT;
+            }
 
-		//清除所有选中的图层并重新选择图层
-		this.context.selectedLayer.value = [];
-		for (const child of this.context.childLayer) {
-			const point = child.transformFormStage(stagePos);
-			if (child.hitLayer(point)) {
-				this.context.selectedLayer.value = [child]
-				break;
-			}
-		}
-	}
+            if (RectInSelected.ifHitRect(child.mesh.selectedPoints, child.transformFormStage(stagePos))) {
+                ifInRect = true;
+            }
+        }
 
-	/**在鼠标移动的时候可以选择是否显示TempMesh即显示alpha为0.5的网格，在Debug的时候有用处，不过应该消耗性能 */
-	protected showTempLayer: StageLayer | undefined
-	protected shouldShowTempLayer: boolean = false
-	handleMouseMove(e: MouseEvent): void {
-		let prevent = false;
-		this.context.selectedLayer.value.forEach((item) => {
-			const point = {
-				x: e.movementX / this.context.appScale.value,
-				y: e.movementY / this.context.appScale.value
-			}
-			const res = item.mouseState.handleMouseMoveEvent({
-				point
-			})
-			//选中的图层正在处理事件，阻止显示TempMesh
-			if (res != undefined && res.prevent == true)
-				prevent = true
-		});
-		if (prevent) return;
-		//修改showShowTempLayer决定是否开启tempLayer
-		if (this.shouldShowTempLayer) {
-			let hasHitLayer = false;
-			for (const tempMesh of this.context.childLayer) {
-				const point = tempMesh.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
-				if (tempMesh.hitLayer(point)) {
-					if (tempMesh == this.showTempLayer) {
-						hasHitLayer = true;
-						break;
-					}
-					this.showTempLayer?.showTempMesh(false);
-					this.showTempLayer = tempMesh;
-					this.showTempLayer.showTempMesh(true);
-					hasHitLayer = true;
-					break;
-				}
-			}
-			if (!hasHitLayer) {
-				this.showTempLayer?.showTempMesh(false);
-				this.showTempLayer = undefined;
-			}
-		}
-	}
+        this.context.containerDom.style.cursor = ifInRect ? "move" : "default";
 
-	/**
-	 * 当鼠标提起的时候，给所有选中的图层派发事件
-	 * @param e 鼠标事件
-	 */
-	handleMouseUp(e: MouseEvent): void {
-		this.context.selectedLayer.value.forEach((item) => {
-			item.mouseState.handleMouseUpEvent({
-				point: item.transformFormStage(this.toStagePos(e.offsetX, e.offsetY))
-			})
-		})
-	}
+        return StageEventRes.DEFAULT;
+
+    }
+    handleMouseUpEvent(e: MouseEvent): StageEventRes {
+        if (super.handleMouseUpEvent(e) == StageEventRes.CLICK) {
+            return StageEventRes.CLICK
+        };
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+        for (const child of this.context.layerContainer.selectedLayer) {
+            const p = child.transformFormStage(stagePos);
+            child.mouseState.handleMouseUpEvent({
+                point: p,
+                mouseEvent: e
+            })
+        }
+        return StageEventRes.DEFAULT;
+    }
 }
 
-/**
- * 拖动Stage的事件处理
- */
-class StageDragEvent extends StageEventState {
-	isMousePress: boolean = false
-	/**当空格被提起的时候退出拖动模式 */
-	handleKeyUp(e: KeyboardEvent): void {
-		if (e.code === "Space") {
-			const newState = new StageNormalEvent(this.context);
-			this.changeToState(newState);
-			newState.handleKeyUp(e);
-		}
-	}
 
-	/**
-	 * 当鼠标按下的时候说明要开始拖动了
-	 */
-	handleMouseDown(_e: MouseEvent): void {
-		this.isMousePress = true;
-	}
+class RectSelectEventHandler extends StageEventHandler {
+    selectRect: Graphics
 
+    firstPoint: xy
+    movePoint: xy
+    constructor(firstPoint: xy, context: StageApp) {
+        super(context);
+        this.selectRect = new Graphics();
+        context.stage.addChild(this.selectRect);
+        this.selectRect.zIndex = context.stage.children.length;
+        this.firstPoint = firstPoint;
+        this.movePoint = firstPoint;
+    }
+    handleMouseDownEvent(_e: MouseEvent): StageEventRes {
+        return StageEventRes.DEFAULT;
+    }
 
-	handleMouseUp(_e: MouseEvent): void {
-		this.isMousePress = false;
-	}
+    handleMouseMoveEvent(e: MouseEvent): StageEventRes {
+        this.movePoint = this.toStagePos(e.offsetX, e.offsetY);
+        this.upDate();
+        return StageEventRes.SELECT_RECT_MOVE;
+    }
 
-	/**拖动Stage */
-	handleMouseMove(e: MouseEvent): void {
-		if (!this.isMousePress) return;
-		this.context.stage.x += e.movementX;
-		this.context.stage.y += e.movementY;
-	}
+    handleMouseUpEvent(e: MouseEvent): StageEventRes {
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+        for (const child of this.context.layerContainer.selectedLayer) {
+            const point = child.transformFormStage(stagePos);
+            const { x, y, width, height } = this.getRect();
+            const p1 = child.transformFormStage({ x, y });
+            const p2 = child.transformFormStage({ x: x + width, y });
+            const p3 = child.transformFormStage({ x: x + width, y: y + height })
+            const p4 = child.transformFormStage({ x, y: y + height });
+            const rec = { p1, p2, p3, p4 }
+            const ifAdd = child.mouseState.handleRectSelect({
+                point, mouseEvent: e
+            }, rec);
+            if (ifAdd == result.ADD_SELECT) {
+                const remove: StageLayer[] = [];
+                this.context.layerContainer.selectedLayer.forEach((v) => {
+                    if (v !== child) {
+                        remove.push(v);
+                    }
+                })
+                this.context.layerContainer.removeSelected(remove);
+                this.changeToState(new SelectedEventHandler(this.context));
+                return StageEventRes.DEFAULT
+            }
+        }
 
-	/**进入这个状态的时候鼠标指针变成手形 */
-	stateEffect(_preState: StageEventState): void {
-		this.context.containerDom.style.cursor = "pointer"
-	}
+        const hitSelect = this.context.layerContainer.pointHitSelectedLayer(this.firstPoint);
+        if (hitSelect == undefined) {
+            this.context.layerContainer.removeAllSelected();
+        } else {
+            const remove: StageLayer[] = [];
+            this.context.layerContainer.selectedLayer.forEach((v) => {
+                if (v !== hitSelect) {
+                    remove.push(v);
+                }
+            })
+            this.context.layerContainer.removeSelected(remove);
+        }
 
-	/**退出状态的时候鼠标指针变化 */
-	changeToState(state: StageEventState): void {
-		super.changeToState(state);
-		this.context.containerDom.style.cursor = "default"
-	}
+        this.changeToState(new SelectedEventHandler(this.context));
+        return StageEventRes.DEFAULT
+    }
 
+    upDate() {
+        this.selectRect.clear();
+        const { x, y, width, height } = this.getRect();
+        this.selectRect.rect(x, y, width, height).fill({
+            alpha: 0.3,
+            color: 0xc0c0c0
+        }).stroke({
+            color: 0xc0c0c0,
+            width: 2 / this.context.appScale.value
+        });
+    }
+    protected getRect() {
+        const x = this.firstPoint.x < this.movePoint.x ? this.firstPoint.x : this.movePoint.x;
+        const y = this.firstPoint.y < this.movePoint.y ? this.firstPoint.y : this.movePoint.y;
+        return {
+            x, y,
+            width: Math.abs(this.firstPoint.x - this.movePoint.x),
+            height: Math.abs(this.firstPoint.y - this.movePoint.y)
+        }
+    }
+
+    changeToState(state: StageEventHandler): void {
+        this.selectRect.destroy();
+        super.changeToState(state);
+    }
+}
+class DragStageEventHandler extends StageEventHandler {
+    isMousePress: boolean = false
+    /**当空格被提起的时候退出拖动模式 */
+    handleKeyUpEvent(e: KeyboardEvent): StageEventRes {
+        if (e.code === "Space") {
+            const newState = new SelectedEventHandler(this.context);
+            this.changeToState(newState);
+            newState.handleKeyUpEvent(e);
+        }
+        return StageEventRes.DEFAULT
+    }
+    /**
+     * 当鼠标按下的时候说明要开始拖动了
+     */
+    handleMouseDownEvent(_e: MouseEvent): StageEventRes {
+        this.isMousePress = true;
+        return StageEventRes.DEFAULT
+    }
+
+    handleMouseUpEvent(_e: MouseEvent): StageEventRes {
+        this.isMousePress = false;
+        return StageEventRes.DEFAULT
+    }
+    /**拖动Stage */
+    handleMouseMoveEvent(e: MouseEvent): StageEventRes {
+        if (!this.isMousePress) return StageEventRes.DEFAULT;
+        this.context.stage.x += e.movementX;
+        this.context.stage.y += e.movementY;
+        return StageEventRes.DRAG_STAGE
+    }
+    /**进入这个状态的时候鼠标指针变成手形 */
+    stateEffect(_preState: StageEventHandler): void {
+        this.context.containerDom.style.cursor = "pointer"
+    }
+    /**退出状态的时候鼠标指针变化 */
+    changeToState(state: StageEventHandler): void {
+        super.changeToState(state);
+        this.context.containerDom.style.cursor = "default"
+    }
 }
 
-/**
- * 多选状态
- */
-class StageMutiSelectEvent extends StageEventState {
+export default StageEventHandler
 
-	handleKeyUp(e: KeyboardEvent): void {
-		//当Shift提起的时候说明退出多选状态
-		if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-			const newState = new StageNormalEvent(this.context);
-			this.changeToState(newState);
-			newState.handleKeyUp(e);
-		}
-	}
-
-	handleMouseDown(e: MouseEvent): void {
-
-	}
-}
-
-export default StageEventState
-
-export { StageNormalEvent, StageDragEvent, StageMutiSelectEvent }
+export { SelectedEventHandler, StageEventRes }
