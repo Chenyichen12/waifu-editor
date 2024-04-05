@@ -107,6 +107,9 @@ class SelectedEventHandler extends StageEventHandler {
             if (res == result.TRANSFORM_DRAG) {
                 return StageEventRes.DEFAULT;
             }
+            if (res == result.TRANSFORM_DRAG_RECT) {
+                return StageEventRes.DEFAULT;
+            }
         }
 
         this.changeToState(new RectSelectEventHandler(stagePos, this.context));

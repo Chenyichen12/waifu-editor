@@ -5,8 +5,10 @@
  * 用于处理LayerStage的事件，处理键盘事件
  */
 
+import MeshLayer from "../GraphicsBase/MeshLayer"
 import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
+import RectInSelected from "../GraphicsBase/RectInSelected"
 import StageLayer from "../LayerBase/StageLayer"
 import { rect, xy } from "../TwoDType"
 
@@ -23,9 +25,11 @@ enum result {
     NO_HIT_ITEM,
 
     DRAG_ITEM,
+    DRAG_RECT,
 
     TRANSFORM_SELECT,
     TRANSFORM_DRAG,
+    TRANSFORM_DRAG_RECT,
 
     ADD_SELECT
 }
@@ -100,7 +104,11 @@ class SelectState extends LayerEventState {
             mesh.removeAllSelected();
             mesh.addSelectItem(hitPoint, undefined);
             this.context.mouseState = new DragItemState(hitPoint, this.context);
-            return result.TRANSFORM_DRAG
+            return result.TRANSFORM_DRAG;
+        }
+        if (mesh.selectedPoints.length > 1 && RectInSelected.ifHitRect(mesh.selectedPoints, option.point)) {
+            this.context.mouseState = new DragRectState(option.point, mesh, this.context);
+            return result.TRANSFORM_DRAG_RECT;
         }
         return result.DEFAULT
     }
@@ -121,6 +129,30 @@ class DragItemState extends LayerEventState {
     constructor(moveItem: MeshPoint, context: StageLayer) {
         super(context);
         this.moveItem = moveItem;
+    }
+}
+
+class DragRectState extends LayerEventState {
+
+    targetMesh: MeshLayer
+    lastMove: xy
+
+    handleMouseMoveEvent(option: LayerEventOption): result {
+        this.targetMesh.dragRectSelect(option.point.x - this.lastMove.x, option.point.y - this.lastMove.y);
+        this.lastMove = option.point;
+        this.context.upDatePoint();
+        return result.DRAG_RECT;
+    }
+
+    handleMouseUpEvent(_option: LayerEventOption): result {
+        this.context.mouseState = new SelectState(this.context);
+        return result.TRANSFORM_SELECT
+    }
+
+    constructor(point: xy, targetMesh: MeshLayer, context: StageLayer) {
+        super(context);
+        this.lastMove = point;
+        this.targetMesh = targetMesh;
     }
 }
 
