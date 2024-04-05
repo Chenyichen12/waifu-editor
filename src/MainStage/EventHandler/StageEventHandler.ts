@@ -8,6 +8,7 @@ import StageApp from "../StageApp"
 import StageLayer from "../LayerBase/StageLayer"
 import { result } from "./LayerEventHandler"
 import { xy } from "../TwoDType"
+import RectInSelected from "../GraphicsBase/RectInSelected"
 
 enum StageEventRes {
     DEFAULT,
@@ -150,15 +151,23 @@ class SelectedEventHandler extends StageEventHandler {
 
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+        let ifInRect = false;
         for (const child of this.context.layerContainer.selectedLayer) {
             const res = child.mouseState.handleMouseMoveEvent({
                 point: child.transformFormStage(stagePos),
                 mouseEvent: e
             })
-            if (res == result.DRAG_ITEM) {
+            if (res == result.DRAG_ITEM || res == result.DRAG_RECT) {
                 return StageEventRes.DEFAULT;
             }
+
+            if (RectInSelected.ifHitRect(child.mesh.selectedPoints, child.transformFormStage(stagePos))) {
+                ifInRect = true;
+            }
         }
+
+        this.context.containerDom.style.cursor = ifInRect ? "move" : "default";
+
         return StageEventRes.DEFAULT;
 
     }

@@ -44,6 +44,8 @@ class RectInSelected {
     }
 
     static ifHitRect(points: xy[], hitPoint: xy) {
+        if (points.length <= 1)
+            return false;
         const rect = RectInSelected.getBound(points);
         const padding = 10 / (instanceApp.value?.appScale.value ?? 1);
         const p1 = new MeshPoint(rect.left - padding, rect.top - padding, 0, 0);
