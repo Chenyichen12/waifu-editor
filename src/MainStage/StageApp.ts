@@ -8,7 +8,7 @@ import StageLayer from "./LayerBase/StageLayer";
 import { ref, shallowRef, watch } from "vue";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
-import StageLayerContainer from "./LayerBase/StageContainer";
+import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
