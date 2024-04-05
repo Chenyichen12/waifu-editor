@@ -3,17 +3,20 @@
  * @Date: 2024-04-04 12:44:56
  */
 
-import { Matrix } from "pixi.js"
+import { Graphics, Matrix } from "pixi.js"
 import StageApp from "../StageApp"
 import StageLayer from "../LayerBase/StageLayer"
 import { result } from "./LayerEventHandler"
+import { xy } from "../TwoDType"
 
 enum StageEventRes {
     DEFAULT,
     DRAG_STAGE,
 
     SELECT_LAYER,
-    CLICK
+    CLICK,
+
+    SELECT_RECT_MOVE
 }
 abstract class StageEventHandler {
 
@@ -105,6 +108,8 @@ class SelectedEventHandler extends StageEventHandler {
                 return StageEventRes.DEFAULT;
             }
         }
+
+        this.changeToState(new RectSelectEventHandler(stagePos, this.context));
         return StageEventRes.DEFAULT;
     }
 
@@ -170,6 +175,99 @@ class SelectedEventHandler extends StageEventHandler {
     }
 }
 
+
+class RectSelectEventHandler extends StageEventHandler {
+    selectRect: Graphics
+
+    firstPoint: xy
+    movePoint: xy
+    constructor(firstPoint: xy, context: StageApp) {
+        super(context);
+        this.selectRect = new Graphics();
+        context.stage.addChild(this.selectRect);
+        this.selectRect.zIndex = context.stage.children.length;
+        this.firstPoint = firstPoint;
+        this.movePoint = firstPoint;
+    }
+    handleMouseDownEvent(_e: MouseEvent): StageEventRes {
+        return StageEventRes.DEFAULT;
+    }
+
+    handleMouseMoveEvent(e: MouseEvent): StageEventRes {
+        this.movePoint = this.toStagePos(e.offsetX, e.offsetY);
+        this.upDate();
+        return StageEventRes.SELECT_RECT_MOVE;
+    }
+
+    handleMouseUpEvent(e: MouseEvent): StageEventRes {
+        const stagePos = this.toStagePos(e.offsetX, e.offsetY)
+        for (const child of this.context.layerContainer.selectedLayer) {
+            const point = child.transformFormStage(stagePos);
+            const { x, y, width, height } = this.getRect();
+            const p1 = child.transformFormStage({ x, y });
+            const p2 = child.transformFormStage({ x: x + width, y });
+            const p3 = child.transformFormStage({ x: x + width, y: y + height })
+            const p4 = child.transformFormStage({ x, y: y + height });
+            const rec = { p1, p2, p3, p4 }
+            const ifAdd = child.mouseState.handleRectSelect({
+                point, mouseEvent: e
+            }, rec);
+            if (ifAdd == result.ADD_SELECT) {
+                const remove: StageLayer[] = [];
+                this.context.layerContainer.selectedLayer.forEach((v) => {
+                    if (v !== child) {
+                        remove.push(v);
+                    }
+                })
+                this.context.layerContainer.removeSelected(remove);
+                this.changeToState(new SelectedEventHandler(this.context));
+                return StageEventRes.DEFAULT
+            }
+        }
+
+        const hitSelect = this.context.layerContainer.pointHitSelectedLayer(this.firstPoint);
+        if (hitSelect == undefined) {
+            this.context.layerContainer.removeAllSelected();
+        } else {
+            const remove: StageLayer[] = [];
+            this.context.layerContainer.selectedLayer.forEach((v) => {
+                if (v !== hitSelect) {
+                    remove.push(v);
+                }
+            })
+            this.context.layerContainer.removeSelected(remove);
+        }
+
+        this.changeToState(new SelectedEventHandler(this.context));
+        return StageEventRes.DEFAULT
+    }
+
+    upDate() {
+        this.selectRect.clear();
+        const { x, y, width, height } = this.getRect();
+        this.selectRect.rect(x, y, width, height).fill({
+            alpha: 0.3,
+            color: 0xc0c0c0
+        }).stroke({
+            color: 0xc0c0c0,
+            width: 2 / this.context.appScale.value
+        });
+    }
+    protected getRect() {
+        const x = this.firstPoint.x < this.movePoint.x ? this.firstPoint.x : this.movePoint.x;
+        const y = this.firstPoint.y < this.movePoint.y ? this.firstPoint.y : this.movePoint.y;
+        return {
+            x, y,
+            width: Math.abs(this.firstPoint.x - this.movePoint.x),
+            height: Math.abs(this.firstPoint.y - this.movePoint.y)
+        }
+    }
+
+    changeToState(state: StageEventHandler): void {
+        this.selectRect.destroy();
+        super.changeToState(state);
+    }
+}
 class DragStageEventHandler extends StageEventHandler {
     isMousePress: boolean = false
     /**当空格被提起的时候退出拖动模式 */
