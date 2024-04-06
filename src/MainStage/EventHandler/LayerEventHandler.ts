@@ -5,6 +5,7 @@
  * 用于处理LayerStage的事件，处理键盘事件
  */
 
+import Project from "../../components/Project/Project"
 import MeshLayer from "../GraphicsBase/MeshLayer"
 import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
@@ -116,6 +117,7 @@ class SelectState extends LayerEventState {
 }
 class DragItemState extends LayerEventState {
     moveItem
+    protected firstPoint: xy
     handleMouseMoveEvent(option: LayerEventOption): result {
         this.moveItem.setPosition(option.point.x, option.point.y);
         this.context.upDatePoint();
@@ -123,11 +125,17 @@ class DragItemState extends LayerEventState {
     }
 
     handleMouseUpEvent(_option: LayerEventOption): result {
+        const undoFunc = () => {
+            this.moveItem.setPosition(this.firstPoint.x, this.firstPoint.y);
+            this.context.upDatePoint();
+        }
+        Project.instance.value!.unDoStack.pushUnDo(undoFunc);
         this.context.mouseState = new SelectState(this.context);
         return result.TRANSFORM_SELECT
     }
     constructor(moveItem: MeshPoint, context: StageLayer) {
         super(context);
+        this.firstPoint = moveItem.xy;
         this.moveItem = moveItem;
     }
 }
