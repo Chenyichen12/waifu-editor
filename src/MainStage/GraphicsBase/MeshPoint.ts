@@ -48,6 +48,9 @@ class MeshPoint {
         return this._v;
     }
 
+    set x(x: number) { this._x = x; }
+    set y(y: number) { this._y = y }
+
     containInRect(rec: rect) {
         return this.x <= rec.p2.x &&
             this.x >= rec.p1.x &&

@@ -65,6 +65,16 @@ class RectInSelected {
         }
         return false;
     }
+
+    static dragRectPoint(points: xy[], movementX: number, movementY: number, callBack?: (points: xy[]) => void) {
+        points.forEach((v) => {
+            v.x = v.x + movementX;
+            v.y = v.y + movementY;
+        })
+        if (callBack != undefined) {
+            callBack(points);
+        }
+    }
 }
 
 export default RectInSelected

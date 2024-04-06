@@ -233,11 +233,5 @@ class MeshLayer extends Graphics {
         return undefined
     }
 
-    dragRectSelect(x: number, y: number) {
-        this.selectPointList.forEach((v) => {
-            v.setPosition(v.x + x, v.y + y);
-        })
-        this.upDate();
-    }
 }
 export default MeshLayer;
