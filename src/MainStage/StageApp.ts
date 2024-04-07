@@ -21,6 +21,9 @@ abstract class StageState {
     constructor(context: StageApp) {
         this.context = context;
     }
+    changeToState(newState: StageState) {
+        this.context.stageState = newState;
+    }
 }
 
 class NormalStageState extends StageState {
@@ -43,6 +46,11 @@ class EditModeState extends StageState {
         this.editMode = new EditMeshMode(context, targetLayer);
         this.editMode.enterEdit();
     }
+
+    changeToState(newState: StageState): void {
+        super.changeToState(newState);
+        this.editMode.leaveEdit();
+    }
 }
 
 
@@ -51,8 +59,7 @@ class StageApp extends Application {
     protected stageDom
     get containerDom() { return this.stageDom }
 
-
-    protected stageState: StageState
+    stageState: StageState
 
     /**Stage的缩放 */
     appScale = ref(1)
@@ -170,7 +177,10 @@ class StageApp extends Application {
     }
 
     enterEdit() {
-        this.stageState = new EditModeState(this);
+        this.stageState.changeToState(new EditModeState(this));
+    }
+    leaveEdit() {
+        this.stageState.changeToState(new NormalStageState(this));
     }
 }
 

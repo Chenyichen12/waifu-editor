@@ -15,7 +15,7 @@ class StageLayerContainer {
     pointHitLayer(StagePos: xy): StageLayer | undefined {
         for (const layer of this._layers) {
             const p = layer.transformFormStage(StagePos);
-            if (layer.hitLayer(p)) {
+            if (layer.hitLayer(p) && layer.show) {
                 return layer;
             }
         }

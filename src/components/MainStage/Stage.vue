@@ -25,9 +25,15 @@ function handleKeyUp(e: KeyboardEvent) {
         instanceApp.value.eventHandler.handleKeyUpEvent(e);
 }
 
-function handleEditButtonClick(e: MouseEvent){
+function handleEditButtonClick(_e: MouseEvent){
     if(instanceApp.value != null){
         instanceApp.value.enterEdit();
+    }
+}
+
+function handleLeaveButtonClick(_e: MouseEvent){
+    if(instanceApp.value != null){
+        instanceApp.value.leaveEdit();
     }
 }
 onMounted(async () => {
@@ -37,7 +43,7 @@ onMounted(async () => {
 <template>
     <div class = "tool-box">
         <button @click="handleEditButtonClick">进入编辑</button>
-        <button>退出编辑</button>
+        <button @click="handleLeaveButtonClick">退出编辑</button>
     </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>
