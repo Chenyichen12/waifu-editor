@@ -83,6 +83,13 @@ class StageLayerContainer {
     constructor(layers: StageLayer[]) {
         this._layers = layers;
     }
+
+    get showedLayer() {
+
+        return this._layers.filter((v) => {
+            return v.show === true;
+        })
+    }
 }
 
 export default StageLayerContainer;

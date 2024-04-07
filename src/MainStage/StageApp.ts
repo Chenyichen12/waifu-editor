@@ -23,9 +23,6 @@ class StageApp extends Application {
     public selectedLayer
     protected unWatchSelected
 
-    /**所有子图层 */
-    protected _childLayer: StageLayer[] = []
-    get childLayer() { return this._childLayer }
 
     /**Stage的缩放 */
     appScale = ref(1)
