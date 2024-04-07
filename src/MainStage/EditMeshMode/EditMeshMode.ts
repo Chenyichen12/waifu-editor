@@ -1,3 +1,7 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-04-07 22:56:32
+ */
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import StageLayer from "../LayerBase/StageLayer";
 import StageApp from "../StageApp";
@@ -31,3 +35,4 @@ class EditMeshMode {
         })
     }
 }
+export default EditMeshMode;

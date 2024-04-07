@@ -24,21 +24,36 @@ function handleKeyUp(e: KeyboardEvent) {
     if (instanceApp.value != null)
         instanceApp.value.eventHandler.handleKeyUpEvent(e);
 }
+
+function handleEditButtonClick(e: MouseEvent){
+    if(instanceApp.value != null){
+        instanceApp.value.enterEdit();
+    }
+}
 onMounted(async () => {
 })
 </script>
 
 <template>
+    <div class = "tool-box">
+        <button @click="handleEditButtonClick">进入编辑</button>
+        <button>退出编辑</button>
+    </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>
     </div>
 </template>
 
 <style lang='scss' scoped>
+.tool-box{
+    height: 4%;
+    width: 100%;
+    display: flex;
+}
 .container {
     $padding-stage: 20px;
     padding: calc($padding-stage / 2);
-    height: calc(100% - $padding-stage);
+    height: calc(96% - $padding-stage);
     width: calc(100% - $padding-stage);
     background-color: var(--el-menu-bg-color);
     outline-color: var(--el-color-primary);
