@@ -1,3 +1,4 @@
+
 <!--
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-27 18:03:33
@@ -12,7 +13,8 @@ import TopBar from "./components/TopBar.vue";
 import Stage from "./components/MainStage/Stage.vue";
 import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
-
+// 添加了关键帧组件
+import FrameStage from "./components/FrameAnimatorStage/FrameStage.vue";
 
 onMounted(async () => {
   //仅用于测试，生产模式下要删除
@@ -30,7 +32,8 @@ onMounted(async () => {
       <el-aside>
       </el-aside>
       <el-aside>
-
+        <!-- 添加了关键帧组件 -->
+          <FrameStage />
       </el-aside>
       <el-main>
         <Stage />
