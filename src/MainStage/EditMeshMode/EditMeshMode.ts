@@ -21,12 +21,12 @@ class EditMeshMode {
         this.stage = stage;
         this._targetLayer = target;
         this.initShowLayer = stage.layerContainer.showedLayer;
-        const { pointList, lineList } = target.mesh.deepClonePointAndLine();
+        const pointList = target.mesh.clonePruePoint();
 
         this._editMesh = new EditMeshLayer({
             meshGeo: {
                 points: pointList,
-                lines: lineList,
+                lines: [],
             },
             initRect: {
                 width: 0,
