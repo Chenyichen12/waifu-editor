@@ -5,7 +5,7 @@
  */
 import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
-import { ref, shallowRef, watch } from "vue";
+import { ref, shallowRef } from "vue";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
 import StageLayerContainer from "./LayerBase/StageLayerContainer";
@@ -182,6 +182,7 @@ class StageApp extends Application {
     leaveEdit() {
         this.stageState.changeToState(new NormalStageState(this));
     }
+
 }
 
 export default StageApp

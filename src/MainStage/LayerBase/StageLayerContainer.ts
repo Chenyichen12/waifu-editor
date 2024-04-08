@@ -90,6 +90,12 @@ class StageLayerContainer {
             return v.show === true;
         })
     }
+
+    setAllMeshVisible(isVisible: boolean) {
+        this._layers.forEach((v) => {
+            v.mesh.visible = isVisible;
+        })
+    }
 }
 
 export default StageLayerContainer;

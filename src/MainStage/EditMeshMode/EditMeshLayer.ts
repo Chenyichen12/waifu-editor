@@ -13,7 +13,7 @@ class EditMeshLayer extends MeshLayer {
             this.moveTo(item.p1.x, item.p1.y)
                 .lineTo(item.p2.x, item.p2.y)
                 .stroke({
-                    color: 0xff0000,
+                    color: 0xc0c0c0,
                     width: 1 / this.appScale
                 });
         })
@@ -22,17 +22,6 @@ class EditMeshLayer extends MeshLayer {
                 .fill({
                     color: 0xff0000
                 })
-        })
-
-        /**对于选中的目标进行更新 */
-        this.selectLineList.forEach((item) => {
-            this.moveTo(item.p1.x, item.p1.y)
-                .lineTo(item.p2.x, item.p2.y)
-                .stroke({
-                    color: 0xc0c0c0,
-                    width: 2 / this.appScale,
-                    alpha: 0.5
-                });
         })
         this.selectPointList.forEach((item) => {
             this.circle(item.x, item.y, 6 / this.appScale)
@@ -56,3 +45,5 @@ class EditMeshLayer extends MeshLayer {
         return true;
     }
 }
+
+export default EditMeshLayer
