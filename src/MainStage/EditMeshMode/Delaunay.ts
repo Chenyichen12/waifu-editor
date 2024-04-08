@@ -9,8 +9,8 @@ import { pointTriangle, xy } from "../TwoDType";
 function Delaunay(meshList: xy[]) {
     const triangleList = new Set<pointTriangle<xy>>();
     const bound = getBound(meshList);
-    triangleList.add(bound.t1);
-    triangleList.add(bound.t2);
+    const firstTri = getBoundTri(bound.p1, bound.p2, bound.p3, bound.p4);
+    triangleList.add(firstTri);
 
     for (const point of meshList) {
         const containTri = findPointInTri(point);
@@ -33,8 +33,8 @@ function Delaunay(meshList: xy[]) {
 
     const tempList = [...triangleList.values()];
     for (const tri of tempList) {
-        if (containPoint(tri, bound.p1) || containPoint(tri, bound.p2)
-            || containPoint(tri, bound.p3) || containPoint(tri, bound.p4)) {
+        if (containPoint(tri, firstTri.p1) || containPoint(tri, firstTri.p2)
+            || containPoint(tri, firstTri.p3)) {
             triangleList.delete(tri);
         }
     }
@@ -174,7 +174,7 @@ function ifInCircle(tri: pointTriangle<xy>, p: xy) {
         p3.x, p3.y, pointPow(p3),
     ]
 
-    return -threeDeterminant(mat1) + threeDeterminant(mat2) - threeDeterminant(mat3) + threeDeterminant(mat4) > 0;
+    return -threeDeterminant(mat1) + threeDeterminant(mat2) - threeDeterminant(mat3) + threeDeterminant(mat4) >= 0;
     function pointPow(point: xy) {
         return point.x * point.x + point.y * point.y;
     }
@@ -186,4 +186,24 @@ function threeDeterminant(set: number[]) {
         - set[6] * set[4] * set[2] - set[7] * set[5] * set[0] - set[3] * set[1] * set[8];
 }
 
+
+function getBoundTri(p1: xy, p2: xy, p3: xy, p4: xy): pointTriangle<xy> {
+    const resUp = { x: (p3.x + p4.x) / 2, y: p3.y - (p3.x - p4.x) * Math.sqrt(3) }
+    const leftB = { x: p4.x - (p4.y - p1.y) / Math.sqrt(3), y: p4.y };
+    const rightB = {
+        x: p3.x + (p3.y - p2.y) / Math.sqrt(3),
+        y: p3.y
+    }
+
+    resUp.y -= 5;
+    leftB.x -= 5;
+    rightB.x += 5;
+    rightB.y += 5;
+    leftB.y += 5
+    return {
+        p1: resUp,
+        p2: leftB,
+        p3: rightB,
+    }
+}
 export default Delaunay;
