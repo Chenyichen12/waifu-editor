@@ -242,7 +242,8 @@ class MeshLayer extends Graphics {
         }
         return undefined
     }
-    deepClone() {
+
+    deepClonePointAndLine() {
         const addPointMap = new Map<MeshPoint, MeshPoint>();
         const newLineList: MeshLine[] = []
         for (const line of this.lineList) {
@@ -267,23 +268,30 @@ class MeshLayer extends Graphics {
         }
 
         const newPointList = [...addPointMap.values()]
+        return {
+            pointList: newPointList,
+            lineList: newLineList
+        }
 
-        return new MeshLayer({
-            meshGeo: {
-                points: newPointList,
-                lines: newLineList
-            },
-            initRect: {
-                width: 0,
-                height: 0
-            }
-        })
         function copyPoint(point: MeshPoint) {
             const newP = new MeshPoint(
                 point.x, point.y, point.u, point.v
             )
             return newP;
         }
+    }
+    deepClone() {
+        const { pointList, lineList } = this.deepClonePointAndLine();
+        return new MeshLayer({
+            meshGeo: {
+                points: pointList,
+                lines: lineList
+            },
+            initRect: {
+                width: 0,
+                height: 0
+            }
+        })
     }
 }
 export default MeshLayer;

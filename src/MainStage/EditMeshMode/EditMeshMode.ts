@@ -9,21 +9,21 @@ import StageApp from "../StageApp";
 class EditMeshMode {
     protected stage: StageApp
 
-    protected targetLayer: StageLayer
+    protected _targetLayer: StageLayer
     protected initShowLayer: StageLayer[]
 
 
-    protected editMesh: MeshLayer
+    protected _editMesh: MeshLayer
     constructor(stage: StageApp, target: StageLayer) {
         this.stage = stage;
-        this.targetLayer = target;
+        this._targetLayer = target;
         this.initShowLayer = stage.layerContainer.showedLayer;
-        this.editMesh = target.mesh.deepClone();
+        this._editMesh = target.mesh.deepClone();
     }
 
     enterEdit() {
         this.initShowLayer.forEach((v) => {
-            if (v === this.targetLayer)
+            if (v === this._targetLayer)
                 return;
             v.show = false;
         })
@@ -34,5 +34,8 @@ class EditMeshMode {
             v.show = true;
         })
     }
+
+    get targetLayer() { return this._targetLayer }
+    get editMesh() { return this._editMesh }
 }
 export default EditMeshMode;
