@@ -293,5 +293,14 @@ class MeshLayer extends Graphics {
             }
         })
     }
+
+    clonePruePoint() {
+        const res = this.pointList.map((v) => {
+            return new MeshPoint(
+                v.x, v.y, v.u, v.v
+            )
+        })
+        return res;
+    }
 }
 export default MeshLayer;
