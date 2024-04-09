@@ -102,12 +102,8 @@ class MeshLayer extends Graphics {
         })
 
         if (option.meshGeo != undefined) {
-            option.meshGeo.points.forEach((v) => {
-                this.pointList.push(v);
-            })
-            option.meshGeo.lines.forEach((v) => {
-                this.lineList.push(v);
-            })
+            this.pointList = option.meshGeo.points;
+            this.lineList = option.meshGeo.lines;
         } else {
             this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
         }
@@ -304,3 +300,5 @@ class MeshLayer extends Graphics {
     }
 }
 export default MeshLayer;
+
+export type { MeshOption }

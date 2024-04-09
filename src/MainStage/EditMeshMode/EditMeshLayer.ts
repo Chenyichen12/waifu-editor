@@ -2,21 +2,39 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-08 08:08:39
  */
-import MeshLayer from "../GraphicsBase/MeshLayer";
+import MeshLayer, { MeshOption } from "../GraphicsBase/MeshLayer";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 
 class EditMeshLayer extends MeshLayer {
+    private lineIndex: number[][] = [];
     upDate(): void {
         this.clear()
-        this.lineList.forEach((item) => {
-            this.moveTo(item.p1.x, item.p1.y)
-                .lineTo(item.p2.x, item.p2.y)
+        if (this.lineIndex == undefined)
+            return
+        for (const triIndex of this.lineIndex) {
+            const p1 = this.pointList[triIndex[0]];
+            const p2 = this.pointList[triIndex[1]];
+            const p3 = this.pointList[triIndex[2]];
+            this.moveTo(p1.x, p1.y)
+                .lineTo(p2.x, p2.y)
                 .stroke({
                     color: 0xc0c0c0,
                     width: 1 / this.appScale
-                });
-        })
+                })
+            this.moveTo(p2.x, p2.y)
+                .lineTo(p3.x, p3.y)
+                .stroke({
+                    color: 0xc0c0c0,
+                    width: 1 / this.appScale
+                })
+            this.moveTo(p1.x, p1.y)
+                .lineTo(p3.x, p3.y)
+                .stroke({
+                    color: 0xc0c0c0,
+                    width: 1 / this.appScale
+                })
+        }
         this.pointList.forEach((item) => {
             this.circle(item.x, item.y, 3 / this.appScale)
                 .fill({
@@ -30,19 +48,22 @@ class EditMeshLayer extends MeshLayer {
                     width: 2 / this.appScale
                 })
         })
+
         /**当有多个点的时候展示选中的Rect */
         if (this.selectPointList.size > 1) {
             RectInSelected.upDate([...this.selectPointList], this);
         }
     }
+    setPoint(pList: MeshPoint[], index: number[][]) {
+        this.pointList = pList;
+        this.lineIndex = index;
+        this.upDate();
 
-    delePoint(p: MeshPoint): boolean {
-        if (this.pointList.length <= 3)
-            return false;
-        this.pointList = this.pointList.filter((v) => {
-            return p !== v
-        })
-        return true;
+    }
+    constructor(option: MeshOption, lineIndex: number[][]) {
+        super(option)
+        this.lineIndex = lineIndex;
+        this.upDate();
     }
 }
 

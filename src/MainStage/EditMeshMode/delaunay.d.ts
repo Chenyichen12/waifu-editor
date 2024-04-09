@@ -6,8 +6,8 @@
 import { xy } from "../TwoDType.js";
 import "./delaunay.js"
 
-class Delaunay {
-    getTriangleData(): { vertices: xy[], triangles: number[] };
-    constructor(point: xy[]);
+class Delaunay<T extends xy = xy> {
+    getTriangleData(): { vertices: T[], triangles: number[][] };
+    constructor(point: T[]);
 }
 export default Delaunay

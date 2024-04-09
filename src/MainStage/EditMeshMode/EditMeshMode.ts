@@ -4,10 +4,12 @@
  */
 import { SelectedEventHandler } from "../EventHandler/StageEventHandler";
 import MeshLayer from "../GraphicsBase/MeshLayer";
+import MeshPoint from "../GraphicsBase/MeshPoint";
 import StageLayer from "../LayerBase/StageLayer";
 import StageApp from "../StageApp";
 import EditHandler from "./EditMeshHandler";
 import EditMeshLayer from "./EditMeshLayer";
+import Delaunay from "./delaunay";
 
 class EditMeshMode {
     protected stage: StageApp
@@ -23,16 +25,18 @@ class EditMeshMode {
         this.initShowLayer = stage.layerContainer.showedLayer;
         const pointList = target.mesh.clonePruePoint();
 
+        const del = new Delaunay<MeshPoint>(pointList);
+        const ans = del.getTriangleData();
         this._editMesh = new EditMeshLayer({
             meshGeo: {
-                points: pointList,
+                points: ans.vertices,
                 lines: [],
             },
             initRect: {
                 width: 0,
                 height: 0
             }
-        })
+        }, ans.triangles)
     }
 
     enterEdit() {
