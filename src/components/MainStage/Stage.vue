@@ -3,10 +3,22 @@
  * @Date: 2024-03-30 11:34:21
 -->
 <script lang="ts" setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import Project from "../Project/Project";
 import StageApp, { instanceApp } from '../../MainStage/StageApp'
 const stageDomRef = ref<HTMLDivElement | null>(null)
+
+const isPenReady = ref<(s: boolean)=>void | undefined>();
+const isPenClick = ref(false);
+const penReadyStyle = computed(()=>{
+    if(isPenClick.value){
+        return {
+            backgroundColor: "var(--el-text-color-regular)"
+        }
+    }
+    return {}
+})
+
 
 watch(Project.instance, (v) => {
     if (v == null) return;
@@ -27,13 +39,22 @@ function handleKeyUp(e: KeyboardEvent) {
 
 function handleEditButtonClick(_e: MouseEvent){
     if(instanceApp.value != null){
-        instanceApp.value.enterEdit();
+        isPenReady.value = instanceApp.value.enterEdit();
     }
 }
 
 function handleLeaveButtonClick(_e: MouseEvent){
     if(instanceApp.value != null){
         instanceApp.value.leaveEdit();
+    }
+}
+
+function handlePenButtonClick(){
+    if(isPenReady.value == undefined){
+        return;
+    }else{
+        isPenClick.value = !isPenClick.value;
+        isPenReady.value(isPenClick.value);
     }
 }
 onMounted(async () => {
@@ -44,6 +65,10 @@ onMounted(async () => {
     <div class = "tool-box">
         <button @click="handleEditButtonClick">进入编辑</button>
         <button @click="handleLeaveButtonClick">退出编辑</button>
+
+        <button @click="handlePenButtonClick" v-bind:style = "penReadyStyle">
+            <img src="/src/assets/vector-pen.svg" />
+        </button>
     </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>
@@ -68,5 +93,6 @@ onMounted(async () => {
 .stage {
     height: 100%;
     width: 100%;
+    
 }
 </style>

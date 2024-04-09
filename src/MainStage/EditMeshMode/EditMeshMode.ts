@@ -6,7 +6,7 @@ import { SelectedEventHandler } from "../EventHandler/StageEventHandler";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import StageLayer from "../LayerBase/StageLayer";
 import StageApp from "../StageApp";
-import EditHandler from "./EditMeshHandler";
+import EditHandler, { PenAddHandler } from "./EditMeshHandler";
 import EditMeshLayer from "./EditMeshLayer";
 import Delaunay from "./delaunay";
 
@@ -45,7 +45,7 @@ class EditMeshMode {
             v.show = false;
         })
         this.stage.layerContainer.setAllMeshVisible(false);
-        this.stage.eventHandler = new EditHandler(this.stage, this);
+        this.stage.eventHandler.changeToState(new EditHandler(this.stage, this));
         this._editMesh.setFromMatrix(this.targetLayer.mesh.relativeGroupTransform)
         this.stage.stage.addChild(this._editMesh);
     }
@@ -61,5 +61,13 @@ class EditMeshMode {
 
     get targetLayer() { return this._targetLayer }
     get editMesh() { return this._editMesh }
+
+    setPenSelect(select: boolean) {
+        if (select) {
+            this.stage.eventHandler.changeToState(new PenAddHandler(this.stage, this))
+        } else {
+            this.stage.eventHandler.changeToState(new EditHandler(this.stage, this));
+        }
+    }
 }
 export default EditMeshMode;

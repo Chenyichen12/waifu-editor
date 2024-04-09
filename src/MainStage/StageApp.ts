@@ -15,7 +15,6 @@ import EditMeshMode from "./EditMeshMode/EditMeshMode";
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
 
-
 abstract class StageState {
     context: StageApp
     constructor(context: StageApp) {
@@ -50,6 +49,10 @@ class EditModeState extends StageState {
     changeToState(newState: StageState): void {
         super.changeToState(newState);
         this.editMode.leaveEdit();
+    }
+
+    readonly handlePenSelect = (select: boolean) => {
+        this.editMode.setPenSelect(select);
     }
 }
 
@@ -177,7 +180,10 @@ class StageApp extends Application {
     }
 
     enterEdit() {
-        this.stageState.changeToState(new EditModeState(this));
+        // this.stageState.changeToState(new EditModeState(this));
+        const editState = new EditModeState(this);
+        this.stageState.changeToState(editState);
+        return editState.handlePenSelect;
     }
     leaveEdit() {
         this.stageState.changeToState(new NormalStageState(this));
