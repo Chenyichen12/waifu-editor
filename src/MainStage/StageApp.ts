@@ -5,27 +5,61 @@
  */
 import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
-import { ref, shallowRef, watch } from "vue";
+import { ref, shallowRef } from "vue";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
 import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
+import EditMeshMode from "./EditMeshMode/EditMeshMode";
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
+
+
+abstract class StageState {
+    context: StageApp
+    constructor(context: StageApp) {
+        this.context = context;
+    }
+    changeToState(newState: StageState) {
+        this.context.stageState = newState;
+    }
+}
+
+class NormalStageState extends StageState {
+
+}
+
+class EditModeState extends StageState {
+    editMode: EditMeshMode;
+    constructor(context: StageApp) {
+        super(context);
+        let targetLayer: StageLayer | undefined = undefined;
+        for (const item of context.layerContainer.selectedLayer) {
+            targetLayer = item;
+            break;
+        }
+
+        if (targetLayer == undefined) {
+            targetLayer = this.context.layerContainer.showedLayer[0];
+        }
+        this.editMode = new EditMeshMode(context, targetLayer);
+        this.editMode.enterEdit();
+    }
+
+    changeToState(newState: StageState): void {
+        super.changeToState(newState);
+        this.editMode.leaveEdit();
+    }
+}
+
 
 class StageApp extends Application {
     /**App承载的Dom元素 */
     protected stageDom
     get containerDom() { return this.stageDom }
 
-    /**选中的图层 */
-    public selectedLayer
-    protected unWatchSelected
-
-    /**所有子图层 */
-    protected _childLayer: StageLayer[] = []
-    get childLayer() { return this._childLayer }
+    stageState: StageState
 
     /**Stage的缩放 */
     appScale = ref(1)
@@ -39,18 +73,11 @@ class StageApp extends Application {
         super();
         this.stageDom = dom;
         this.stage.interactive = true;
-        this.selectedLayer = shallowRef<StageLayer[]>([]);
-        this.unWatchSelected = watch(this.selectedLayer, (newV, oldV) => {
-            oldV.forEach((item) => {
-                item.selected = false;
-            })
-            newV.forEach((item) => {
-                item.selected = true;
-            })
-        })
         if (instanceApp.value != null)
             instanceApp.value.destroy();
         instanceApp.value = this;
+
+        this.stageState = new NormalStageState(this);
     }
 
     /**从project中提取信息构建App */
@@ -146,9 +173,16 @@ class StageApp extends Application {
 
     /**销毁监听器 */
     destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
-        this.unWatchSelected();
         super.destroy(rendererDestroyOptions, options);
     }
+
+    enterEdit() {
+        this.stageState.changeToState(new EditModeState(this));
+    }
+    leaveEdit() {
+        this.stageState.changeToState(new NormalStageState(this));
+    }
+
 }
 
 export default StageApp

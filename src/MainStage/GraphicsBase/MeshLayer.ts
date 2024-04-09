@@ -100,7 +100,13 @@ class MeshLayer extends Graphics {
             this.appScale = v;
             this.upDate();
         })
-        this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
+
+        if (option.meshGeo != undefined) {
+            this.pointList = option.meshGeo.points;
+            this.lineList = option.meshGeo.lines;
+        } else {
+            this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
+        }
 
         this.upDate();
     }
@@ -233,5 +239,66 @@ class MeshLayer extends Graphics {
         return undefined
     }
 
+    deepClonePointAndLine() {
+        const addPointMap = new Map<MeshPoint, MeshPoint>();
+        const newLineList: MeshLine[] = []
+        for (const line of this.lineList) {
+            let newP1: MeshPoint;
+            let newP2: MeshPoint;
+            if (addPointMap.has(line.p1)) {
+                newP1 = addPointMap.get(line.p1)!;
+            } else {
+                newP1 = copyPoint(line.p1);
+                addPointMap.set(line.p1, newP1);
+            }
+
+            if (addPointMap.has(line.p2)) {
+                newP2 = addPointMap.get(line.p2)!;
+            } else {
+                newP2 = copyPoint(line.p2);
+                addPointMap.set(line.p2, newP2);
+            }
+
+            const newLine = new MeshLine(newP1, newP2);
+            newLineList.push(newLine);
+        }
+
+        const newPointList = [...addPointMap.values()]
+        return {
+            pointList: newPointList,
+            lineList: newLineList
+        }
+
+        function copyPoint(point: MeshPoint) {
+            const newP = new MeshPoint(
+                point.x, point.y, point.u, point.v
+            )
+            return newP;
+        }
+    }
+    deepClone() {
+        const { pointList, lineList } = this.deepClonePointAndLine();
+        return new MeshLayer({
+            meshGeo: {
+                points: pointList,
+                lines: lineList
+            },
+            initRect: {
+                width: 0,
+                height: 0
+            }
+        })
+    }
+
+    clonePruePoint() {
+        const res = this.pointList.map((v) => {
+            return new MeshPoint(
+                v.x, v.y, v.u, v.v
+            )
+        })
+        return res;
+    }
 }
 export default MeshLayer;
+
+export type { MeshOption }

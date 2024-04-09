@@ -58,6 +58,9 @@ class StageLayer extends Container {
     set show(isShow: boolean) {
         this._show = isShow;
         this.visible = isShow;
+        this.textureLayer.visible = isShow;
+        this.faceMesh.visible = isShow;
+
         if (!isShow) {
             this.selected = false;
         }
