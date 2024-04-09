@@ -7,6 +7,7 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 import StageApp from "../StageApp";
 import { xy } from "../TwoDType";
 import EditMeshMode from "./EditMeshMode";
+import Delaunay from "./delaunay";
 
 
 class EditHandler extends SelectedEventHandler {
@@ -58,6 +59,10 @@ class DragPointHandler extends StageEventHandler {
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
         const p = this.mode.targetLayer.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
         this.dragItem.setPosition(p.x, p.y);
+        const pointList = this.mode.editMesh.listPoint;
+        const delaunay = new Delaunay<MeshPoint>(pointList);
+        const data = delaunay.getTriangleData();
+        this.mode.editMesh.setPoint(data.vertices, data.triangles);
         this.mode.editMesh.upDate();
         return StageEventRes.DEFAULT;
     }

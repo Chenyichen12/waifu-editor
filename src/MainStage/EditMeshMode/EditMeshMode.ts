@@ -3,7 +3,6 @@
  * @Date: 2024-04-07 22:56:32
  */
 import { SelectedEventHandler } from "../EventHandler/StageEventHandler";
-import MeshLayer from "../GraphicsBase/MeshLayer";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import StageLayer from "../LayerBase/StageLayer";
 import StageApp from "../StageApp";
@@ -18,7 +17,7 @@ class EditMeshMode {
     protected initShowLayer: StageLayer[]
 
 
-    protected _editMesh: MeshLayer
+    protected _editMesh: EditMeshLayer
     constructor(stage: StageApp, target: StageLayer) {
         this.stage = stage;
         this._targetLayer = target;

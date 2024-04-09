@@ -57,8 +57,6 @@ class EditMeshLayer extends MeshLayer {
     setPoint(pList: MeshPoint[], index: number[][]) {
         this.pointList = pList;
         this.lineIndex = index;
-        this.upDate();
-
     }
     constructor(option: MeshOption, lineIndex: number[][]) {
         super(option)
