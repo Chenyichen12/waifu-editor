@@ -323,4 +323,4 @@ class DragStageEventHandler extends StageEventHandler {
 
 export default StageEventHandler
 
-export { SelectedEventHandler, StageEventRes, RectSelectEventHandler }
+export { SelectedEventHandler, StageEventRes, RectSelectEventHandler, DragStageEventHandler }

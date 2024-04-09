@@ -2,7 +2,7 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-08 07:53:09
  */
-import StageEventHandler, { RectSelectEventHandler, SelectedEventHandler, StageEventRes } from "../EventHandler/StageEventHandler";
+import StageEventHandler, { DragStageEventHandler, RectSelectEventHandler, SelectedEventHandler, StageEventRes } from "../EventHandler/StageEventHandler";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import StageApp from "../StageApp";
 import { xy } from "../TwoDType";
@@ -10,10 +10,34 @@ import EditMeshMode from "./EditMeshMode";
 import Delaunay from "./delaunay";
 
 
+class StageMoveHandler extends DragStageEventHandler {
+    protected mode: EditMeshMode
+    handleKeyUpEvent(e: KeyboardEvent): StageEventRes {
+        if (e.code === "Space") {
+            const newState = new EditHandler(this.context, this.mode);
+            this.changeToState(newState);
+            newState.handleKeyUpEvent(e);
+        }
+        return StageEventRes.DEFAULT
+    }
+
+    constructor(context: StageApp, mode: EditMeshMode) {
+        super(context);
+        this.mode = mode;
+    }
+}
+
 class EditHandler extends SelectedEventHandler {
 
     protected mode: EditMeshMode
 
+    handleKeyDownEvent(e: KeyboardEvent): StageEventRes {
+        if (e.code === "Space") {
+            const newState = new StageMoveHandler(this.context, this.mode);
+            this.changeToState(newState);
+        }
+        return StageEventRes.DRAG_STAGE
+    }
     handleClickEvent(e: MouseEvent): StageEventRes {
         const targetLayer = this.mode.targetLayer;
         const point = targetLayer.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
@@ -46,6 +70,7 @@ class EditHandler extends SelectedEventHandler {
     }
 }
 
+
 class DragPointHandler extends StageEventHandler {
 
     protected mode: EditMeshMode
@@ -54,6 +79,8 @@ class DragPointHandler extends StageEventHandler {
         super(context);
         this.mode = editMode;
         this.dragItem = dragPoint;
+        editMode.editMesh.removeAllSelected();
+        editMode.editMesh.addSelectItem(dragPoint, undefined);
     }
 
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
