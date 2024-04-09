@@ -5,6 +5,7 @@
 import MeshLayer, { MeshOption } from "../GraphicsBase/MeshLayer";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
+import Delaunay from "./delaunay";
 
 class EditMeshLayer extends MeshLayer {
     private lineIndex: number[][] = [];
@@ -62,6 +63,32 @@ class EditMeshLayer extends MeshLayer {
         super(option)
         this.lineIndex = lineIndex;
         this.upDate();
+    }
+
+    addPoint(p: MeshPoint) {
+        const delaunay = new Delaunay<MeshPoint>([...this.pointList, p]);
+        const ans = delaunay.getTriangleData();
+        this.pointList = ans.vertices;
+        this.lineIndex = ans.triangles;
+    }
+
+    delePoint(p: MeshPoint) {
+        this.selectPointList.delete(p);
+        const delaunay = new Delaunay<MeshPoint>(this.pointList.filter((v) => v !== p));
+        const ans = delaunay.getTriangleData();
+        this.pointList = ans.vertices;
+        this.lineIndex = ans.triangles;
+    }
+    delePoints(ps: MeshPoint[]) {
+        for (const point of ps) {
+            this.selectPointList.delete(point);
+        }
+        const delaunay = new Delaunay<MeshPoint>(this.pointList.filter((v) => {
+            return !ps.includes(v);
+        }))
+        const ans = delaunay.getTriangleData();
+        this.pointList = ans.vertices;
+        this.lineIndex = ans.triangles;
     }
 }
 

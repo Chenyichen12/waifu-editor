@@ -1,3 +1,7 @@
+/*
+ * @Author: metzlr
+ * https://github.com/metzlr/delaunay-js
+ */
 function pointInCircle(a, b, c, p) {
   const dx = a.x - p.x;
   const dy = a.y - p.y;
