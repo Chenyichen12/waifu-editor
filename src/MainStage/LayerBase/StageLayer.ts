@@ -80,12 +80,6 @@ class StageLayer extends Container {
         else this.faceMesh.alpha = 0;
     }
 
-    /**当图层几何位置变化的时候mesh由于不是图层的孩子，需要手动同步 */
-    setFromMatrix(matrix: Matrix): void {
-        this.faceMesh.setFromMatrix(matrix);
-        this.textureLayer.setFromMatrix(matrix);
-        super.setFromMatrix(matrix);
-    }
 
     constructor(option: StageLayerOption) {
         super();
@@ -114,8 +108,8 @@ class StageLayer extends Container {
      */
     transformFormStage(stagePoint: xy) {
         return {
-            x: stagePoint.x - this.position.x,
-            y: stagePoint.y - this.position.y
+            x: stagePoint.x,
+            y: stagePoint.y
         }
     }
 

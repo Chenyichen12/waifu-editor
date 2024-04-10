@@ -17,6 +17,8 @@ interface MeshOption {
     }
     /**初始包括所有点的矩形 */
     initRect: {
+        top: number,
+        left: number
         width: number,
         height: number
     }
@@ -105,7 +107,7 @@ class MeshLayer extends Graphics {
             this.pointList = option.meshGeo.points;
             this.lineList = option.meshGeo.lines;
         } else {
-            this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
+            this.generateFirstPoints(option.initRect.top, option.initRect.left, option.initRect.width, option.initRect.height);
         }
 
         this.upDate();
@@ -284,6 +286,8 @@ class MeshLayer extends Graphics {
                 lines: lineList
             },
             initRect: {
+                top: 0,
+                left: 0,
                 width: 0,
                 height: 0
             }

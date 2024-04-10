@@ -22,8 +22,6 @@ const penReadyStyle = computed(()=>{
 
 watch(Project.instance, (v) => {
     if (v == null) return;
-    if (instanceApp.value != null)
-        instanceApp.value.destroy();
     const stage = new StageApp(stageDomRef.value!);
     stage.initFromProject(v);
 })

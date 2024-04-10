@@ -32,6 +32,8 @@ class EditMeshMode {
                 lines: [],
             },
             initRect: {
+                top: 0,
+                left: 0,
                 width: 0,
                 height: 0
             }
@@ -69,5 +71,7 @@ class EditMeshMode {
             this.stage.eventHandler.changeToState(new EditHandler(this.stage, this));
         }
     }
+
+
 }
 export default EditMeshMode;

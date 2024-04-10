@@ -76,8 +76,15 @@ class StageApp extends Application {
         super();
         this.stageDom = dom;
         this.stage.interactive = true;
-        if (instanceApp.value != null)
+        if (instanceApp.value != null) {
             instanceApp.value.destroy();
+            let child = this.stageDom.lastElementChild;
+            while (child != undefined) {
+                this.stageDom.removeChild(child);
+                child = this.stageDom.lastElementChild;
+            }
+        }
+
         instanceApp.value = this;
 
         this.stageState = new NormalStageState(this);
@@ -140,8 +147,6 @@ class StageApp extends Application {
                     const item = Project.instance.value!.assetList.get(normal.assetId);
                     if (item == null) continue;
                     const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
-                    const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
-                    gra.setFromMatrix(tranformMat);
                     layers.push(gra);
                 } else {
                     const gro = child as Group;
@@ -174,10 +179,10 @@ class StageApp extends Application {
         return scale;
     }
 
-    /**销毁监听器 */
-    destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
-        super.destroy(rendererDestroyOptions, options);
-    }
+    // /**销毁监听器 */
+    // destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
+    //     super.destroy(rendererDestroyOptions, options);
+    // }
 
     enterEdit() {
         // this.stageState.changeToState(new EditModeState(this));
