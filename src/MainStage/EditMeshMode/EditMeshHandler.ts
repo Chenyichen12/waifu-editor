@@ -14,15 +14,18 @@ import Delaunay from "./delaunay";
 
 class StageMoveHandler extends DragStageEventHandler {
     protected mode: EditMeshMode
+    protected returnState?: StageEventHandler
     handleKeyUpEvent(e: KeyboardEvent): StageEventRes {
         if (e.code === "Space") {
-            const newState = new EditHandler(this.context, this.mode);
-            this.changeToState(newState);
-            newState.handleKeyUpEvent(e);
+            this.changeToState(this.returnState!);
+            this.returnState!.handleKeyUpEvent(e);
         }
         return StageEventRes.DEFAULT
     }
-
+    stateEffect(preState: StageEventHandler): void {
+        super.stateEffect(preState);
+        this.returnState = preState
+    }
     constructor(context: StageApp, mode: EditMeshMode) {
         super(context);
         this.mode = mode;

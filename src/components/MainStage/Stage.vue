@@ -50,12 +50,6 @@ function handleLeaveButtonClick(_e: MouseEvent){
 }
 
 function handlePenButtonClick(){
-    // if(isPenReady.value == undefined){
-    //     return;
-    // }else{
-    //     isPenClick.value = !isPenClick.value;
-    //     isPenReady.value(isPenClick.value);
-    // }
     if(editMode.value!=undefined){
         isPenClick.value = !isPenClick.value;
         editMode.value.setPenSelect(isPenClick.value);
