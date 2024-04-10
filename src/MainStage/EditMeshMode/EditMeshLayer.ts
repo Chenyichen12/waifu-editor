@@ -78,6 +78,13 @@ class EditMeshLayer extends MeshLayer {
         this.lineIndex = ans.triangles;
     }
 
+    addPoints(p: MeshPoint[]) {
+        const delaunay = new Delaunay<MeshPoint>([...this.pointList, ...p]);
+        const ans = delaunay.getTriangleData();
+        this.pointList = ans.vertices;
+        this.lineIndex = ans.triangles;
+    }
+
     delePoint(p: MeshPoint) {
         this.selectPointList.delete(p);
         const delaunay = new Delaunay<MeshPoint>(this.pointList.filter((v) => v !== p));

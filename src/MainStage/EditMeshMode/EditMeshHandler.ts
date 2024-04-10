@@ -3,6 +3,7 @@
  * @Date: 2024-04-08 07:53:09
  */
 
+import Project from "../../components/Project/Project";
 import StageEventHandler, { DragStageEventHandler, RectSelectEventHandler, SelectedEventHandler, StageEventRes } from "../EventHandler/StageEventHandler";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
@@ -44,8 +45,16 @@ class EditHandler extends SelectedEventHandler {
 
         if (e.code === "Backspace") {
             const select = this.mode.editMesh.selectedPoints;
+            const pList = this.mode.editMesh.listPoint;
+            const index = this.mode.editMesh.indexList;
             this.mode.editMesh.delePoints(select);
             this.mode.editMesh.upDate();
+            const undo = () => {
+                this.mode.editMesh.setPoint(pList, index);
+                this.mode.editMesh.removeAllSelected();
+                this.mode.editMesh.addSelected(select, []);
+            }
+            Project.instance.value!.unDoStack.pushUnDo(undo);
         }
         return StageEventRes.DRAG_STAGE
     }
