@@ -9,7 +9,7 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 import MeshLine from "../GraphicsBase/MeshLine";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
-import { xy } from "../TwoDType";
+import { xy, xyuv } from "../TwoDType";
 /**
  * texture所需信息
  */
@@ -62,7 +62,21 @@ class TextureLayer extends Mesh<Geometry, Shader> {
         });
         buffer.update();
     }
-
+    upDateMesh(points: xyuv[], index: number[]) {
+        const pList: number[] = [];
+        const uvList: number[] = [];
+        points.forEach((v) => {
+            pList.push(v.x, v.y);
+            uvList.push(v.u, v.v);
+        })
+        this.geometry = new Geometry({
+            attributes: {
+                aPosition: pList,
+                aUV: uvList,
+            },
+            indexBuffer: index
+        });
+    }
 }
 
 export default TextureLayer
