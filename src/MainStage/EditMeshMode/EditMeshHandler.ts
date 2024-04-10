@@ -109,12 +109,15 @@ class DragPointHandler extends StageEventHandler {
     protected mode: EditMeshMode
     protected dragItem: MeshPoint
     protected returnState?: StageEventHandler
+
+    protected firstPoint: xy
     constructor(context: StageApp, editMode: EditMeshMode, dragPoint: MeshPoint) {
         super(context);
         this.mode = editMode;
         this.dragItem = dragPoint;
         editMode.editMesh.removeAllSelected();
         editMode.editMesh.addSelectItem(dragPoint, undefined);
+        this.firstPoint = { x: dragPoint.x, y: dragPoint.y };
     }
 
     protected stateEffect(preState: StageEventHandler): void {
@@ -134,6 +137,15 @@ class DragPointHandler extends StageEventHandler {
 
     handleMouseUpEvent(_e: MouseEvent): StageEventRes {
         this.changeToState(this.returnState!);
+        const unDo = () => {
+            this.dragItem.setPosition(this.firstPoint.x, this.firstPoint.y);
+            const pointList = this.mode.editMesh.listPoint;
+            const delaunay = new Delaunay<MeshPoint>(pointList);
+            const data = delaunay.getTriangleData();
+            this.mode.editMesh.setPoint(data.vertices, data.triangles);
+            this.mode.editMesh.upDate();
+        }
+        Project.instance.value!.unDoStack.pushUnDo(unDo);
         return StageEventRes.DEFAULT;
     }
 }
@@ -205,6 +217,17 @@ class RectDragHandler extends StageEventHandler {
     }
     handleMouseUpEvent(_e: MouseEvent): StageEventRes {
         this.changeToState(this.returnState!);
+
+        const undo = () => {
+            RectInSelected.dragRectPoint(this.selectPoints, this.firstMovePoint.x - this.lastMove.x, this.firstMovePoint.y - this.lastMove.y, () => {
+                const delaunay = new Delaunay<MeshPoint>(this.mode.editMesh.listPoint);
+                const data = delaunay.getTriangleData();
+                this.mode.editMesh.setPoint(data.vertices, data.triangles);
+                this.mode.editMesh.upDate();
+            })
+        }
+
+        Project.instance.value!.unDoStack.pushUnDo(undo);
         return StageEventRes.DEFAULT;
     }
 
