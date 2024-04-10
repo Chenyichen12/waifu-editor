@@ -216,11 +216,20 @@ class PenAddHandler extends EditHandler {
         if (this.mode.editMesh.pointAtPosition(point.x, point.y) != undefined) {
             return super.handleClickEvent(e);
         }
+        const pList = this.mode.editMesh.listPoint;
+        const index = this.mode.editMesh.indexList;
+        const unDo = () => {
+            this.mode.editMesh.setPoint(pList, index);
+            this.mode.editMesh.removeAllSelected();
+        }
         this.mode.editMesh.removeAllSelected();
+
         const p = new MeshPoint(point.x, point.y, 1, 1)
         this.mode.editMesh.addPoint(p);
         this.mode.editMesh.addSelectItem(p, undefined)
         this.mode.editMesh.upDate();
+
+        Project.instance.value!.unDoStack.pushUnDo(unDo);
         return StageEventRes.CLICK
     }
 }
