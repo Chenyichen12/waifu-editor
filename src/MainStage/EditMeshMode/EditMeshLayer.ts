@@ -61,6 +61,9 @@ class EditMeshLayer extends MeshLayer {
     }
     constructor(option: MeshOption, lineIndex: number[][]) {
         super(option)
+        for (const point of this.pointList) {
+            point.lines = [];
+        }
         this.lineIndex = lineIndex;
         this.upDate();
     }
@@ -90,6 +93,8 @@ class EditMeshLayer extends MeshLayer {
         this.pointList = ans.vertices;
         this.lineIndex = ans.triangles;
     }
+
+    get indexList() { return this.lineIndex }
 }
 
 export default EditMeshLayer
