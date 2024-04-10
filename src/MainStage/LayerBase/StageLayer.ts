@@ -83,9 +83,7 @@ class StageLayer extends Container {
 
     constructor(option: StageLayerOption) {
         super();
-        this.faceMesh = new MeshLayer({
-            initRect: option.texture.bound
-        })
+        this.faceMesh = new MeshLayer(option.texture.bound)
         this._textureLayer = new TextureLayer({
             texture: option.texture,
             information: {

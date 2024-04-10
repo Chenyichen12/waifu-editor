@@ -3,12 +3,11 @@
  * @Date: 2024-04-07 22:56:32
  */
 import { SelectedEventHandler } from "../EventHandler/StageEventHandler";
-import MeshPoint from "../GraphicsBase/MeshPoint";
+import RectInSelected from "../GraphicsBase/RectInSelected";
 import StageLayer from "../LayerBase/StageLayer";
 import StageApp from "../StageApp";
 import EditHandler, { PenAddHandler } from "./EditMeshHandler";
 import EditMeshLayer from "./EditMeshLayer";
-import Delaunay from "./delaunay";
 
 class EditMeshMode {
     protected stage: StageApp
@@ -23,21 +22,23 @@ class EditMeshMode {
         this._targetLayer = target;
         this.initShowLayer = stage.layerContainer.showedLayer;
         const pointList = target.mesh.clonePruePoint();
+        const bound = RectInSelected.getBound(pointList);
 
-        const del = new Delaunay<MeshPoint>(pointList);
-        const ans = del.getTriangleData();
         this._editMesh = new EditMeshLayer({
-            meshGeo: {
-                points: ans.vertices,
-                lines: [],
-            },
-            initRect: {
-                top: 0,
-                left: 0,
-                width: 0,
-                height: 0
-            }
-        }, ans.triangles)
+            top: bound.top,
+            left: bound.left,
+            width: bound.right - bound.left,
+            height: bound.button - bound.top
+        }, [
+            [0, 1, 3],
+            [0, 2, 3],
+        ])
+        this.targetLayer.textureLayer.upDateMesh([
+            { x: bound.left, y: bound.top, u: 0, v: 0 },
+            { x: bound.right, y: bound.top, u: 1, v: 0 },
+            { x: bound.right, y: bound.button, u: 1, v: 1 },
+            { x: bound.left, y: bound.button, u: 0, v: 1 },
+        ], [0, 1, 2, 0, 2, 3])
     }
 
     enterEdit() {
