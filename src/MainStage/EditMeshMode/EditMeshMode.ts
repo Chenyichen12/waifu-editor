@@ -2,7 +2,6 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-07 22:56:32
  */
-import { width } from "@webtoon/psd/dist/utils";
 import { SelectedEventHandler } from "../EventHandler/StageEventHandler";
 import MeshLine from "../GraphicsBase/MeshLine";
 import MeshPoint from "../GraphicsBase/MeshPoint";
@@ -12,6 +11,7 @@ import StageApp from "../StageApp";
 import EditHandler, { PenAddHandler } from "./EditMeshHandler";
 import EditMeshLayer from "./EditMeshLayer";
 import EditTextureLayer from "./EditTextureOpterator";
+import Project from "../../components/Project/Project";
 
 class EditMeshMode {
     protected stage: StageApp
@@ -43,14 +43,25 @@ class EditMeshMode {
 
     enterEdit() {
         this.initShowLayer.forEach((v) => {
-            if (v === this._targetLayer)
-                return;
+            if (v === this._targetLayer) {
+                this.targetLayer.mesh.visible = false;
+                return
+            }
             v.show = false;
         })
-        this.stage.layerContainer.setAllMeshVisible(false);
+        this._textureOperator.enterEdit();
         this.stage.eventHandler.changeToState(new EditHandler(this.stage, this));
-        this._editMesh.setFromMatrix(this.targetLayer.mesh.relativeGroupTransform)
         this.stage.stage.addChild(this._editMesh);
+
+        const undo = () => {
+            this.initShowLayer.forEach((v) => {
+                v.show = true;
+            })
+            this.stage.eventHandler.changeToState(new SelectedEventHandler(this.stage));
+            this._editMesh.destroy();
+            this._textureOperator.resetToOrigin();
+        }
+        Project.instance.value!.unDoStack.pushUnDo(undo);
     }
 
     leaveEdit() {

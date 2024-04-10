@@ -3,7 +3,7 @@
  * @Date: 2024-03-30 11:34:21
  * PIXIApp类
  */
-import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
+import { Application, Graphics } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
 import { ref, shallowRef } from "vue";
 import Project from "../components/Project/Project";
@@ -12,57 +12,14 @@ import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 import EditMeshMode from "./EditMeshMode/EditMeshMode";
 
+
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
-
-abstract class StageState {
-    context: StageApp
-    constructor(context: StageApp) {
-        this.context = context;
-    }
-    changeToState(newState: StageState) {
-        this.context.stageState = newState;
-    }
-}
-
-class NormalStageState extends StageState {
-
-}
-
-class EditModeState extends StageState {
-    editMode: EditMeshMode;
-    constructor(context: StageApp) {
-        super(context);
-        let targetLayer: StageLayer | undefined = undefined;
-        for (const item of context.layerContainer.selectedLayer) {
-            targetLayer = item;
-            break;
-        }
-
-        if (targetLayer == undefined) {
-            targetLayer = this.context.layerContainer.showedLayer[0];
-        }
-        this.editMode = new EditMeshMode(context, targetLayer);
-        this.editMode.enterEdit();
-    }
-
-    changeToState(newState: StageState): void {
-        super.changeToState(newState);
-        this.editMode.leaveEdit();
-    }
-
-    readonly handlePenSelect = (select: boolean) => {
-        this.editMode.setPenSelect(select);
-    }
-}
-
 
 class StageApp extends Application {
     /**App承载的Dom元素 */
     protected stageDom
     get containerDom() { return this.stageDom }
-
-    stageState: StageState
 
     /**Stage的缩放 */
     appScale = ref(1)
@@ -86,8 +43,6 @@ class StageApp extends Application {
         }
 
         instanceApp.value = this;
-
-        this.stageState = new NormalStageState(this);
     }
 
     /**从project中提取信息构建App */
@@ -179,19 +134,14 @@ class StageApp extends Application {
         return scale;
     }
 
-    // /**销毁监听器 */
-    // destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
-    //     super.destroy(rendererDestroyOptions, options);
-    // }
 
-    enterEdit() {
-        // this.stageState.changeToState(new EditModeState(this));
-        const editState = new EditModeState(this);
-        this.stageState.changeToState(editState);
-        return editState.handlePenSelect;
-    }
-    leaveEdit() {
-        this.stageState.changeToState(new NormalStageState(this));
+    createEditMode() {
+        let select: StageLayer = this.layerContainer.showedLayer[0];
+        for (const layer of this.layerContainer.selectedLayer) {
+            select = layer;
+            break;
+        }
+        return new EditMeshMode(this, select);
     }
 
 }

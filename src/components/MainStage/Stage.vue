@@ -3,15 +3,16 @@
  * @Date: 2024-03-30 11:34:21
 -->
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
 import StageApp, { instanceApp } from '../../MainStage/StageApp'
+import EditMeshMode from "../../MainStage/EditMeshMode/EditMeshMode";
 const stageDomRef = ref<HTMLDivElement | null>(null)
-
-const isPenReady = ref<(s: boolean)=>void | undefined>();
 const isPenClick = ref(false);
+const editMode = shallowRef<EditMeshMode | undefined>(undefined);
+
 const penReadyStyle = computed(()=>{
-    if(isPenClick.value){
+    if(isPenClick.value && editMode.value != undefined){
         return {
             backgroundColor: "var(--el-text-color-regular)"
         }
@@ -37,22 +38,27 @@ function handleKeyUp(e: KeyboardEvent) {
 
 function handleEditButtonClick(_e: MouseEvent){
     if(instanceApp.value != null){
-        isPenReady.value = instanceApp.value.enterEdit();
+        editMode.value = instanceApp.value.createEditMode();
+        editMode.value.enterEdit();
     }
 }
 
 function handleLeaveButtonClick(_e: MouseEvent){
-    if(instanceApp.value != null){
-        instanceApp.value.leaveEdit();
+    if(editMode.value != undefined){
+        editMode.value.leaveEdit();
     }
 }
 
 function handlePenButtonClick(){
-    if(isPenReady.value == undefined){
-        return;
-    }else{
+    // if(isPenReady.value == undefined){
+    //     return;
+    // }else{
+    //     isPenClick.value = !isPenClick.value;
+    //     isPenReady.value(isPenClick.value);
+    // }
+    if(editMode.value!=undefined){
         isPenClick.value = !isPenClick.value;
-        isPenReady.value(isPenClick.value);
+        editMode.value.setPenSelect(isPenClick.value);
     }
 }
 onMounted(async () => {
