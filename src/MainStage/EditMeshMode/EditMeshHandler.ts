@@ -3,6 +3,7 @@
  * @Date: 2024-04-08 07:53:09
  */
 
+import Project from "../../components/Project/Project";
 import StageEventHandler, { DragStageEventHandler, RectSelectEventHandler, SelectedEventHandler, StageEventRes } from "../EventHandler/StageEventHandler";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
@@ -14,15 +15,18 @@ import Delaunay from "./delaunay";
 
 class StageMoveHandler extends DragStageEventHandler {
     protected mode: EditMeshMode
+    protected returnState?: StageEventHandler
     handleKeyUpEvent(e: KeyboardEvent): StageEventRes {
         if (e.code === "Space") {
-            const newState = new EditHandler(this.context, this.mode);
-            this.changeToState(newState);
-            newState.handleKeyUpEvent(e);
+            this.changeToState(this.returnState!);
+            this.returnState!.handleKeyUpEvent(e);
         }
         return StageEventRes.DEFAULT
     }
-
+    stateEffect(preState: StageEventHandler): void {
+        super.stateEffect(preState);
+        this.returnState = preState
+    }
     constructor(context: StageApp, mode: EditMeshMode) {
         super(context);
         this.mode = mode;
@@ -41,8 +45,16 @@ class EditHandler extends SelectedEventHandler {
 
         if (e.code === "Backspace") {
             const select = this.mode.editMesh.selectedPoints;
+            const pList = this.mode.editMesh.listPoint;
+            const index = this.mode.editMesh.indexList;
             this.mode.editMesh.delePoints(select);
             this.mode.editMesh.upDate();
+            const undo = () => {
+                this.mode.editMesh.setPoint(pList, index);
+                this.mode.editMesh.removeAllSelected();
+                this.mode.editMesh.addSelected(select, []);
+            }
+            Project.instance.value!.unDoStack.pushUnDo(undo);
         }
         return StageEventRes.DRAG_STAGE
     }
@@ -97,12 +109,15 @@ class DragPointHandler extends StageEventHandler {
     protected mode: EditMeshMode
     protected dragItem: MeshPoint
     protected returnState?: StageEventHandler
+
+    protected firstPoint: xy
     constructor(context: StageApp, editMode: EditMeshMode, dragPoint: MeshPoint) {
         super(context);
         this.mode = editMode;
         this.dragItem = dragPoint;
         editMode.editMesh.removeAllSelected();
         editMode.editMesh.addSelectItem(dragPoint, undefined);
+        this.firstPoint = { x: dragPoint.x, y: dragPoint.y };
     }
 
     protected stateEffect(preState: StageEventHandler): void {
@@ -122,6 +137,15 @@ class DragPointHandler extends StageEventHandler {
 
     handleMouseUpEvent(_e: MouseEvent): StageEventRes {
         this.changeToState(this.returnState!);
+        const unDo = () => {
+            this.dragItem.setPosition(this.firstPoint.x, this.firstPoint.y);
+            const pointList = this.mode.editMesh.listPoint;
+            const delaunay = new Delaunay<MeshPoint>(pointList);
+            const data = delaunay.getTriangleData();
+            this.mode.editMesh.setPoint(data.vertices, data.triangles);
+            this.mode.editMesh.upDate();
+        }
+        Project.instance.value!.unDoStack.pushUnDo(unDo);
         return StageEventRes.DEFAULT;
     }
 }
@@ -193,6 +217,17 @@ class RectDragHandler extends StageEventHandler {
     }
     handleMouseUpEvent(_e: MouseEvent): StageEventRes {
         this.changeToState(this.returnState!);
+
+        const undo = () => {
+            RectInSelected.dragRectPoint(this.selectPoints, this.firstMovePoint.x - this.lastMove.x, this.firstMovePoint.y - this.lastMove.y, () => {
+                const delaunay = new Delaunay<MeshPoint>(this.mode.editMesh.listPoint);
+                const data = delaunay.getTriangleData();
+                this.mode.editMesh.setPoint(data.vertices, data.triangles);
+                this.mode.editMesh.upDate();
+            })
+        }
+
+        Project.instance.value!.unDoStack.pushUnDo(undo);
         return StageEventRes.DEFAULT;
     }
 
@@ -204,11 +239,20 @@ class PenAddHandler extends EditHandler {
         if (this.mode.editMesh.pointAtPosition(point.x, point.y) != undefined) {
             return super.handleClickEvent(e);
         }
+        const pList = this.mode.editMesh.listPoint;
+        const index = this.mode.editMesh.indexList;
+        const unDo = () => {
+            this.mode.editMesh.setPoint(pList, index);
+            this.mode.editMesh.removeAllSelected();
+        }
         this.mode.editMesh.removeAllSelected();
+
         const p = new MeshPoint(point.x, point.y, 1, 1)
         this.mode.editMesh.addPoint(p);
         this.mode.editMesh.addSelectItem(p, undefined)
         this.mode.editMesh.upDate();
+
+        Project.instance.value!.unDoStack.pushUnDo(unDo);
         return StageEventRes.CLICK
     }
 }

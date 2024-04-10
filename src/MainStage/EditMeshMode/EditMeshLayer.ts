@@ -13,6 +13,9 @@ class EditMeshLayer extends MeshLayer {
         this.clear()
         if (this.lineIndex == undefined)
             return
+        if (this.pointList.length == 0) {
+            return;
+        }
         for (const triIndex of this.lineIndex) {
             const p1 = this.pointList[triIndex[0]];
             const p2 = this.pointList[triIndex[1]];
@@ -70,6 +73,13 @@ class EditMeshLayer extends MeshLayer {
 
     addPoint(p: MeshPoint) {
         const delaunay = new Delaunay<MeshPoint>([...this.pointList, p]);
+        const ans = delaunay.getTriangleData();
+        this.pointList = ans.vertices;
+        this.lineIndex = ans.triangles;
+    }
+
+    addPoints(p: MeshPoint[]) {
+        const delaunay = new Delaunay<MeshPoint>([...this.pointList, ...p]);
         const ans = delaunay.getTriangleData();
         this.pointList = ans.vertices;
         this.lineIndex = ans.triangles;
