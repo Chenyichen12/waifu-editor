@@ -11,8 +11,8 @@ const stageDomRef = ref<HTMLDivElement | null>(null)
 const isPenClick = ref(false);
 const editMode = shallowRef<EditMeshMode | undefined>(undefined);
 
-const penReadyStyle = computed(()=>{
-    if(isPenClick.value && editMode.value != undefined){
+const penReadyStyle = computed(() => {
+    if (isPenClick.value && editMode.value != undefined) {
         return {
             backgroundColor: "var(--el-text-color-regular)"
         }
@@ -36,21 +36,22 @@ function handleKeyUp(e: KeyboardEvent) {
         instanceApp.value.eventHandler.handleKeyUpEvent(e);
 }
 
-function handleEditButtonClick(_e: MouseEvent){
-    if(instanceApp.value != null){
+function handleEditButtonClick(_e: MouseEvent) {
+    if (instanceApp.value != null) {
         editMode.value = instanceApp.value.createEditMode();
         editMode.value.enterEdit();
+        editMode.value.onLeaveEdit = () => { editMode.value = undefined }
     }
 }
 
-function handleLeaveButtonClick(_e: MouseEvent){
-    if(editMode.value != undefined){
+function handleLeaveButtonClick(_e: MouseEvent) {
+    if (editMode.value != undefined) {
         editMode.value.leaveEdit();
     }
 }
 
-function handlePenButtonClick(){
-    if(editMode.value!=undefined){
+function handlePenButtonClick() {
+    if (editMode.value != undefined) {
         isPenClick.value = !isPenClick.value;
         editMode.value.setPenSelect(isPenClick.value);
     }
@@ -60,11 +61,11 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class = "tool-box">
+    <div class="tool-box">
         <button @click="handleEditButtonClick">进入编辑</button>
         <button @click="handleLeaveButtonClick">退出编辑</button>
 
-        <button @click="handlePenButtonClick" v-bind:style = "penReadyStyle">
+        <button @click="handlePenButtonClick" v-bind:style="penReadyStyle">
             <img src="/src/assets/vector-pen.svg" />
         </button>
     </div>
@@ -74,11 +75,12 @@ onMounted(async () => {
 </template>
 
 <style lang='scss' scoped>
-.tool-box{
+.tool-box {
     height: 4%;
     width: 100%;
     display: flex;
 }
+
 .container {
     $padding-stage: 20px;
     padding: calc($padding-stage / 2);
@@ -91,6 +93,6 @@ onMounted(async () => {
 .stage {
     height: 100%;
     width: 100%;
-    
+
 }
 </style>

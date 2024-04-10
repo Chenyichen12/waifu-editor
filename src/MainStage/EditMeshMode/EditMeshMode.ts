@@ -19,7 +19,7 @@ class EditMeshMode {
     protected _targetLayer: StageLayer
     protected initShowLayer: StageLayer[]
 
-
+    private onLeave: () => void = () => { }
     protected _editMesh: EditMeshLayer
     protected _textureOperator: EditTextureLayer
     constructor(stage: StageApp, target: StageLayer) {
@@ -60,6 +60,7 @@ class EditMeshMode {
             this.stage.eventHandler.changeToState(new SelectedEventHandler(this.stage));
             this._editMesh.destroy();
             this._textureOperator.resetToOrigin();
+            this.onLeave();
         }
         Project.instance.value!.unDoStack.pushUnDo(undo);
     }
@@ -72,6 +73,7 @@ class EditMeshMode {
         this.stage.eventHandler = new SelectedEventHandler(this.stage);
         this.completeEdit();
         this._editMesh.destroy();
+        this.onLeave();
     }
 
     get targetLayer() { return this._targetLayer }
@@ -131,6 +133,12 @@ class EditMeshMode {
             const y = p.y - bound.top;
             p.setUV(x / bound.width, y / bound.height)
         }
+
+
+    }
+
+    set onLeaveEdit(callback: () => void) {
+        this.onLeave = callback;
     }
 }
 export default EditMeshMode;
