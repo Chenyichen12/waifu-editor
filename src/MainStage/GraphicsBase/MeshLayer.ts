@@ -283,6 +283,15 @@ class MeshLayer extends Graphics {
         })
         return res;
     }
+
+    resetGeo(points: MeshPoint[], lines: MeshLine[]) {
+        this.pointList = points;
+        this.lineList = lines;
+        this.selectPointList.clear();
+        this.selectLineList.clear();
+
+        this.upDate();
+    }
 }
 export default MeshLayer;
 
