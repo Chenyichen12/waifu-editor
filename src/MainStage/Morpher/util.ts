@@ -14,13 +14,13 @@ class vec {
 
     static sub(p1: xy, p2: xy) {
         return {
-            x: p1.x - p2.y,
-            y: p1.x - p2.y
+            x: p1.x - p2.x,
+            y: p1.y - p2.y
         }
     }
 }
 
-function uvCalculate(A: xy, B: xy, C: xy, D: xy, p: xy) {
+function quadUvCalculate(A: xy, B: xy, C: xy, D: xy, p: xy) {
     const H = vec.sub(p, A);
     const E = vec.sub(B, A);
     const F = vec.sub(D, A);
@@ -29,10 +29,17 @@ function uvCalculate(A: xy, B: xy, C: xy, D: xy, p: xy) {
     const k0 = H.x * E.y - H.y * E.x;
     const k1 = E.x * F.y - E.y * F.x + H.x * G.y - H.y * G.x;
     const k2 = G.x * F.y - G.y * F.x
-
+    const v = equation(k0, k1, k2);
+    const u = (H.x - F.x * v) / (E.x + G.x * v);
+    return {
+        u, v
+    }
 }
 
 function equation(k0: number, k1: number, k2: number) {
+    if (k2 == 0) {
+        return -k0 / k1;
+    }
     const inner = k1 * k1 - 4 * k0 * k2;
     const v1 = (-k1 - Math.sqrt(inner)) / (2 * k2)
     if (v1 < 1 && v1 > 0) {
@@ -49,4 +56,4 @@ function equation(k0: number, k1: number, k2: number) {
     throw Error("equation out of uv")
 }
 
-export { equation }
+export { quadUvCalculate }
