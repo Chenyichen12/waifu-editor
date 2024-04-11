@@ -2,16 +2,15 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-28 12:44:17
  */
-import {Geometry, Mesh, Shader} from "pixi.js";
-import {ImageAsset} from "../../components/Project/ProjectAssets";
-import {GenerateGlBuffer} from "../LayerBase/util";
+import { Geometry, Mesh, Shader } from "pixi.js";
+import { ImageAsset } from "../../components/Project/ProjectAssets";
+import { GenerateGlBuffer } from "../LayerBase/util";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import MeshLine from "../GraphicsBase/MeshLine";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
-import {xy, xyuv} from "../TwoDType";
-import {MergeExclusive} from "../twoSelectOne";
-
+import { xy, xyuv } from "../TwoDType";
+import { MergeExclusive } from "../twoSelectOne";
 /**
  * texture所需信息
  */
@@ -34,9 +33,7 @@ interface glInformation {
 
 class TextureLayer extends Mesh<Geometry, Shader> {
     protected _textureId: string
-    get textureId() {
-        return this._textureId
-    }
+    get textureId() { return this._textureId }
 
     constructor(option: TextureLayerOption) {
         let bufferInformation: {
@@ -72,7 +69,7 @@ class TextureLayer extends Mesh<Geometry, Shader> {
                 uTexture: option.texture.texture!.source
             }
         })
-        super({geometry: geometry, shader: shader})
+        super({ geometry: geometry, shader: shader })
 
         this._textureId = option.texture.assetId;
 
@@ -88,13 +85,12 @@ class TextureLayer extends Mesh<Geometry, Shader> {
         points.forEach((item) => {
             positionList.push(item.x, item.y);
         })
-        const {buffer} = this.geometry.getAttribute("aPosition");
+        const { buffer } = this.geometry.getAttribute("aPosition");
         buffer.data.forEach((_v, i) => {
             buffer.data[i] = positionList[i];
         });
         buffer.update();
     }
-
     upDateMesh(points: xyuv[], index: number[]) {
         const pList: number[] = [];
         const uvList: number[] = [];

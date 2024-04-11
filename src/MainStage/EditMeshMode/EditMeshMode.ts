@@ -2,13 +2,13 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-07 22:56:32
  */
-import {SelectedEventHandler} from "../EventHandler/StageEventHandler";
+import { SelectedEventHandler } from "../EventHandler/StageEventHandler";
 import MeshLine from "../GraphicsBase/MeshLine";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import StageLayer from "../LayerBase/StageLayer";
 import StageApp from "../StageApp";
-import EditHandler, {PenAddHandler} from "./EditMeshHandler";
+import EditHandler, { PenAddHandler } from "./EditMeshHandler";
 import EditMeshLayer from "./EditMeshLayer";
 import EditTextureLayer from "./EditTextureOpterator";
 import Project from "../../components/Project/Project";
@@ -19,11 +19,9 @@ class EditMeshMode {
     protected _targetLayer: StageLayer
     protected initShowLayer: StageLayer[]
 
-    private onLeave: () => void = () => {
-    }
+    private onLeave: () => void = () => { }
     protected _editMesh: EditMeshLayer
     protected _textureOperator: EditTextureLayer
-
     constructor(stage: StageApp, target: StageLayer) {
         this.stage = stage;
         this._targetLayer = target;
@@ -78,13 +76,8 @@ class EditMeshMode {
         this.onLeave();
     }
 
-    get targetLayer() {
-        return this._targetLayer
-    }
-
-    get editMesh() {
-        return this._editMesh
-    }
+    get targetLayer() { return this._targetLayer }
+    get editMesh() { return this._editMesh }
 
     setPenSelect(select: boolean) {
         if (select) {
@@ -148,5 +141,4 @@ class EditMeshMode {
         this.onLeave = callback;
     }
 }
-
 export default EditMeshMode;

@@ -2,14 +2,13 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-08 08:08:39
  */
-import MeshLayer, {MeshOption} from "../GraphicsBase/MeshLayer";
+import MeshLayer, { MeshOption } from "../GraphicsBase/MeshLayer";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import Delaunay from "./delaunay";
 
 class EditMeshLayer extends MeshLayer {
     private lineIndex: number[][] = [];
-
     upDate(): void {
         this.clear()
         if (this.lineIndex == undefined)
@@ -59,12 +58,10 @@ class EditMeshLayer extends MeshLayer {
             RectInSelected.upDate([...this.selectPointList], this);
         }
     }
-
     setPoint(pList: MeshPoint[], index: number[][]) {
         this.pointList = pList;
         this.lineIndex = index;
     }
-
     constructor(option: MeshOption, lineIndex: number[][]) {
         super(option)
         for (const point of this.pointList) {
@@ -95,7 +92,6 @@ class EditMeshLayer extends MeshLayer {
         this.pointList = ans.vertices;
         this.lineIndex = ans.triangles;
     }
-
     delePoints(ps: MeshPoint[]) {
         for (const point of ps) {
             this.selectPointList.delete(point);
@@ -108,9 +104,7 @@ class EditMeshLayer extends MeshLayer {
         this.lineIndex = ans.triangles;
     }
 
-    get indexList() {
-        return this.lineIndex
-    }
+    get indexList() { return this.lineIndex }
 }
 
 export default EditMeshLayer

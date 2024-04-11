@@ -2,8 +2,8 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-28 12:42:02
  */
-import {instanceApp} from "../StageApp";
-import {xy} from "../TwoDType";
+import { instanceApp } from "../StageApp";
+import { xy } from "../TwoDType";
 import MeshLayer from "./MeshLayer";
 import MeshLine from "./MeshLine";
 import MeshPoint from "./MeshPoint";
@@ -15,7 +15,7 @@ class RectInSelected {
 
     /**绘制多选框 */
     static upDate(points: xy[], canvas: MeshLayer) {
-        const {left, top, right, button} = this.getBound(points);
+        const { left, top, right, button } = this.getBound(points);
         const padding = 10 / (instanceApp.value?.appScale.value ?? 1);
         canvas.rect(left - padding, top - padding, right - left + 2 * padding, button - top + 2 * padding)
             .stroke({
@@ -40,7 +40,7 @@ class RectInSelected {
         const right = Math.max(...xList);
         const top = Math.min(...yList);
         const button = Math.max(...yList);
-        return {left, top, right, button};
+        return { left, top, right, button };
     }
 
     static ifHitRect(points: xy[], hitPoint: xy) {

@@ -8,11 +8,10 @@ import MeshLine from "../GraphicsBase/MeshLine";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 
 /**
- * 判断点是否在三角形内的函数
- */
+* 判断点是否在三角形内的函数
+*/
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
-
 /**
  * 向量操作
  */
@@ -21,7 +20,6 @@ class vec {
     static dot(v1: xy, v2: xy) {
         return v1.x * v2.x + v1.y * v2.y;
     }
-
     /**减法 */
     static sub(v1: xy, v2: xy) {
         return {
@@ -29,13 +27,11 @@ class vec {
             y: v1.y - v2.y
         }
     }
-
     /**叉乘 */
     static cross(v1: xy, v2: xy) {
         return v1.x * v2.y - v1.y * v2.x;
     }
 }
-
 class ContainesPoint {
     /**判断点是否在三角形内 */
     static contains(p1: xy, p2: xy, p3: xy, p: xy): boolean {
@@ -74,13 +70,11 @@ class ContainesPoint {
         }
     }
 }
-
 /**三角形类 */
 class tranigle {
     line1: MeshLine
     line2: MeshLine
     line3: MeshLine
-
     constructor(l1: MeshLine, l2: MeshLine, l3: MeshLine) {
         this.line1 = l1;
         this.line2 = l2;
@@ -167,11 +161,9 @@ class GenerateGlBuffer {
             indexBuffer
         }
     }
-
     /**根据MeshLayer生成glbuffer */
     static generateFromLayer(mesh: MeshLayer) {
         return this.generate(mesh.listPoint, mesh.listLine);
     }
 }
-
-export {ContainesPoint, GenerateGlBuffer}
+export { ContainesPoint, GenerateGlBuffer }

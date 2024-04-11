@@ -3,13 +3,13 @@
  * @Date: 2024-03-30 11:34:21
  * PIXIApp类
  */
-import {Application, Graphics} from "pixi.js";
+import { Application, Graphics } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
-import {ref, shallowRef} from "vue";
+import { ref, shallowRef } from "vue";
 import Project from "../components/Project/Project";
-import {Group, LayerType, NormalLayer, Root} from "../components/Project/LayerStruct";
+import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
 import StageLayerContainer from "./LayerBase/StageLayerContainer";
-import StageEventHandler, {SelectedEventHandler} from "./EventHandler/StageEventHandler";
+import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 import EditMeshMode from "./EditMeshMode/EditMeshMode";
 
 
@@ -19,10 +19,7 @@ const instanceApp = shallowRef<StageApp | null>(null)
 class StageApp extends Application {
     /**App承载的Dom元素 */
     protected stageDom
-
-    get containerDom() {
-        return this.stageDom
-    }
+    get containerDom() { return this.stageDom }
 
     /**Stage的缩放 */
     appScale = ref(1)
@@ -84,20 +81,19 @@ class StageApp extends Application {
 
     /**
      * 添加StageLayer并指定zIndex，注意mesh层在最上面
-     * @param project
+     * @param project 
      */
     protected addSprite(project: Project) {
         const proRoot = project.root
         const layers: StageLayer[] = []
         addLayer(proRoot);
         this.layerContainer = new StageLayerContainer(layers);
-        const {mesh, texture} = this.layerContainer.getMeshAndTexture();
+        const { mesh, texture } = this.layerContainer.getMeshAndTexture();
         this.stage.addChild(texture);
         this.stage.addChild(mesh);
-
         /**
          * 递归添加到childLayer
-         * @param group
+         * @param group 
          */
         function addLayer(group: Root | Group) {
             for (const child of group.children.value) {
@@ -105,7 +101,7 @@ class StageApp extends Application {
                     const normal = child as NormalLayer;
                     const item = Project.instance.value!.assetList.get(normal.assetId);
                     if (item == null) continue;
-                    const gra = new StageLayer({texture: item, isShow: child.isVisible, layerId: normal.layerId});
+                    const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
                     layers.push(gra);
                 } else {
                     const gro = child as Group;
@@ -116,9 +112,10 @@ class StageApp extends Application {
     }
 
 
+
     /**
      * 添加背景
-     * @param rect 长宽
+     * @param rect 长宽 
      */
     protected addBg(rect: { width: number, height: number }) {
         const bg = new Graphics();
@@ -126,10 +123,9 @@ class StageApp extends Application {
         bg.fill(0xECECEC)
         this.stage.addChild(bg)
     }
-
     /**
-     * 计算scale，以适应视图大小和位置
-     */
+    * 计算scale，以适应视图大小和位置
+    */
     protected calculateScale(project: Project) {
         const projectRect = project.root.bound
         const scaleX = this.screen.width / projectRect.width;
@@ -151,4 +147,4 @@ class StageApp extends Application {
 }
 
 export default StageApp
-export {instanceApp}
+export { instanceApp }

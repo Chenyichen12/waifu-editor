@@ -11,7 +11,7 @@ import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
 import RectInSelected from "../GraphicsBase/RectInSelected"
 import StageLayer from "../LayerBase/StageLayer"
-import {rect, xy} from "../TwoDType"
+import { rect, xy } from "../TwoDType"
 
 interface LayerEventOption {
     point: xy, // layer的局部坐标，和Stage的坐标不同 可以用StageLayer的transformFormStage转换
@@ -40,25 +40,12 @@ enum result {
  * 仅在selected的时候才会派发这一类的事件
  */
 abstract class LayerEventState {
-    handleMouseDownEvent(_option: LayerEventOption): result {
-        return result.DEFAULT
-    }
+    handleMouseDownEvent(_option: LayerEventOption): result { return result.DEFAULT }
+    handleMouseMoveEvent(_option: LayerEventOption): result { return result.DEFAULT }
+    handleMouseUpEvent(_option: LayerEventOption): result { return result.DEFAULT }
 
-    handleMouseMoveEvent(_option: LayerEventOption): result {
-        return result.DEFAULT
-    }
-
-    handleMouseUpEvent(_option: LayerEventOption): result {
-        return result.DEFAULT
-    }
-
-    handleLongPressEvent(_option: LayerEventOption): result {
-        return result.DEFAULT
-    }
-
-    handleMouseClickEvent(_option: LayerEventOption): result {
-        return result.DEFAULT
-    }
+    handleLongPressEvent(_option: LayerEventOption): result { return result.DEFAULT }
+    handleMouseClickEvent(_option: LayerEventOption): result { return result.DEFAULT }
 
     handleRectSelect(option: LayerEventOption, rec: rect) {
         const ps: MeshPoint[] = [];
@@ -82,7 +69,6 @@ abstract class LayerEventState {
     }
 
     context: StageLayer
-
     constructor(context: StageLayer) {
         this.context = context;
     }
@@ -129,11 +115,9 @@ class SelectState extends LayerEventState {
     }
 
 }
-
 class DragItemState extends LayerEventState {
     moveItem
     protected firstPoint: xy
-
     handleMouseMoveEvent(option: LayerEventOption): result {
         this.moveItem.setPosition(option.point.x, option.point.y);
         this.context.upDatePoint();
@@ -149,7 +133,6 @@ class DragItemState extends LayerEventState {
         this.context.mouseState = new SelectState(this.context);
         return result.TRANSFORM_SELECT
     }
-
     constructor(moveItem: MeshPoint, context: StageLayer) {
         super(context);
         this.firstPoint = moveItem.xy;
@@ -165,7 +148,6 @@ class DragRectState extends LayerEventState {
     protected firstMovePoint: xy
 
     protected select: MeshPoint[];
-
     handleMouseMoveEvent(option: LayerEventOption): result {
         RectInSelected.dragRectPoint(this.select, option.point.x - this.lastMove.x, option.point.y - this.lastMove.y, (_p) => {
             this.context.upDatePoint();
@@ -199,4 +181,4 @@ class DragRectState extends LayerEventState {
 
 export default LayerEventState
 
-export {SelectState, DragItemState, result}
+export { SelectState, DragItemState, result }

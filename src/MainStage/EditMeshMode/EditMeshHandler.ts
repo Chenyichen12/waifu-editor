@@ -4,16 +4,11 @@
  */
 
 import Project from "../../components/Project/Project";
-import StageEventHandler, {
-    DragStageEventHandler,
-    RectSelectEventHandler,
-    SelectedEventHandler,
-    StageEventRes
-} from "../EventHandler/StageEventHandler";
+import StageEventHandler, { DragStageEventHandler, RectSelectEventHandler, SelectedEventHandler, StageEventRes } from "../EventHandler/StageEventHandler";
 import MeshPoint from "../GraphicsBase/MeshPoint";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import StageApp from "../StageApp";
-import {xy} from "../TwoDType";
+import { xy } from "../TwoDType";
 import EditMeshMode from "./EditMeshMode";
 import Delaunay from "./delaunay";
 
@@ -21,7 +16,6 @@ import Delaunay from "./delaunay";
 class StageMoveHandler extends DragStageEventHandler {
     protected mode: EditMeshMode
     protected returnState?: StageEventHandler
-
     handleKeyUpEvent(e: KeyboardEvent): StageEventRes {
         if (e.code === "Space") {
             this.changeToState(this.returnState!);
@@ -29,12 +23,10 @@ class StageMoveHandler extends DragStageEventHandler {
         }
         return StageEventRes.DEFAULT
     }
-
     stateEffect(preState: StageEventHandler): void {
         super.stateEffect(preState);
         this.returnState = preState
     }
-
     constructor(context: StageApp, mode: EditMeshMode) {
         super(context);
         this.mode = mode;
@@ -66,7 +58,6 @@ class EditHandler extends SelectedEventHandler {
         }
         return StageEventRes.DRAG_STAGE
     }
-
     handleClickEvent(e: MouseEvent): StageEventRes {
         const targetLayer = this.mode.targetLayer;
         const point = targetLayer.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
@@ -96,7 +87,6 @@ class EditHandler extends SelectedEventHandler {
         this.changeToState(new RectSelect(this.toStagePos(e.offsetX, e.offsetY), this.context, this.mode));
         return StageEventRes.DEFAULT
     }
-
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
         const point = this.mode.targetLayer.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
         let hitRect = false
@@ -121,14 +111,13 @@ class DragPointHandler extends StageEventHandler {
     protected returnState?: StageEventHandler
 
     protected firstPoint: xy
-
     constructor(context: StageApp, editMode: EditMeshMode, dragPoint: MeshPoint) {
         super(context);
         this.mode = editMode;
         this.dragItem = dragPoint;
         editMode.editMesh.removeAllSelected();
         editMode.editMesh.addSelectItem(dragPoint, undefined);
-        this.firstPoint = {x: dragPoint.x, y: dragPoint.y};
+        this.firstPoint = { x: dragPoint.x, y: dragPoint.y };
     }
 
     protected stateEffect(preState: StageEventHandler): void {
@@ -164,7 +153,6 @@ class DragPointHandler extends StageEventHandler {
 class RectSelect extends RectSelectEventHandler {
     protected mode: EditMeshMode
     protected returnState?: StageEventHandler
-
     constructor(firstPoint: xy, context: StageApp, mode: EditMeshMode) {
         super(firstPoint, context);
         this.mode = mode;
@@ -174,14 +162,13 @@ class RectSelect extends RectSelectEventHandler {
         super.stateEffect(preState);
         this.returnState = preState
     }
-
     handleMouseUpEvent(e: MouseEvent): StageEventRes {
-        const {x, y, width, height} = this.getRect();
-        const p1 = this.mode.targetLayer.transformFormStage({x, y});
-        const p2 = this.mode.targetLayer.transformFormStage({x: x + width, y});
-        const p3 = this.mode.targetLayer.transformFormStage({x: x + width, y: y + height})
-        const p4 = this.mode.targetLayer.transformFormStage({x, y: y + height});
-        const rect = {p1, p2, p3, p4};
+        const { x, y, width, height } = this.getRect();
+        const p1 = this.mode.targetLayer.transformFormStage({ x, y });
+        const p2 = this.mode.targetLayer.transformFormStage({ x: x + width, y });
+        const p3 = this.mode.targetLayer.transformFormStage({ x: x + width, y: y + height })
+        const p4 = this.mode.targetLayer.transformFormStage({ x, y: y + height });
+        const rect = { p1, p2, p3, p4 };
         const ps: MeshPoint[] = [];
         for (const point of this.mode.editMesh.listPoint) {
             if (point.containInRect(rect)) {
@@ -206,7 +193,6 @@ class RectDragHandler extends StageEventHandler {
 
     protected returnState?: StageEventHandler
     selectPoints
-
     constructor(context: StageApp, mode: EditMeshMode, selectPoints: MeshPoint[], firMove: xy) {
         super(context);
         this.mode = mode;
@@ -214,11 +200,9 @@ class RectDragHandler extends StageEventHandler {
         this.firstMovePoint = firMove;
         this.lastMove = firMove;
     }
-
     protected stateEffect(preState: StageEventHandler): void {
         this.returnState = preState;
     }
-
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
 
         const point = this.mode.targetLayer.transformFormStage(this.toStagePos(e.offsetX, e.offsetY));
@@ -231,7 +215,6 @@ class RectDragHandler extends StageEventHandler {
         this.lastMove = point;
         return StageEventRes.DEFAULT;
     }
-
     handleMouseUpEvent(_e: MouseEvent): StageEventRes {
         this.changeToState(this.returnState!);
 
@@ -273,7 +256,6 @@ class PenAddHandler extends EditHandler {
         return StageEventRes.CLICK
     }
 }
-
 export default EditHandler;
 
-export {PenAddHandler}
+export { PenAddHandler }

@@ -29,5 +29,4 @@ interface rect<T extends xy = xy> {
     p3: T,
     p4: T
 }
-
-export type {xy, xyuv, line, rect, pointTriangle}
+export type { xy, xyuv, line, rect, pointTriangle }

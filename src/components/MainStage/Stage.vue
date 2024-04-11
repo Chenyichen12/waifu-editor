@@ -3,11 +3,10 @@
  * @Date: 2024-03-30 11:34:21
 -->
 <script lang="ts" setup>
-import {computed, onMounted, ref, shallowRef, watch} from "vue";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
-import StageApp, {instanceApp} from '../../MainStage/StageApp'
+import StageApp, { instanceApp } from '../../MainStage/StageApp'
 import EditMeshMode from "../../MainStage/EditMeshMode/EditMeshMode";
-
 const stageDomRef = ref<HTMLDivElement | null>(null)
 const isPenClick = ref(false);
 const editMode = shallowRef<EditMeshMode | undefined>(undefined);
@@ -32,7 +31,6 @@ function handleKeyDown(e: KeyboardEvent) {
     if (instanceApp.value != null)
         instanceApp.value.eventHandler.handleKeyDownEvent(e);
 }
-
 function handleKeyUp(e: KeyboardEvent) {
     if (instanceApp.value != null)
         instanceApp.value.eventHandler.handleKeyUpEvent(e);
@@ -42,9 +40,7 @@ function handleEditButtonClick(_e: MouseEvent) {
     if (instanceApp.value != null) {
         editMode.value = instanceApp.value.createEditMode();
         editMode.value.enterEdit();
-        editMode.value.onLeaveEdit = () => {
-            editMode.value = undefined
-        }
+        editMode.value.onLeaveEdit = () => { editMode.value = undefined }
     }
 }
 
@@ -60,7 +56,6 @@ function handlePenButtonClick() {
         editMode.value.setPenSelect(isPenClick.value);
     }
 }
-
 onMounted(async () => {
 })
 </script>
@@ -71,7 +66,7 @@ onMounted(async () => {
         <button @click="handleLeaveButtonClick">退出编辑</button>
 
         <button @click="handlePenButtonClick" v-bind:style="penReadyStyle">
-            <img src="/src/assets/vector-pen.svg"/>
+            <img src="/src/assets/vector-pen.svg" />
         </button>
     </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">

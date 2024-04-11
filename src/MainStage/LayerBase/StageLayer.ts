@@ -2,20 +2,19 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-30 11:34:21
  */
-import {Container, DestroyOptions} from "pixi.js";
-import {Ref, watch} from "vue";
+import { Container, DestroyOptions } from "pixi.js";
+import { Ref, watch } from "vue";
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import TextureLayer from "../TextureBase/TextureLayer";
-import {ImageAsset} from "../../components/Project/ProjectAssets";
-import {ContainesPoint} from "./util";
+import { ImageAsset } from "../../components/Project/ProjectAssets";
+import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
-import LayerEventState, {SelectState} from "../EventHandler/LayerEventHandler";
+import LayerEventState, { SelectState } from "../EventHandler/LayerEventHandler";
 import RectInSelected from "../GraphicsBase/RectInSelected";
-import {instanceApp} from "../StageApp";
+import { instanceApp } from "../StageApp";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
-
 /**
  * StageLayer构造参数
  */
@@ -24,7 +23,6 @@ interface StageLayerOption {
     texture: ImageAsset, //图像资产
     layerId: string //Project对应的LayerId
 }
-
 class StageLayer extends Container {
     readonly layerId: string //Project对应的LayerId
     protected unWatchShow
@@ -38,16 +36,10 @@ class StageLayer extends Container {
 
     /**layer下面的mesh展示图层 */
     protected faceMesh: MeshLayer
-
-    get mesh() {
-        return this.faceMesh
-    }
-
+    get mesh() { return this.faceMesh }
     /**底部展示图片的图层 */
     protected _textureLayer: TextureLayer
-    get textureLayer() {
-        return this._textureLayer
-    }
+    get textureLayer() { return this._textureLayer }
 
     /**是否选中，如果不可见直接返回 */
     set selected(isSelected: boolean) {
@@ -60,10 +52,7 @@ class StageLayer extends Container {
             this.faceMesh.removeAllSelected();
         }
     }
-
-    get selected() {
-        return this._selected
-    }
+    get selected() { return this._selected }
 
     /**设置是否可见 */
     set show(isShow: boolean) {
@@ -76,19 +65,13 @@ class StageLayer extends Container {
             this.selected = false;
         }
     }
-
     get show() {
         return this._show;
     }
 
     /**返回mesh层的所有点和线 */
-    getPointList() {
-        return this.faceMesh.listPoint;
-    }
-
-    getLineList() {
-        return this.faceMesh.listLine;
-    }
+    getPointList() { return this.faceMesh.listPoint; }
+    getLineList() { return this.faceMesh.listLine; }
 
     /**展示预览的mesh */
     showTempMesh(isShow: boolean) {
@@ -120,7 +103,7 @@ class StageLayer extends Container {
 
     /**
      * 返回layer的局部坐标
-     * @param stagePoint stage坐标
+     * @param stagePoint stage坐标 
      * @returns 局部坐标
      */
     transformFormStage(stagePoint: xy) {
@@ -131,8 +114,8 @@ class StageLayer extends Container {
     }
 
     /**
-     *
-     * @param point 局部坐标
+     * 
+     * @param point 局部坐标 
      * @returns 当局部坐标点在该mesh的一个三角形内时 返回三角形的三个点，反之返回undefined
      */
     pointInTri(point: xy): { p1: xyuv, p2: xyuv, p3: xyuv } | undefined {
@@ -142,14 +125,14 @@ class StageLayer extends Container {
             const p2 = this.getPointList()[indexBuffer[i + 1]];
             const p3 = this.getPointList()[indexBuffer[i + 2]];
             if (ContainesPoint.contains(p1, p2, p3, point)) {
-                return {p1, p2, p3};
+                return { p1, p2, p3 };
             }
         }
         return undefined;
     }
 
     /**
-     *
+     * 
      * @param point 局部坐标点
      * @returns 当局部坐标点命中了非透明像素的时候返回true，其余返回false
      */
@@ -191,7 +174,7 @@ class StageLayer extends Container {
 
     /**
      * 销毁监听器
-     * @param options
+     * @param options 
      */
     destroy(options?: DestroyOptions | undefined): void {
         this.unWatchShow();
@@ -209,5 +192,4 @@ class StageLayer extends Container {
     }
 
 }
-
 export default StageLayer
