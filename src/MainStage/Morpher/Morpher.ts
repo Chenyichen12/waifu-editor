@@ -22,7 +22,11 @@ abstract class Morpher extends Graphics {
         this.morpherId = option.morpherId ?? uuid();
     }
 
-    upDate(): void { };
+    shallowUpDate(): void { };
+    deepUpDate(): void { }
+
+    abstract pointAtPosition(x: number, y: number): number | undefined
+    abstract ifHitMorpher(x: number, y: number): boolean
 }
 
 export default Morpher;
