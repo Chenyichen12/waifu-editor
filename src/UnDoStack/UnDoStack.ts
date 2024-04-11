@@ -6,6 +6,7 @@ type undoFunction = () => void;
 
 class UnDoStack {
     protected stack: undoFunction[]
+
     constructor() {
         this.stack = [];
     }

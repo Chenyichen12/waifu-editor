@@ -2,13 +2,14 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-28 22:33:05
  */
-import { DestroyOptions, Graphics } from "pixi.js";
-import { ref, watch } from "vue";
-import { instanceApp } from "../StageApp";
+import {DestroyOptions, Graphics} from "pixi.js";
+import {ref, watch} from "vue";
+import {instanceApp} from "../StageApp";
 import MeshPoint from "./MeshPoint";
 import MeshLine from "./MeshLine";
 import RectInSelected from "./RectInSelected";
-import { MergeExclusive } from "../twoSelectOne";
+import {MergeExclusive} from "../twoSelectOne";
+
 /** MeshLayer的构造信息*/
 type MeshOption = MergeExclusive<meshGeo, initRect>
 type meshGeo = {
@@ -22,6 +23,7 @@ type initRect = {
     width: number,
     height: number
 }
+
 /**
  * 用于展示网格，管理控制点的类
  */
@@ -32,21 +34,35 @@ class MeshLayer extends Graphics {
 
     /**所有控制点 */
     protected pointList: MeshPoint[] = [];
-    get listPoint() { return this.pointList }
+
+    get listPoint() {
+        return this.pointList
+    }
+
     /**所有线 */
     protected lineList: MeshLine[] = [];
-    get listLine() { return this.lineList }
+
+    get listLine() {
+        return this.lineList
+    }
 
     /**所有的选中的点 */
     protected selectPointList = new Set<MeshPoint>();
-    get selectedPoints() { return [...this.selectPointList] }
+
+    get selectedPoints() {
+        return [...this.selectPointList]
+    }
+
     /**所有的选中的线 */
     protected selectLineList = new Set<MeshLine>();
-    get selectedLines() { return [...this.selectLineList] }
+
+    get selectedLines() {
+        return [...this.selectLineList]
+    }
 
     /**
      * 添加选中的点和线
-     * @param p 选中点 
+     * @param p 选中点
      * @param l 选中线
      */
     addSelected(p: MeshPoint[], l: MeshLine[]) {
@@ -81,8 +97,8 @@ class MeshLayer extends Graphics {
 
     /**
      * 移除选中的点
-     * @param p 
-     * @param l 
+     * @param p
+     * @param l
      */
     removeSelected(p: MeshPoint[], l: MeshLine[]) {
         p.forEach((v) => {
@@ -153,7 +169,7 @@ class MeshLayer extends Graphics {
 
     /**
      * 销毁 移除监听器
-     * @param options 
+     * @param options
      */
     destroy(options?: DestroyOptions | undefined): void {
         this.unwatchScale();
@@ -184,15 +200,16 @@ class MeshLayer extends Graphics {
     /**
      * 判断点是否被选中
      * @param point 测试点
-     * @returns 
+     * @returns
      */
     pointIsSelected(point: MeshPoint): boolean {
         return this.selectPointList.has(point);
     }
+
     /**
      * 判断线是否被选中
      * @param line 测试线
-     * @returns 
+     * @returns
      */
     lineIsSelected(line: MeshLine): boolean {
         return this.selectLineList.has(line);
@@ -267,8 +284,9 @@ class MeshLayer extends Graphics {
             return newP;
         }
     }
+
     deepClone() {
-        const { pointList, lineList } = this.deepClonePointAndLine();
+        const {pointList, lineList} = this.deepClonePointAndLine();
         return new MeshLayer({
             points: pointList,
             lines: lineList
@@ -293,6 +311,7 @@ class MeshLayer extends Graphics {
         this.upDate();
     }
 }
+
 export default MeshLayer;
 
-export type { MeshOption }
+export type {MeshOption}

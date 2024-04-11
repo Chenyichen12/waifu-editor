@@ -5,8 +5,8 @@
 type isNever<T> = [T] extends [never] ? true : false;
 
 type UnionToIntersection<T> = (T extends any ? (x: T) => void : never) extends (
-    x: infer R
-) => void
+        x: infer R
+    ) => void
     ? R
     : never;
 
@@ -44,12 +44,11 @@ type RequireAllOne<T> = RequireTupleOne<T, UnionToTuple<keyof T>>
 // const value2: RequireAllOne<V> = {}
 
 
-
 type Without<FirstType, SecondType> = { [KeyType in Exclude<keyof FirstType, keyof SecondType>]?: never };
 
 type MergeExclusive<FirstType, SecondType> =
     (FirstType | SecondType) extends object ?
-    (Without<FirstType, SecondType> & SecondType) | (Without<SecondType, FirstType> & FirstType) :
-    FirstType | SecondType;
+        (Without<FirstType, SecondType> & SecondType) | (Without<SecondType, FirstType> & FirstType) :
+        FirstType | SecondType;
 
-export type { MergeExclusive, RequireAllOne }
+export type {MergeExclusive, RequireAllOne}

@@ -3,11 +3,11 @@
  * @Date: 2024-04-04 12:44:56
  */
 
-import { Graphics, Matrix } from "pixi.js"
+import {Graphics, Matrix} from "pixi.js"
 import StageApp from "../StageApp"
 import StageLayer from "../LayerBase/StageLayer"
-import { result } from "./LayerEventHandler"
-import { xy } from "../TwoDType"
+import {result} from "./LayerEventHandler"
+import {xy} from "../TwoDType"
 import RectInSelected from "../GraphicsBase/RectInSelected"
 
 enum StageEventRes {
@@ -19,12 +19,15 @@ enum StageEventRes {
 
     SELECT_RECT_MOVE
 }
+
 abstract class StageEventHandler {
 
     protected clickTimeOut?: number
+
     handleClickEvent(_e: MouseEvent): StageEventRes {
         return StageEventRes.DEFAULT
     }
+
     handleMouseDownEvent(e: MouseEvent): StageEventRes {
         this.clickTimeOut = setTimeout(() => {
             this.handleLongPressEvent(e)
@@ -32,11 +35,15 @@ abstract class StageEventHandler {
         }, 100)
         return StageEventRes.DEFAULT
     }
+
     handleLongPressEvent(_e: MouseEvent): StageEventRes {
         return StageEventRes.DEFAULT
     }
 
-    handleMouseMoveEvent(_e: MouseEvent): StageEventRes { return StageEventRes.DEFAULT }
+    handleMouseMoveEvent(_e: MouseEvent): StageEventRes {
+        return StageEventRes.DEFAULT
+    }
+
     handleMouseUpEvent(e: MouseEvent): StageEventRes {
         if (this.clickTimeOut != undefined) {
             clearTimeout(this.clickTimeOut);
@@ -46,11 +53,17 @@ abstract class StageEventHandler {
         return StageEventRes.DEFAULT
     }
 
-    handleKeyDownEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
-    handleKeyUpEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
+    handleKeyDownEvent(_e: KeyboardEvent): StageEventRes {
+        return StageEventRes.DEFAULT
+    }
+
+    handleKeyUpEvent(_e: KeyboardEvent): StageEventRes {
+        return StageEventRes.DEFAULT
+    }
+
     handleWheelEvent(e: WheelEvent): StageEventRes {
         const stage = this.context.stage;
-        const stagePos = stage.toLocal({ x: e.offsetX, y: e.offsetY });
+        const stagePos = stage.toLocal({x: e.offsetX, y: e.offsetY});
         const oldZoom = stage.scale.x
         const scale = e.deltaY > 0 ? oldZoom * 0.95 : oldZoom * 1.05;
         const oldDx = stagePos.x * oldZoom - stagePos.x * scale;
@@ -70,22 +83,26 @@ abstract class StageEventHandler {
     constructor(context: StageApp) {
         this.context = context;
     }
+
     /**
      * 切换到对应的状态
-     * @param state 切换状态目标 
+     * @param state 切换状态目标
      */
     changeToState(state: StageEventHandler) {
         this.context.eventHandler = state;
         state.stateEffect(this);
     }
+
     /**
      * 切换状态的目标副作用，在其他的状态进入该状态的时候自动触发该方法
      * @param _preState 先前的状态
      */
-    protected stateEffect(_preState: StageEventHandler) { return }
+    protected stateEffect(_preState: StageEventHandler) {
+        return
+    }
 
     toStagePos(x: number, y: number) {
-        return this.context.stage.toLocal({ x, y });
+        return this.context.stage.toLocal({x, y});
     }
 }
 
@@ -97,6 +114,7 @@ class SelectedEventHandler extends StageEventHandler {
         }
         return super.handleKeyDownEvent(e);
     }
+
     handleLongPressEvent(e: MouseEvent): StageEventRes {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
         for (const selectedLayer of this.context.layerContainer.selectedLayer) {
@@ -171,10 +189,12 @@ class SelectedEventHandler extends StageEventHandler {
         return StageEventRes.DEFAULT;
 
     }
+
     handleMouseUpEvent(e: MouseEvent): StageEventRes {
         if (super.handleMouseUpEvent(e) == StageEventRes.CLICK) {
             return StageEventRes.CLICK
-        };
+        }
+        ;
         const stagePos = this.toStagePos(e.offsetX, e.offsetY)
         for (const child of this.context.layerContainer.selectedLayer) {
             const p = child.transformFormStage(stagePos);
@@ -193,6 +213,7 @@ class RectSelectEventHandler extends StageEventHandler {
 
     firstPoint: xy
     movePoint: xy
+
     constructor(firstPoint: xy, context: StageApp) {
         super(context);
         this.selectRect = new Graphics();
@@ -201,6 +222,7 @@ class RectSelectEventHandler extends StageEventHandler {
         this.firstPoint = firstPoint;
         this.movePoint = firstPoint;
     }
+
     handleMouseDownEvent(_e: MouseEvent): StageEventRes {
         return StageEventRes.DEFAULT;
     }
@@ -215,12 +237,12 @@ class RectSelectEventHandler extends StageEventHandler {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY)
         for (const child of this.context.layerContainer.selectedLayer) {
             const point = child.transformFormStage(stagePos);
-            const { x, y, width, height } = this.getRect();
-            const p1 = child.transformFormStage({ x, y });
-            const p2 = child.transformFormStage({ x: x + width, y });
-            const p3 = child.transformFormStage({ x: x + width, y: y + height })
-            const p4 = child.transformFormStage({ x, y: y + height });
-            const rec = { p1, p2, p3, p4 }
+            const {x, y, width, height} = this.getRect();
+            const p1 = child.transformFormStage({x, y});
+            const p2 = child.transformFormStage({x: x + width, y});
+            const p3 = child.transformFormStage({x: x + width, y: y + height})
+            const p4 = child.transformFormStage({x, y: y + height});
+            const rec = {p1, p2, p3, p4}
             const ifAdd = child.mouseState.handleRectSelect({
                 point, mouseEvent: e
             }, rec);
@@ -256,7 +278,7 @@ class RectSelectEventHandler extends StageEventHandler {
 
     upDate() {
         this.selectRect.clear();
-        const { x, y, width, height } = this.getRect();
+        const {x, y, width, height} = this.getRect();
         this.selectRect.rect(x, y, width, height).fill({
             alpha: 0.3,
             color: 0xc0c0c0
@@ -265,6 +287,7 @@ class RectSelectEventHandler extends StageEventHandler {
             width: 2 / this.context.appScale.value
         });
     }
+
     protected getRect() {
         const x = this.firstPoint.x < this.movePoint.x ? this.firstPoint.x : this.movePoint.x;
         const y = this.firstPoint.y < this.movePoint.y ? this.firstPoint.y : this.movePoint.y;
@@ -280,8 +303,10 @@ class RectSelectEventHandler extends StageEventHandler {
         super.changeToState(state);
     }
 }
+
 class DragStageEventHandler extends StageEventHandler {
     isMousePress: boolean = false
+
     /**当空格被提起的时候退出拖动模式 */
     handleKeyUpEvent(e: KeyboardEvent): StageEventRes {
         if (e.code === "Space") {
@@ -291,6 +316,7 @@ class DragStageEventHandler extends StageEventHandler {
         }
         return StageEventRes.DEFAULT
     }
+
     /**
      * 当鼠标按下的时候说明要开始拖动了
      */
@@ -303,6 +329,7 @@ class DragStageEventHandler extends StageEventHandler {
         this.isMousePress = false;
         return StageEventRes.DEFAULT
     }
+
     /**拖动Stage */
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
         if (!this.isMousePress) return StageEventRes.DEFAULT;
@@ -310,10 +337,12 @@ class DragStageEventHandler extends StageEventHandler {
         this.context.stage.y += e.movementY;
         return StageEventRes.DRAG_STAGE
     }
+
     /**进入这个状态的时候鼠标指针变成手形 */
     stateEffect(_preState: StageEventHandler): void {
         this.context.containerDom.style.cursor = "pointer"
     }
+
     /**退出状态的时候鼠标指针变化 */
     changeToState(state: StageEventHandler): void {
         super.changeToState(state);
@@ -323,4 +352,4 @@ class DragStageEventHandler extends StageEventHandler {
 
 export default StageEventHandler
 
-export { SelectedEventHandler, StageEventRes, RectSelectEventHandler, DragStageEventHandler }
+export {SelectedEventHandler, StageEventRes, RectSelectEventHandler, DragStageEventHandler}

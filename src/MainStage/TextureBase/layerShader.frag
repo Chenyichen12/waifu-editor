@@ -1,4 +1,3 @@
-
 in vec2 vUV;
 
 uniform sampler2D uTexture;

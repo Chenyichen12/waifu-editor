@@ -1,11 +1,10 @@
-
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-03 19:27:41
  */
 
-import { Container } from "pixi.js";
-import { xy } from "../TwoDType";
+import {Container} from "pixi.js";
+import {xy} from "../TwoDType";
 import StageLayer from "./StageLayer";
 
 class StageLayerContainer {
@@ -56,6 +55,7 @@ class StageLayerContainer {
 
     protected textureContainer: Container | undefined;
     protected meshContainer: Container | undefined
+
     getMeshAndTexture() {
         if (this.textureContainer == undefined) {
             this.textureContainer = new Container();
@@ -78,7 +78,10 @@ class StageLayerContainer {
         }
     }
 
-    get selectedLayer() { return this._selectedLayer; }
+    get selectedLayer() {
+        return this._selectedLayer;
+    }
+
     // get layers() { return this._layers; }
     constructor(layers: StageLayer[]) {
         this._layers = layers;
