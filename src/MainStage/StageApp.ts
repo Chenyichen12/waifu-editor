@@ -11,6 +11,7 @@ import { Group, LayerType, NormalLayer, Root } from "../components/Project/Layer
 import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 import EditMeshMode from "./EditMeshMode/EditMeshMode";
+import MorpherContainer from "./Morpher/MorpherContainer";
 
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
@@ -28,6 +29,8 @@ class StageApp extends Application {
     eventHandler: StageEventHandler = new SelectedEventHandler(this);
 
     layerContainer: StageLayerContainer = new StageLayerContainer([]);
+
+    morpherContainer: MorpherContainer = new MorpherContainer([]);
 
     constructor(dom: HTMLDivElement) {
         super();

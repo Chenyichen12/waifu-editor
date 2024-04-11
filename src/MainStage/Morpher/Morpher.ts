@@ -22,6 +22,17 @@ abstract class Morpher extends Graphics {
         this.morpherId = option.morpherId ?? uuid();
     }
 
+    protected _show: boolean = true;
+
+    set show(ifShow: boolean) {
+        this._show = ifShow
+        this.visible = ifShow;
+    }
+
+    get show() {
+        return this._show;
+    }
+
     shallowUpDate(): void { };
     deepUpDate(): void { }
 
