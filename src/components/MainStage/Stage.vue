@@ -59,7 +59,7 @@ function handlePenButtonClick() {
 
 function handleRectMorpherAdd() {
     if (instanceApp.value != null) {
-        instanceApp.value.morpherContainer.addRectMorphers(3, 3);
+        instanceApp.value.morpherContainer.addRectMorphers(4, 4);
     }
 }
 </script>

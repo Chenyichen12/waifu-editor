@@ -96,7 +96,7 @@ class RectMorpher extends Morpher {
         let rectTop = farAway;
         let rectRight = -farAway;
         let rectButton = -farAway;
-        for (const layer of this.children) {
+        for (const layer of this.morpherChildren) {
             let ps: xy[];
             if (layer instanceof Morpher) {
                 ps = layer.points;

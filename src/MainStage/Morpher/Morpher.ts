@@ -12,14 +12,14 @@ interface MorpherOption {
     children: (StageLayer | Morpher)[]
 }
 abstract class Morpher extends Graphics {
-    children: (StageLayer | Morpher)[] = []
+    morpherChildren: (StageLayer | Morpher)[] = []
     readonly morpherId: string
     abstract get points(): xy[]
 
-    constructor(option: Partial<Morpher>) {
+    constructor(option: Partial<MorpherOption>) {
         super();
-        this.children = option.children ?? [];
-        this.morpherId = option.morpherId ?? uuid();
+        this.morpherChildren = option.children ?? [];
+        this.morpherId = option.id ?? uuid();
     }
 
     protected _show: boolean = true;

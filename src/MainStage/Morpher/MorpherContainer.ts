@@ -40,24 +40,19 @@ class MorpherContainer extends Container {
         })
 
         if (parent != undefined) {
-            parent.children.filter((v) => {
+            parent.morpherChildren.filter((v) => {
                 return !child.includes(v)
             })
-            parent.children.push(newRectMorpher);
+            parent.morpherChildren.push(newRectMorpher);
         }
 
         this.morphers.push(newRectMorpher);
-        // return () => {
-        //     this.addChild(newRectMorpher);
-        // }
-        setTimeout(() => {
-            this.addChild(newRectMorpher)
-        }, 10)
+        this.addChild(newRectMorpher);
     }
 
     protected findParentMorpher(layer: StageLayer | Morpher): Morpher | undefined {
         for (const m of this.morphers) {
-            if (m.children.includes(layer)) {
+            if (m.morpherChildren.includes(layer)) {
                 return m;
             }
         }
