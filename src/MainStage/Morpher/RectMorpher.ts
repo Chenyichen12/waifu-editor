@@ -56,6 +56,7 @@ class RectMorpher extends Morpher {
             this.appScale = v;
             this.shallowUpDate();
         })
+        this.shallowUpDate();
     }
 
     destroy(options?: DestroyOptions | undefined): void {

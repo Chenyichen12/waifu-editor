@@ -19,6 +19,9 @@ class MorpherContainer extends Container {
     addRectMorphers(xDot: number, yDot: number) {
         const selectedLayer = instanceApp.value!.layerContainer.selectedLayer;
         const select = [...this.selectedMorphers, ...selectedLayer];
+        if (select.length == 0) {
+            return
+        }
         let parent: Morpher | undefined;
         const child: (StageLayer | Morpher)[] = []
         for (const sLayer of select) {
@@ -44,7 +47,12 @@ class MorpherContainer extends Container {
         }
 
         this.morphers.push(newRectMorpher);
-        this.addChild(newRectMorpher);
+        // return () => {
+        //     this.addChild(newRectMorpher);
+        // }
+        setTimeout(() => {
+            this.addChild(newRectMorpher)
+        }, 10)
     }
 
     protected findParentMorpher(layer: StageLayer | Morpher): Morpher | undefined {

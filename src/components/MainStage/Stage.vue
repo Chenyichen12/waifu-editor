@@ -3,7 +3,7 @@
  * @Date: 2024-03-30 11:34:21
 -->
 <script lang="ts" setup>
-import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
 import StageApp, { instanceApp } from '../../MainStage/StageApp'
 import EditMeshMode from "../../MainStage/EditMeshMode/EditMeshMode";
@@ -56,8 +56,12 @@ function handlePenButtonClick() {
         editMode.value.setPenSelect(isPenClick.value);
     }
 }
-onMounted(async () => {
-})
+
+function handleRectMorpherAdd() {
+    if (instanceApp.value != null) {
+        instanceApp.value.morpherContainer.addRectMorphers(3, 3);
+    }
+}
 </script>
 
 <template>
@@ -68,6 +72,7 @@ onMounted(async () => {
         <button @click="handlePenButtonClick" v-bind:style="penReadyStyle">
             <img src="/src/assets/vector-pen.svg" />
         </button>
+        <button @click="handleRectMorpherAdd">添加变形器</button>
     </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>

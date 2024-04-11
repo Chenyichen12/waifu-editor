@@ -94,6 +94,8 @@ class StageApp extends Application {
         const { mesh, texture } = this.layerContainer.getMeshAndTexture();
         this.stage.addChild(texture);
         this.stage.addChild(mesh);
+
+        this.stage.addChild(this.morpherContainer);
         /**
          * 递归添加到childLayer
          * @param group 
