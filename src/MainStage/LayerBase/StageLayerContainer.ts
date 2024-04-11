@@ -15,7 +15,7 @@ class StageLayerContainer {
     pointHitLayer(StagePos: xy): StageLayer | undefined {
         for (const layer of this._layers) {
             const p = layer.transformFormStage(StagePos);
-            if (layer.hitLayer(p)) {
+            if (layer.hitLayer(p) && layer.show) {
                 return layer;
             }
         }
@@ -82,6 +82,19 @@ class StageLayerContainer {
     // get layers() { return this._layers; }
     constructor(layers: StageLayer[]) {
         this._layers = layers;
+    }
+
+    get showedLayer() {
+
+        return this._layers.filter((v) => {
+            return v.show === true;
+        })
+    }
+
+    setAllMeshVisible(isVisible: boolean) {
+        this._layers.forEach((v) => {
+            v.mesh.visible = isVisible;
+        })
     }
 }
 

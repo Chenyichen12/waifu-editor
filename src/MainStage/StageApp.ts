@@ -3,13 +3,15 @@
  * @Date: 2024-03-30 11:34:21
  * PIXIApp类
  */
-import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
+import { Application, Graphics } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
-import { ref, shallowRef, watch } from "vue";
+import { ref, shallowRef } from "vue";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
 import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
+import EditMeshMode from "./EditMeshMode/EditMeshMode";
+
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
@@ -18,14 +20,6 @@ class StageApp extends Application {
     /**App承载的Dom元素 */
     protected stageDom
     get containerDom() { return this.stageDom }
-
-    /**选中的图层 */
-    public selectedLayer
-    protected unWatchSelected
-
-    /**所有子图层 */
-    protected _childLayer: StageLayer[] = []
-    get childLayer() { return this._childLayer }
 
     /**Stage的缩放 */
     appScale = ref(1)
@@ -39,17 +33,15 @@ class StageApp extends Application {
         super();
         this.stageDom = dom;
         this.stage.interactive = true;
-        this.selectedLayer = shallowRef<StageLayer[]>([]);
-        this.unWatchSelected = watch(this.selectedLayer, (newV, oldV) => {
-            oldV.forEach((item) => {
-                item.selected = false;
-            })
-            newV.forEach((item) => {
-                item.selected = true;
-            })
-        })
-        if (instanceApp.value != null)
+        if (instanceApp.value != null) {
             instanceApp.value.destroy();
+            let child = this.stageDom.lastElementChild;
+            while (child != undefined) {
+                this.stageDom.removeChild(child);
+                child = this.stageDom.lastElementChild;
+            }
+        }
+
         instanceApp.value = this;
     }
 
@@ -110,8 +102,6 @@ class StageApp extends Application {
                     const item = Project.instance.value!.assetList.get(normal.assetId);
                     if (item == null) continue;
                     const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
-                    const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
-                    gra.setFromMatrix(tranformMat);
                     layers.push(gra);
                 } else {
                     const gro = child as Group;
@@ -144,11 +134,16 @@ class StageApp extends Application {
         return scale;
     }
 
-    /**销毁监听器 */
-    destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
-        this.unWatchSelected();
-        super.destroy(rendererDestroyOptions, options);
+
+    createEditMode() {
+        let select: StageLayer = this.layerContainer.showedLayer[0];
+        for (const layer of this.layerContainer.selectedLayer) {
+            select = layer;
+            break;
+        }
+        return new EditMeshMode(this, select);
     }
+
 }
 
 export default StageApp

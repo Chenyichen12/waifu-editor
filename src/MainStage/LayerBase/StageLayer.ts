@@ -2,7 +2,7 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-30 11:34:21
  */
-import { Container, DestroyOptions, Matrix } from "pixi.js";
+import { Container, DestroyOptions } from "pixi.js";
 import { Ref, watch } from "vue";
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import TextureLayer from "../TextureBase/TextureLayer";
@@ -58,6 +58,9 @@ class StageLayer extends Container {
     set show(isShow: boolean) {
         this._show = isShow;
         this.visible = isShow;
+        this.textureLayer.visible = isShow;
+        this.faceMesh.visible = isShow;
+
         if (!isShow) {
             this.selected = false;
         }
@@ -77,22 +80,16 @@ class StageLayer extends Container {
         else this.faceMesh.alpha = 0;
     }
 
-    /**当图层几何位置变化的时候mesh由于不是图层的孩子，需要手动同步 */
-    setFromMatrix(matrix: Matrix): void {
-        this.faceMesh.setFromMatrix(matrix);
-        this.textureLayer.setFromMatrix(matrix);
-        super.setFromMatrix(matrix);
-    }
 
     constructor(option: StageLayerOption) {
         super();
-        this.faceMesh = new MeshLayer({
-            initRect: option.texture.bound
-        })
+        this.faceMesh = new MeshLayer(option.texture.bound)
         this._textureLayer = new TextureLayer({
             texture: option.texture,
-            points: this.faceMesh.listPoint,
-            lines: this.faceMesh.listLine
+            information: {
+                points: this.faceMesh.listPoint,
+                lines: this.faceMesh.listLine
+            }
         })
         this.selected = false;
 
@@ -111,8 +108,8 @@ class StageLayer extends Container {
      */
     transformFormStage(stagePoint: xy) {
         return {
-            x: stagePoint.x - this.position.x,
-            y: stagePoint.y - this.position.y
+            x: stagePoint.x,
+            y: stagePoint.y
         }
     }
 

@@ -9,22 +9,49 @@ import MeshPoint from "../GraphicsBase/MeshPoint";
 import MeshLine from "../GraphicsBase/MeshLine";
 import vert from './layerShader.vert?raw'
 import frag from './layerShader.frag?raw'
-import { xy } from "../TwoDType";
+import { xy, xyuv } from "../TwoDType";
+import { MergeExclusive } from "../twoSelectOne";
 /**
  * texture所需信息
  */
 interface TextureLayerOption {
     texture: ImageAsset, //所需的图像信息
     /**用于构造mesh的几何信息 */
+    information: MergeExclusive<MeshInformation, glInformation>
+}
+
+interface MeshInformation {
     points: MeshPoint[],
     lines: MeshLine[]
 }
+
+interface glInformation {
+    points: number[],
+    uvs: number[],
+    index: number[]
+}
+
 class TextureLayer extends Mesh<Geometry, Shader> {
     protected _textureId: string
     get textureId() { return this._textureId }
 
     constructor(option: TextureLayerOption) {
-        const bufferInformation = GenerateGlBuffer.generate(option.points, option.lines);
+        let bufferInformation: {
+            positionList: number[],
+            uvList: number[],
+            indexBuffer: number[]
+        }
+
+        if (option.information.lines != undefined) {
+            bufferInformation = GenerateGlBuffer.generate(option.information.points, option.information.lines);
+        } else {
+            bufferInformation = {
+                positionList: option.information.points,
+                uvList: option.information.uvs,
+                indexBuffer: option.information.index
+            }
+        }
+
         const geometry = new Geometry({
             attributes: {
                 aPosition: bufferInformation.positionList,
@@ -45,6 +72,8 @@ class TextureLayer extends Mesh<Geometry, Shader> {
         super({ geometry: geometry, shader: shader })
 
         this._textureId = option.texture.assetId;
+
+
     }
 
     /**
@@ -62,7 +91,21 @@ class TextureLayer extends Mesh<Geometry, Shader> {
         });
         buffer.update();
     }
-
+    upDateMesh(points: xyuv[], index: number[]) {
+        const pList: number[] = [];
+        const uvList: number[] = [];
+        points.forEach((v) => {
+            pList.push(v.x, v.y);
+            uvList.push(v.u, v.v);
+        })
+        this.geometry = new Geometry({
+            attributes: {
+                aPosition: pList,
+                aUV: uvList,
+            },
+            indexBuffer: index
+        });
+    }
 }
 
 export default TextureLayer

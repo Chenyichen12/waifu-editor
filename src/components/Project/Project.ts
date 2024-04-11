@@ -6,6 +6,7 @@ import { Root, Layer, NormalLayer, Group } from "./LayerStruct";
 import { ref, shallowRef } from "vue";
 import { ImageAsset } from './ProjectAssets'
 import Psd, { NodeChild } from '@webtoon/psd'
+import UnDoStack from "../../UnDoStack/UnDoStack";
 class Project {
 	protected static _instance = shallowRef<Project | null>(null);
 	name: string = "未命名";
@@ -13,10 +14,15 @@ class Project {
 	protected _root: Root = new Root({
 		width: 0, height: 0
 	});
+
+	unDoStack: UnDoStack
+
 	//图片合集 内有texture
 	protected _assetsList: Map<string, ImageAsset> = new Map<string, ImageAsset>();
 
-	protected constructor() { }
+	protected constructor() {
+		this.unDoStack = new UnDoStack();
+	}
 	static get instance() {
 		return Project._instance;
 	}
@@ -70,7 +76,6 @@ class Project {
 		}
 
 	}
-
 }
 
 export default Project;

@@ -18,6 +18,18 @@ onMounted(async () => {
   //仅用于测试，生产模式下要删除
   const f = await fetch('/kuyaxi.psd')
   await Project.initFromPsd(await f.blob());
+
+  //注册快捷键
+  document.addEventListener("keydown",(event: KeyboardEvent)=>{
+    if(event.ctrlKey && 
+    event.code == "KeyZ"){
+      const project = Project.instance.value;
+      if(project == null){
+        return;
+      }
+      project.unDoStack.unDo();
+    }
+  })
 })
 </script>
 

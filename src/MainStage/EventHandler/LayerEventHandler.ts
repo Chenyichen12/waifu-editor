@@ -5,6 +5,7 @@
  * 用于处理LayerStage的事件，处理键盘事件
  */
 
+import Project from "../../components/Project/Project"
 import MeshLayer from "../GraphicsBase/MeshLayer"
 import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
@@ -116,6 +117,7 @@ class SelectState extends LayerEventState {
 }
 class DragItemState extends LayerEventState {
     moveItem
+    protected firstPoint: xy
     handleMouseMoveEvent(option: LayerEventOption): result {
         this.moveItem.setPosition(option.point.x, option.point.y);
         this.context.upDatePoint();
@@ -123,29 +125,47 @@ class DragItemState extends LayerEventState {
     }
 
     handleMouseUpEvent(_option: LayerEventOption): result {
+        const undoFunc = () => {
+            this.moveItem.setPosition(this.firstPoint.x, this.firstPoint.y);
+            this.context.upDatePoint();
+        }
+        Project.instance.value!.unDoStack.pushUnDo(undoFunc);
         this.context.mouseState = new SelectState(this.context);
         return result.TRANSFORM_SELECT
     }
     constructor(moveItem: MeshPoint, context: StageLayer) {
         super(context);
+        this.firstPoint = moveItem.xy;
         this.moveItem = moveItem;
     }
 }
 
 class DragRectState extends LayerEventState {
 
-    targetMesh: MeshLayer
-    lastMove: xy
+    protected targetMesh: MeshLayer
+    protected lastMove: xy
 
+    protected firstMovePoint: xy
+
+    protected select: MeshPoint[];
     handleMouseMoveEvent(option: LayerEventOption): result {
-        this.targetMesh.dragRectSelect(option.point.x - this.lastMove.x, option.point.y - this.lastMove.y);
+        RectInSelected.dragRectPoint(this.select, option.point.x - this.lastMove.x, option.point.y - this.lastMove.y, (_p) => {
+            this.context.upDatePoint();
+        })
         this.lastMove = option.point;
-        this.context.upDatePoint();
         return result.DRAG_RECT;
     }
 
     handleMouseUpEvent(_option: LayerEventOption): result {
         this.context.mouseState = new SelectState(this.context);
+
+        const undo = () => {
+            RectInSelected.dragRectPoint(this.select, this.firstMovePoint.x - this.lastMove.x, this.firstMovePoint.y - this.lastMove.y, (_p) => {
+                this.context.upDatePoint();
+            })
+        }
+
+        Project.instance.value!.unDoStack.pushUnDo(undo);
         return result.TRANSFORM_SELECT
     }
 
@@ -153,6 +173,9 @@ class DragRectState extends LayerEventState {
         super(context);
         this.lastMove = point;
         this.targetMesh = targetMesh;
+
+        this.firstMovePoint = point;
+        this.select = targetMesh.selectedPoints;
     }
 }
 
