@@ -5,16 +5,25 @@ enum Type{
 }
 
 class entry {
-    //条目的名字，关键帧数值，是否被注册，以及关键帧的类型
+    //条目的id,名字，关键帧数值，是否被注册，以及关键帧的类型
+    id: number;
     name: string;
     value: number;
     isregister: boolean;
     type: Type;
-     constructor(name: string, value: number, isregister: boolean, type: Type=Type.One) {
+     constructor(id:number,name: string, value: number, isregister: boolean, type: Type=Type.One) {
+        this.id=id;
         this.type=type;
         this.name = name;
         this.value = value;
         this.isregister = isregister;
+    }
+    setId(id:number):void{
+        this.id=id;
+    }
+
+    getId():number{
+        return this.id;
     }
     //设置关键帧的数值
     setValue(value:number):void{
