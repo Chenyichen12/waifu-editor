@@ -1,24 +1,12 @@
 import { xy } from "../TwoDType";
-
+import { vec } from "../LayerBase/util";
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-11 13:02:32
  */
-class vec {
-    static add(p1: xy, p2: xy): xy {
-        return {
-            x: p1.x + p2.x,
-            y: p1.y + p2.y
-        }
-    }
 
-    static sub(p1: xy, p2: xy) {
-        return {
-            x: p1.x - p2.x,
-            y: p1.y - p2.y
-        }
-    }
-}
+type uv = { u: number, v: number }
+
 
 function quadUvCalculate(A: xy, B: xy, C: xy, D: xy, p: xy) {
     const H = vec.sub(p, A);
@@ -41,6 +29,7 @@ function equation(k0: number, k1: number, k2: number) {
         return -k0 / k1;
     }
     const inner = k1 * k1 - 4 * k0 * k2;
+
     const v1 = (-k1 - Math.sqrt(inner)) / (2 * k2)
     if (v1 < 1 && v1 > 0) {
         return v1;
@@ -56,4 +45,23 @@ function equation(k0: number, k1: number, k2: number) {
     throw Error("equation out of uv")
 }
 
-export { quadUvCalculate }
+function ifInQuad(A: xy, B: xy, C: xy, D: xy, p: xy) {
+
+    const t1 = ifMin(A, B, D, p);
+    const t2 = ifMin(B, C, A, p);
+    const t3 = ifMin(C, D, B, p);
+    const t4 = ifMin(D, A, C, p)
+    return (t1 >= 0 && t2 >= 0 && t3 >= 0 && t4 >= 0)
+
+    function ifMin(base: xy, b1: xy, b2: xy, test: xy) {
+        return vec.cross(vec.sub(b1, base), vec.sub(test, base)) *
+            vec.cross(vec.sub(test, base), vec.sub(b2, base));
+    }
+}
+
+function quadPointCalculate(A: xy, B: xy, C: xy, D: xy, p: uv): xy {
+    const x = A.x + p.u * (B.x - A.x) + (D.x - A.x) * p.v + (A.x - B.x + C.x - D.x) * p.u * p.v
+    const y = A.y + p.u * (B.y - A.y) + (D.y - A.y) * p.v + (A.y - B.y + C.y - D.y) * p.u * p.v
+    return { x, y }
+}
+export { quadUvCalculate, ifInQuad, quadPointCalculate }
