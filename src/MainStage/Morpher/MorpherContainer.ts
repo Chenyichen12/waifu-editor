@@ -38,14 +38,13 @@ class MorpherContainer extends Container {
             sLayer.morpherParent = newRectMorpher;
         }
         if (parent != undefined) {
-            parent.morpherChildren.filter((v) => {
-                return !select.includes(v)
-            })
-            parent.morpherChildren.push(newRectMorpher);
+            parent.removeMopherChild(select)
+            parent.addMorpherChild(newRectMorpher);
             newRectMorpher.morpherParent = parent;
         }
 
         this.morphers.push(newRectMorpher);
+
         this.addChild(newRectMorpher);
     }
 

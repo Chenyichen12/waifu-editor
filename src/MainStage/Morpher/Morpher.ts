@@ -7,6 +7,10 @@ import { xy } from "../TwoDType";
  * @Date: 2024-04-11 10:53:44
  */
 
+
+interface MorpherChild {
+    data: StageLayer | Morpher
+}
 interface MorpherOption {
     id: string
     children: (StageLayer | Morpher)[]
@@ -14,13 +18,19 @@ interface MorpherOption {
 }
 abstract class Morpher extends Graphics {
     morpherParent: Morpher | undefined
-    morpherChildren: (StageLayer | Morpher)[] = []
+    protected _morpherChildren: MorpherChild[] = []
     readonly morpherId: string
     abstract get points(): xy[]
 
     constructor(option: Partial<MorpherOption>) {
         super();
-        this.morpherChildren = option.children ?? [];
+        if (option.children != undefined) {
+            this._morpherChildren = option.children.map((v) => {
+                return {
+                    data: v
+                }
+            })
+        }
         this.morpherId = option.id ?? uuid();
         this.morpherParent = option.morpherParent ?? undefined;
     }
@@ -41,7 +51,13 @@ abstract class Morpher extends Graphics {
 
     abstract pointAtPosition(x: number, y: number): number | undefined
     abstract ifHitMorpher(x: number, y: number): boolean
+
+    abstract setFromPointList(pointList: xy[]): void
+    abstract removeMopherChild(child: (Morpher | StageLayer) | (Morpher | StageLayer)[]): void
+    abstract addMorpherChild(child: Morpher | StageLayer): void
+
+
 }
 
 export default Morpher;
-export type { MorpherOption }
+export type { MorpherOption, MorpherChild }

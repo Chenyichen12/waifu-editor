@@ -7,16 +7,25 @@ import Project from "../../components/Project/Project";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
-import Morpher, { MorpherOption } from "./Morpher";
+import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { ifInQuad } from "./util";
+import { ifInQuad, quadPointCalculate, quadUvCalculate } from "./util";
+import StageLayer from "../LayerBase/StageLayer";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
 }
 
+interface RectMorpherChild extends MorpherChild {
+    pointsInWhichRect: number[]
+}
 type xyBefore = xy & { xBefore: number, yBefore: number }
 class RectMorpher extends Morpher {
+
+    /**
+     * rectPoints很重要，一般只对其中的point进行修改操作，不能随意对其进行赋值添加，删除，如果要赋值最好不要更改顺序 否则很麻烦。
+     * 在外界获取rectPoints时只能返回副本，防止外界修改xy
+     */
     protected rectPoints: xyBefore[];
     protected xDot: number
     protected yDot: number
@@ -24,7 +33,10 @@ class RectMorpher extends Morpher {
     private appScale = instanceApp.value?.appScale.value ?? 1;
     private unwatchScale
 
-    private pointInRect: xy[][] = []
+    protected _morpherChildren: RectMorpherChild[];
+
+
+    protected selectPoint = new Set<xyBefore>();
 
     constructor(option: Partial<RectMorpherOption>) {
         super(option);
@@ -32,8 +44,7 @@ class RectMorpher extends Morpher {
             throw new Error("矩形变形器至少包含一个图层")
         }
 
-
-        let { rectLeft, rectTop, rectRight, rectButton } = this.generateBound();
+        let { rectLeft, rectTop, rectRight, rectButton } = this.generateBound(option.children!);
         //加padding
         const w = Project.instance.value!.root.bound.width;
         const h = Project.instance.value!.root.bound.height;
@@ -62,7 +73,14 @@ class RectMorpher extends Morpher {
             }
         }
 
-        this.generatePointForIndex();
+        const list = this.generatePointForIndex(option.children!)
+        this._morpherChildren = list.map((v, i) => {
+            return {
+                data: option.children![i],
+                pointsInWhichRect: v
+            }
+        })
+
         this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(1), (v) => {
             this.appScale = v;
             this.shallowUpDate();
@@ -101,13 +119,13 @@ class RectMorpher extends Morpher {
     }
 
 
-    private generateBound() {
+    private generateBound(childLayer: (StageLayer | Morpher)[]) {
         const farAway = 100000;
         let rectLeft = farAway;
         let rectTop = farAway;
         let rectRight = -farAway;
         let rectButton = -farAway;
-        for (const layer of this.morpherChildren) {
+        for (const layer of childLayer) {
             let ps: xy[];
             if (layer instanceof Morpher) {
                 ps = layer.points;
@@ -134,29 +152,47 @@ class RectMorpher extends Morpher {
             D: this.getDotPoint(left, top + 1),
         }
     }
-    private generatePointForIndex() {
-        const rectNum = (this.xDot - 1) * (this.yDot - 1);
-        this.pointInRect = new Array(rectNum);
-        for (let index = 0; index < this.pointInRect.length; index++) {
-            this.pointInRect[index] = [];
+
+    private static getNewRectFromIndex(i: number, pointList: xy[], xDot: number, yDot: number) {
+        const left = i % (xDot - 1);
+        const top = Math.floor(i / (yDot - 1));
+        return {
+            A: getDotPoint(left, top),
+            B: getDotPoint(left + 1, top),
+            C: getDotPoint(left + 1, top + 1),
+            D: getDotPoint(left, top + 1),
         }
-        for (const layer of this.morpherChildren) {
+
+        function getDotPoint(x: number, y: number) {
+            return pointList[y * xDot + x]
+        }
+    }
+    private generatePointForIndex(childLayer: (StageLayer | Morpher)[]) {
+        const layerPointIndex: number[][] = []
+        for (const layer of childLayer) {
             let ps: xy[];
             if (layer instanceof Morpher) {
                 ps = layer.points;
             } else {
                 ps = layer.mesh.listPoint;
             }
-            for (const point of ps) {
-                for (let index = 0; index < rectNum; index++) {
-                    const rect = this.getRectFromIndex(index);
-                    if (ifInQuad(rect.A, rect.B, rect.C, rect.D, point)) {
-                        this.pointInRect[index].push(point);
-                        break;
-                    }
+            const pointInRect = this.distributePoint(ps)
+            layerPointIndex.push(pointInRect);
+        }
+        return layerPointIndex;
+    }
+
+    private distributePoint(pointList: xy[]) {
+        const rectNum = (this.xDot - 1) * (this.yDot - 1);
+        return pointList.map((v) => {
+            for (let index = 0; index < rectNum; index++) {
+                const rect = this.getRectFromIndex(index);
+                if (ifInQuad(rect.A, rect.B, rect.C, rect.D, v)) {
+                    return index;
                 }
             }
-        }
+            return -1;
+        });
     }
 
     shallowUpDate(): void {
@@ -186,17 +222,44 @@ class RectMorpher extends Morpher {
                     });
             }
         }
-
         this.rectPoints.forEach((item) => {
             this.circle(item.x, item.y, 3 / this.appScale)
                 .fill({
                     color: 0x00ff00
                 })
         })
+
+        for (const item of this.selectPoint) {
+            this.circle(item.x, item.y, 6 / this.appScale)
+                .stroke({
+                    color: 0xff0000,
+                    width: 2 / this.appScale
+                })
+        }
     }
 
 
+    addSelectPoint(index: number) {
+        if (this.selectPoint.has(this.rectPoints[index])) {
+            return;
+        }
+        this.selectPoint.add(this.rectPoints[index]);
+        this.shallowUpDate();
+    }
 
+    removeSelectPoint(index: number) {
+        if (!this.selectPoint.has(this.rectPoints[index])) {
+            return;
+        }
+
+        this.selectPoint.delete(this.rectPoints[index]);
+        this.shallowUpDate();
+    }
+
+    removeAllSelect() {
+        this.selectPoint.clear();
+        this.shallowUpDate();
+    }
     ifHitMorpher(x: number, y: number): boolean {
         const point = { x, y }
         const rectNum = (this.xDot - 1) * (this.yDot - 1);
@@ -207,6 +270,67 @@ class RectMorpher extends Morpher {
             }
         }
         return false;
+    }
+
+    private getPointsFromChild(child: StageLayer | Morpher): xy[] {
+        return child instanceof StageLayer ? [...child.getPointList()] : child.points
+    }
+    setFromPointList(pointList: xy[]): void {
+        for (const child of this._morpherChildren) {
+            const pList = this.getPointsFromChild(child.data);
+            for (let index = 0; index < child.pointsInWhichRect.length; index++) {
+                const originRect = this.getRectFromIndex(child.pointsInWhichRect[index])
+                //if(point move)
+
+                const uv = quadUvCalculate(originRect.A, originRect.B, originRect.C, originRect.D, pList[index]);
+                const newRect = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], pointList, this.xDot, this.yDot);
+                pList[index] = quadPointCalculate(newRect.A, newRect.B, newRect.C, newRect.D, uv);
+            }
+
+            if (child.data instanceof StageLayer) {
+                child.data.getPointList().forEach((v, i) => {
+                    v.x = pList[i].x;
+                    v.y = pList[i].y;
+                })
+                child.data.mopherUpDate();
+            } else {
+                child.data.setFromPointList(pList);
+            }
+        }
+        this.rectPoints.forEach((v, i) => {
+            v.x = pointList[i].x;
+            v.y = pointList[i].y;
+        })
+        this.shallowUpDate();
+    }
+
+    removeMopherChild(child: (Morpher | StageLayer) | (Morpher | StageLayer)[]): void {
+        if (child instanceof Array) {
+            this._morpherChildren = this._morpherChildren.filter((v) => {
+                return !child.includes(v.data)
+            })
+        } else {
+            this._morpherChildren = this._morpherChildren.filter((v) => {
+                return v.data !== child
+            })
+        }
+    }
+    addMorpherChild(child: StageLayer | Morpher): void {
+        const pointList = this.distributePoint(child instanceof StageLayer ? child.mesh.listPoint : child.points);
+        this._morpherChildren.push({
+            data: child,
+            pointsInWhichRect: pointList
+        })
+    }
+
+    upDateChildPointIndex(child: StageLayer | Morpher) {
+        const pointList = this.distributePoint(child instanceof StageLayer ? child.mesh.listPoint : child.points);
+        const s = this._morpherChildren.find((v) => {
+            v.data === child
+        })
+        if (s != undefined) {
+            s.pointsInWhichRect = pointList;
+        }
     }
 }
 
