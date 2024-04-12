@@ -12,6 +12,7 @@ interface MorpherOption {
     children: (StageLayer | Morpher)[]
 }
 abstract class Morpher extends Graphics {
+    morpherParent: Morpher | undefined = undefined
     morpherChildren: (StageLayer | Morpher)[] = []
     readonly morpherId: string
     abstract get points(): xy[]
@@ -34,7 +35,7 @@ abstract class Morpher extends Graphics {
     }
 
     shallowUpDate(): void { };
-    deepUpDate(): void { }
+    protected deepUpDate(): void { }
 
     abstract pointAtPosition(x: number, y: number): number | undefined
     abstract ifHitMorpher(x: number, y: number): boolean

@@ -22,28 +22,28 @@ class MorpherContainer extends Container {
         if (select.length == 0) {
             return
         }
-        let parent: Morpher | undefined;
-        const child: (StageLayer | Morpher)[] = []
+
+        const parent: Morpher | undefined = select[0].morpherParent;
         for (const sLayer of select) {
-            const temp = this.findParentMorpher(sLayer);
-            if (temp !== undefined) {
-                if (parent === undefined || parent === temp) {
-                    parent == temp;
-                } else {
-                    throw Error("所选择的图层存在不同的父变形器，无法为其创建变形器")
-                }
+            if (sLayer.morpherParent !== parent) {
+                throw Error("所选择的图层存在不同的父变形器，无法为其创建变形器");
             }
         }
+
         const newRectMorpher = new RectMorpher({
             children: select,
             meshDot: { xDot, yDot }
         })
 
+        for (const sLayer of select) {
+            sLayer.morpherParent = newRectMorpher;
+        }
         if (parent != undefined) {
             parent.morpherChildren.filter((v) => {
-                return !child.includes(v)
+                return !select.includes(v)
             })
             parent.morpherChildren.push(newRectMorpher);
+            newRectMorpher.morpherParent = parent;
         }
 
         this.morphers.push(newRectMorpher);

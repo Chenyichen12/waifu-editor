@@ -12,6 +12,7 @@ import Project from "../../components/Project/Project";
 import LayerEventState, { SelectState } from "../EventHandler/LayerEventHandler";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
+import Morpher from "../Morpher/Morpher";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
@@ -34,6 +35,7 @@ class StageLayer extends Container {
     /**鼠标事件处理 */
     mouseState: LayerEventState
 
+    morpherParent: Morpher | undefined = undefined
     /**layer下面的mesh展示图层 */
     protected faceMesh: MeshLayer
     get mesh() { return this.faceMesh }
