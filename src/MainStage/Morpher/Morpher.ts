@@ -10,9 +10,10 @@ import { xy } from "../TwoDType";
 interface MorpherOption {
     id: string
     children: (StageLayer | Morpher)[]
+    morpherParent: Morpher
 }
 abstract class Morpher extends Graphics {
-    morpherParent: Morpher | undefined = undefined
+    morpherParent: Morpher | undefined
     morpherChildren: (StageLayer | Morpher)[] = []
     readonly morpherId: string
     abstract get points(): xy[]
@@ -21,6 +22,7 @@ abstract class Morpher extends Graphics {
         super();
         this.morpherChildren = option.children ?? [];
         this.morpherId = option.id ?? uuid();
+        this.morpherParent = option.morpherParent ?? undefined;
     }
 
     protected _show: boolean = true;

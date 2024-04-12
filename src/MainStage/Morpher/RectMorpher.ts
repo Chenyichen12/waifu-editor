@@ -9,22 +9,30 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
+import { ifInQuad } from "./util";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
 }
+
+type xyBefore = xy & { xBefore: number, yBefore: number }
 class RectMorpher extends Morpher {
-    protected rectPoints: xy[];
+    protected rectPoints: xyBefore[];
     protected xDot: number
     protected yDot: number
     readonly pointSize = 5
     private appScale = instanceApp.value?.appScale.value ?? 1;
     private unwatchScale
+
+    private pointInRect: xy[][] = []
+
     constructor(option: Partial<RectMorpherOption>) {
         super(option);
         if (option.children == undefined || option.children.length == 0) {
             throw new Error("矩形变形器至少包含一个图层")
         }
+
+
         let { rectLeft, rectTop, rectRight, rectButton } = this.generateBound();
         //加padding
         const w = Project.instance.value!.root.bound.width;
@@ -47,11 +55,14 @@ class RectMorpher extends Morpher {
             for (let j = 0; j < xDot; j++) {
                 this.rectPoints.push({
                     x: rectLeft + rectWidth * j / (xDot - 1),
-                    y: rectTop + rectHeight * i / (yDot - 1)
+                    y: rectTop + rectHeight * i / (yDot - 1),
+                    xBefore: rectLeft + rectWidth * j / (xDot - 1),
+                    yBefore: rectTop + rectHeight * i / (yDot - 1),
                 })
             }
         }
 
+        this.generatePointForIndex();
         this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(1), (v) => {
             this.appScale = v;
             this.shallowUpDate();
@@ -112,6 +123,42 @@ class RectMorpher extends Morpher {
         return { rectLeft, rectTop, rectRight, rectButton }
     }
 
+    private getRectFromIndex(i: number) {
+        const left = i % (this.xDot - 1);
+        const top = Math.floor(i / (this.yDot - 1));
+
+        return {
+            A: this.getDotPoint(left, top),
+            B: this.getDotPoint(left + 1, top),
+            C: this.getDotPoint(left + 1, top + 1),
+            D: this.getDotPoint(left, top + 1),
+        }
+    }
+    private generatePointForIndex() {
+        const rectNum = (this.xDot - 1) * (this.yDot - 1);
+        this.pointInRect = new Array(rectNum);
+        for (let index = 0; index < this.pointInRect.length; index++) {
+            this.pointInRect[index] = [];
+        }
+        for (const layer of this.morpherChildren) {
+            let ps: xy[];
+            if (layer instanceof Morpher) {
+                ps = layer.points;
+            } else {
+                ps = layer.mesh.listPoint;
+            }
+            for (const point of ps) {
+                for (let index = 0; index < rectNum; index++) {
+                    const rect = this.getRectFromIndex(index);
+                    if (ifInQuad(rect.A, rect.B, rect.C, rect.D, point)) {
+                        this.pointInRect[index].push(point);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     shallowUpDate(): void {
         this.clear()
 
@@ -147,8 +194,18 @@ class RectMorpher extends Morpher {
                 })
         })
     }
-    ifHitMorpher(x: number, y: number): boolean {
 
+
+
+    ifHitMorpher(x: number, y: number): boolean {
+        const point = { x, y }
+        const rectNum = (this.xDot - 1) * (this.yDot - 1);
+        for (let index = 0; index < rectNum; index++) {
+            const rect = this.getRectFromIndex(index);
+            if (ifInQuad(rect.A, rect.B, rect.C, rect.D, point)) {
+                return true;
+            }
+        }
         return false;
     }
 }

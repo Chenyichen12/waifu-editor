@@ -5,7 +5,6 @@
 import { Container } from "pixi.js";
 import Morpher from "./Morpher";
 import { instanceApp } from "../StageApp";
-import StageLayer from "../LayerBase/StageLayer";
 import RectMorpher from "./RectMorpher";
 
 class MorpherContainer extends Container {
@@ -50,14 +49,6 @@ class MorpherContainer extends Container {
         this.addChild(newRectMorpher);
     }
 
-    protected findParentMorpher(layer: StageLayer | Morpher): Morpher | undefined {
-        for (const m of this.morphers) {
-            if (m.morpherChildren.includes(layer)) {
-                return m;
-            }
-        }
-        return undefined;
-    }
 }
 
 export default MorpherContainer;
