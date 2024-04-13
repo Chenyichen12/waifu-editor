@@ -82,4 +82,28 @@ function quadPerspectiveTransform(A: xy, B: xy, C: xy, D: xy, A1: xy, B1: xy, C1
     }
 
 }
-export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform }
+
+function triangleUVCalculate(A: xy, B: xy, C: xy, p: xy) {
+
+    const ppb = vec.sub(p, B);
+    const pcb = vec.sub(C, B);
+    const ppc = vec.sub(p, C);
+    const pac = vec.sub(A, C);
+    const pab = vec.sub(A, B);
+    const pbc = vec.sub(B, C);
+
+    const alpha = (-ppb.x * pcb.y + ppb.y * pcb.x) / (-pab.x * pcb.y + pab.y * pcb.x);
+    const beta = (-ppc.x * pac.y + ppc.y * pac.x) / (-pbc.x * pac.y + pbc.y * pac.x);
+    const gama = 1 - alpha - beta;
+    return {
+        alpha, beta, gama
+    }
+}
+
+function trianglePointCalculate(A: xy, B: xy, C: xy, alpha: number, beta: number, gama: number) {
+    return {
+        x: A.x * alpha + B.x * beta + C.x * gama,
+        y: A.y * alpha + B.y * beta + C.y * gama
+    }
+}
+export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform, trianglePointCalculate, triangleUVCalculate }

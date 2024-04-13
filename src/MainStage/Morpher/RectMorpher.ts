@@ -9,14 +9,16 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { ifInQuad, quadPerspectiveTransform, quadPointCalculate, quadUvCalculate } from "./util";
+import { ifInQuad, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
+import { ContainesPoint } from "../LayerBase/util";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
 }
 
 interface RectMorpherChild extends MorpherChild {
+    /**每个矩形被分为两个三角形，number就是三角形数组的index */
     pointsInWhichRect: number[]
 }
 type xyBefore = xy & { xBefore: number, yBefore: number }
@@ -197,7 +199,11 @@ class RectMorpher extends Morpher {
             for (let index = 0; index < rectNum; index++) {
                 const rect = this.getRectFromIndex(index);
                 if (ifInQuad(rect.A, rect.B, rect.C, rect.D, v)) {
-                    return index;
+                    if (ContainesPoint.contains(rect.A, rect.B, rect.D, v)) {
+                        return index * 2
+                    } else {
+                        return index * 2 + 1;
+                    }
                 }
             }
             return -1;
@@ -284,11 +290,25 @@ class RectMorpher extends Morpher {
     private getPointsFromChild(child: StageLayer | Morpher): xy[] {
         return child instanceof StageLayer ? [...child.getPointList()] : child.points
     }
-    setFromPointList(pointList: xy[]): void {
 
-        const beforeRect = this.rectPoints.map((v) => {
-            return { x: v.xBefore, y: v.yBefore }
-        })
+    private getTriangleFromIndex(rectPointList: xy[], i: number) {
+        const index = Math.floor(i / 2);
+        const ansRect = RectMorpher.getNewRectFromIndex(index, rectPointList, this.xDot, this.yDot);
+        if (i % 2 == 0) {
+            return {
+                A: ansRect.A,
+                B: ansRect.B,
+                C: ansRect.D
+            }
+        } else {
+            return {
+                A: ansRect.B,
+                B: ansRect.C,
+                C: ansRect.D
+            }
+        }
+    }
+    setFromPointList(pointList: xy[]): void {
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
@@ -296,24 +316,13 @@ class RectMorpher extends Morpher {
                 if (child.pointsInWhichRect[index] == -1) {
                     continue;
                 }
-                const originRect = this.getRectFromIndex(child.pointsInWhichRect[index])
+                const triangle = this.getTriangleFromIndex(this.rectPoints, child.pointsInWhichRect[index]);
 
-                //if(point move)
+                let resData = triangleUVCalculate(triangle.A, triangle.B, triangle.C, pList[index]);
 
-                let uv = quadUvCalculate(originRect.A, originRect.B, originRect.C, originRect.D, pList[index]);
+                const newTri = this.getTriangleFromIndex(pointList, child.pointsInWhichRect[index]);
 
-                let beforeRec = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], beforeRect, this.xDot, this.yDot)
-                let resetBefor = quadPointCalculate(beforeRec.A, beforeRec.B, beforeRec.C, beforeRec.D, uv);
-                const newI = this.inWhichRect(beforeRect[0], beforeRect[beforeRect.length - 1], resetBefor);
-
-                if (newI != child.pointsInWhichRect[index]) {
-                    child.pointsInWhichRect[index] = newI;
-                    beforeRec = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], beforeRect, this.xDot, this.yDot);
-                    uv = quadUvCalculate(beforeRec.A, beforeRec.B, beforeRec.C, beforeRec.D, resetBefor);
-                }
-
-                const newRect = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], pointList, this.xDot, this.yDot);
-                pList[index] = quadPointCalculate(newRect.A, newRect.B, newRect.C, newRect.D, uv);
+                pList[index] = trianglePointCalculate(newTri.A, newTri.B, newTri.C, resData.alpha, resData.beta, resData.gama);
 
             }
 
