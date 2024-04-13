@@ -4,53 +4,53 @@ enum Type{
     One,TWO,THREE
 }
 
-class entry {
+export class Entry {
     //条目的id,名字，关键帧数值，是否被注册，以及关键帧的类型
     id: number;
     name: string;
     value: number;
     isregister: boolean;
     type: Type;
-     constructor(id:number,name: string, value: number, isregister: boolean, type: Type=Type.One) {
+    public constructor(id:number,name: string, value: number, isregister: boolean, type: Type=Type.One) {
         this.id=id;
         this.type=type;
         this.name = name;
         this.value = value;
         this.isregister = isregister;
     }
-    setId(id:number):void{
+    public setId(id:number):void{
         this.id=id;
     }
 
-    getId():number{
+    public getId():number{
         return this.id;
     }
     //设置关键帧的数值
-    setValue(value:number):void{
+    public setValue(value:number):void{
         this.value=value;
     }
     //获取关键帧的数值
-    getValue():number{
+    public getValue():number{
         return this.value;
     }
     //设置关键帧的类型
-    SetType(type:Type):void{
+    public SetType(type:Type):void{
         this.type=type;
     }
     //获取关键帧的类型
-    getType():Type{
+    public getType():Type{
         return this.type;
     }
     //设置条目的名字
-    getName():string{
+    public getName():string{
         return this.name;
     }
     //设置条目是否被注册
-    setIsregister(isregister:boolean):void{
+    public setIsregister(isregister:boolean):void{
         this.isregister=isregister;
     }
     //获取条目是否被注册
-    getIsregister():boolean{
+    public getIsregister():boolean{
         return this.isregister;
     }
 }
