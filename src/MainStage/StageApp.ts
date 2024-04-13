@@ -44,7 +44,7 @@ class StageApp extends Application {
                 child = this.stageDom.lastElementChild;
             }
         }
-        this.morpherContainer = new MorpherContainer([], this);
+        this.morpherContainer = new MorpherContainer([]);
         instanceApp.value = this;
     }
 

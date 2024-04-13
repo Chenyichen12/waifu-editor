@@ -4,22 +4,18 @@
  */
 import { Container } from "pixi.js";
 import Morpher from "./Morpher";
-import StageApp, { instanceApp } from "../StageApp";
+import { instanceApp } from "../StageApp";
 import RectMorpher from "./RectMorpher";
 import { xy } from "../TwoDType";
-import StageEventHandler from "../EventHandler/StageEventHandler";
-import { MorpherSelectEventHandler } from "./MorpherEventHandler";
 
 class MorpherContainer extends Container {
     protected morphers: Morpher[];
-    eventHandler: StageEventHandler
     protected selectedMorphers = new Set<Morpher>();
 
 
-    constructor(morphers: Morpher[], stage: StageApp) {
+    constructor(morphers: Morpher[]) {
         super();
         this.morphers = morphers;
-        this.eventHandler = new MorpherSelectEventHandler(stage, this);
     }
 
     addRectMorphers(xDot: number, yDot: number) {
@@ -97,6 +93,8 @@ class MorpherContainer extends Container {
             }
         }
     }
+
+    get selectedMorpher() { return [...this.selectedMorphers] }
 }
 
 export default MorpherContainer;

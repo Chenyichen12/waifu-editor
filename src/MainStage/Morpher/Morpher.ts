@@ -2,6 +2,7 @@ import { Graphics } from "pixi.js";
 import StageLayer from "../LayerBase/StageLayer";
 import { v4 as uuid } from "uuid";
 import { xy } from "../TwoDType";
+import MorpherEventHandler, { MorpherSelectHandler } from "./MorpherEventHandler";
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-11 10:53:44
@@ -19,6 +20,8 @@ interface MorpherOption {
 abstract class Morpher extends Graphics {
     morpherParent: Morpher | undefined
     protected _morpherChildren: MorpherChild[] = []
+
+    eventHandler: MorpherEventHandler
     readonly morpherId: string
     abstract get points(): xy[]
 
@@ -33,6 +36,7 @@ abstract class Morpher extends Graphics {
         }
         this.morpherId = option.id ?? uuid();
         this.morpherParent = option.morpherParent ?? undefined;
+        this.eventHandler = new MorpherSelectHandler(this);
     }
 
     protected _show: boolean = true;
