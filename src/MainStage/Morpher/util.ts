@@ -1,5 +1,8 @@
 import { xy } from "../TwoDType";
 import { vec } from "../LayerBase/util";
+import cv from "@techstark/opencv-js";
+
+//import getPerspectiveTransform from "./getPerspectiveTransform";
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-11 13:02:32
@@ -64,4 +67,19 @@ function quadPointCalculate(A: xy, B: xy, C: xy, D: xy, p: uv): xy {
     const y = A.y + p.u * (B.y - A.y) + (D.y - A.y) * p.v + (A.y - B.y + C.y - D.y) * p.u * p.v
     return { x, y }
 }
-export { quadUvCalculate, ifInQuad, quadPointCalculate }
+
+function quadPerspectiveTransform(A: xy, B: xy, C: xy, D: xy, A1: xy, B1: xy, C1: xy, D1: xy, point: xy) {
+    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y]);
+    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [A1.x, A1.y, B1.x, B1.y, C1.x, C1.y, D1.x, D1.y]);
+    //转换的数据
+    let M = cv.getPerspectiveTransform(srcTri, dstTri);
+    let pointX = cv.matFromArray(1, 1, cv.CV_32FC2, [point.x, point.y]);
+    let points_trans = new cv.Mat();
+    cv.perspectiveTransform(pointX, points_trans, M);
+    return {
+        x: points_trans.data32F[0],
+        y: points_trans.data32F[1]
+    }
+
+}
+export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform }

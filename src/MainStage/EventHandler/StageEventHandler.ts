@@ -20,6 +20,8 @@ enum StageEventRes {
     NOHITPOINT,
     NOHIT,
 
+    DRAG_ITEM,
+
     SELECT_RECT_MOVE
 }
 abstract class StageEventHandler {
@@ -101,6 +103,11 @@ class SelectedEventHandler extends StageEventHandler {
         return super.handleKeyDownEvent(e);
     }
     handleLongPressEvent(e: MouseEvent): StageEventRes {
+
+        if (this.context.morpherContainer.eventHandler.handleLongPressEvent(e) == StageEventRes.DRAG_ITEM) {
+            return StageEventRes.DEFAULT
+        }
+
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
         for (const selectedLayer of this.context.layerContainer.selectedLayer) {
             const layerPos = selectedLayer.transformFormStage(stagePos);
@@ -164,6 +171,11 @@ class SelectedEventHandler extends StageEventHandler {
     }
 
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
+
+        if (this.context.morpherContainer.eventHandler.handleMouseMoveEvent(e) == StageEventRes.DRAG_ITEM) {
+            return StageEventRes.DEFAULT;
+        }
+
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
         let ifInRect = false;
         for (const child of this.context.layerContainer.selectedLayer) {
@@ -189,6 +201,7 @@ class SelectedEventHandler extends StageEventHandler {
         if (super.handleMouseUpEvent(e) == StageEventRes.CLICK) {
             return StageEventRes.CLICK
         };
+        this.context.morpherContainer.eventHandler.handleMouseUpEvent(e);
         const stagePos = this.toStagePos(e.offsetX, e.offsetY)
         for (const child of this.context.layerContainer.selectedLayer) {
             const p = child.transformFormStage(stagePos);

@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@techstark/opencv-js": "^4.9.0-release.3",
     "@webtoon/psd": "^0.4.0",
     "element-plus": "^2.5.6",
     "pixi.js": "^8.0.0",

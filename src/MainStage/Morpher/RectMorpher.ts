@@ -9,7 +9,7 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { ifInQuad, quadPointCalculate, quadUvCalculate } from "./util";
+import { ifInQuad, quadPerspectiveTransform, quadPointCalculate, quadUvCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 
 interface RectMorpherOption extends MorpherOption {
@@ -285,15 +285,36 @@ class RectMorpher extends Morpher {
         return child instanceof StageLayer ? [...child.getPointList()] : child.points
     }
     setFromPointList(pointList: xy[]): void {
+
+        const beforeRect = this.rectPoints.map((v) => {
+            return { x: v.xBefore, y: v.yBefore }
+        })
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
+
+                if (child.pointsInWhichRect[index] == -1) {
+                    continue;
+                }
                 const originRect = this.getRectFromIndex(child.pointsInWhichRect[index])
+
                 //if(point move)
 
-                const uv = quadUvCalculate(originRect.A, originRect.B, originRect.C, originRect.D, pList[index]);
+                let uv = quadUvCalculate(originRect.A, originRect.B, originRect.C, originRect.D, pList[index]);
+
+                let beforeRec = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], beforeRect, this.xDot, this.yDot)
+                let resetBefor = quadPointCalculate(beforeRec.A, beforeRec.B, beforeRec.C, beforeRec.D, uv);
+                const newI = this.inWhichRect(beforeRect[0], beforeRect[beforeRect.length - 1], resetBefor);
+
+                if (newI != child.pointsInWhichRect[index]) {
+                    child.pointsInWhichRect[index] = newI;
+                    beforeRec = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], beforeRect, this.xDot, this.yDot);
+                    uv = quadUvCalculate(beforeRec.A, beforeRec.B, beforeRec.C, beforeRec.D, resetBefor);
+                }
+
                 const newRect = RectMorpher.getNewRectFromIndex(child.pointsInWhichRect[index], pointList, this.xDot, this.yDot);
                 pList[index] = quadPointCalculate(newRect.A, newRect.B, newRect.C, newRect.D, uv);
+
             }
 
             if (child.data instanceof StageLayer) {
@@ -313,6 +334,14 @@ class RectMorpher extends Morpher {
         this.shallowUpDate();
     }
 
+    protected inWhichRect(A: xy, D: xy, point: xy) {
+        if (point.x < A.x || point.x > D.x || point.y > D.y || point.y < A.y) {
+            return -1;
+        }
+        const dx = Math.floor((point.x - A.x) / ((D.x - A.x) / (this.xDot - 1)));
+        const dy = Math.floor((point.y - A.y) / ((D.y - A.y) / (this.yDot - 1)));
+        return dx + dy * (this.xDot - 1);
+    }
     removeMopherChild(child: (Morpher | StageLayer) | (Morpher | StageLayer)[]): void {
         if (child instanceof Array) {
             this._morpherChildren = this._morpherChildren.filter((v) => {

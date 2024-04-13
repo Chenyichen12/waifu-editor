@@ -1,8 +1,10 @@
+import { sayHello } from "pixi.js";
 import StageEventHandler, { StageEventRes } from "../EventHandler/StageEventHandler";
 import StageApp from "../StageApp";
 import { rect, xy } from "../TwoDType";
 import MorpherContainer from "./MorpherContainer";
 import RectMorpher from "./RectMorpher";
+import Morpher from "./Morpher";
 
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
@@ -17,7 +19,10 @@ abstract class MorpherEventHandler extends StageEventHandler {
         super(context);
         this.morpherContext = morpherContext;
     }
-
+    changeToState(state: MorpherEventHandler): void {
+        this.morpherContext.eventHandler = state;
+        state.stateEffect(this);
+    }
 }
 
 class MorpherSelectEventHandler extends MorpherEventHandler {
@@ -46,7 +51,46 @@ class MorpherSelectEventHandler extends MorpherEventHandler {
         }
         return false;
     }
+    handleLongPressEvent(e: MouseEvent): StageEventRes {
+        const point = this.toStagePos(e.offsetX, e.offsetY);
+        const hitMorpher = this.morpherContext.pointHitSelectMorpher(point);
+        if (hitMorpher != undefined) {
+            const mopherIndex = hitMorpher.pointAtPosition(point.x, point.y);
+            if (mopherIndex != undefined) {
+                this.changeToState(new DragMorpherEventHandler(this.context, this.morpherContext, hitMorpher, mopherIndex))
+                return StageEventRes.DRAG_ITEM
+            }
+        }
+        return StageEventRes.DEFAULT
+    }
 }
 
+class DragMorpherEventHandler extends MorpherEventHandler {
+
+    protected dragItem: {
+        data: Morpher,
+        index: number
+    }
+    constructor(context: StageApp, morpherContext: MorpherContainer, morpher: Morpher, pointIndex: number) {
+        super(context, morpherContext);
+        this.dragItem = { data: morpher, index: pointIndex }
+        if (morpher instanceof RectMorpher) {
+            morpher.addSelectPoint(pointIndex)
+        }
+    }
+
+    handleMouseMoveEvent(e: MouseEvent): StageEventRes {
+        const point = this.toStagePos(e.offsetX, e.offsetY);
+        const itemPoints = this.dragItem.data.points;
+        itemPoints[this.dragItem.index] = point;
+        this.dragItem.data.setFromPointList(itemPoints);
+        return StageEventRes.DRAG_ITEM;
+    }
+
+    handleMouseUpEvent(_e: MouseEvent): StageEventRes {
+        this.changeToState(new MorpherSelectEventHandler(this.context, this.morpherContext));
+        return StageEventRes.DEFAULT;
+    }
+}
 export default MorpherEventHandler;
 export { MorpherSelectEventHandler }
