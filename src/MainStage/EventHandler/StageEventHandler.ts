@@ -9,6 +9,7 @@ import StageLayer from "../LayerBase/StageLayer"
 import { result } from "./LayerEventHandler"
 import { xy } from "../TwoDType"
 import RectInSelected from "../GraphicsBase/RectInSelected"
+import RectMorpher from "../Morpher/RectMorpher"
 
 enum StageEventRes {
     DEFAULT,
@@ -16,6 +17,8 @@ enum StageEventRes {
 
     SELECT_LAYER,
     CLICK,
+    NOHITPOINT,
+    NOHIT,
 
     SELECT_RECT_MOVE
 }
@@ -119,14 +122,25 @@ class SelectedEventHandler extends StageEventHandler {
 
     handleClickEvent(e: MouseEvent): StageEventRes {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+
+        const morpherEvent = this.context.morpherContainer.eventHandler.handleClickEvent(e);
+        if (morpherEvent != StageEventRes.NOHIT) {
+            return StageEventRes.DEFAULT;
+        }
         const hitSelect = this.context.layerContainer.pointHitSelectedLayer(stagePos);
+
         if (hitSelect == undefined) {
             const hitLayer = this.context.layerContainer.pointHitLayer(stagePos);
             if (!e.shiftKey) {
                 this.context.layerContainer.removeAllSelected();
             }
             if (hitLayer != undefined) {
-                this.context.layerContainer.addSelected([hitLayer]);
+                if (hitLayer.morpherParent != undefined && hitLayer.morpherParent instanceof RectMorpher) {
+                    this.context.morpherContainer.addSelectMorpher(hitLayer.morpherParent);
+                }
+                else {
+                    this.context.layerContainer.addSelected([hitLayer]);
+                }
                 return StageEventRes.SELECT_LAYER;
             }
             return StageEventRes.DEFAULT;

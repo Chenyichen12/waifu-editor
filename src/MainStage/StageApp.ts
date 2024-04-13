@@ -30,7 +30,7 @@ class StageApp extends Application {
 
     layerContainer: StageLayerContainer = new StageLayerContainer([]);
 
-    morpherContainer: MorpherContainer = new MorpherContainer([]);
+    morpherContainer: MorpherContainer
 
     constructor(dom: HTMLDivElement) {
         super();
@@ -44,7 +44,7 @@ class StageApp extends Application {
                 child = this.stageDom.lastElementChild;
             }
         }
-
+        this.morpherContainer = new MorpherContainer([], this);
         instanceApp.value = this;
     }
 

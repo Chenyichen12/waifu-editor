@@ -88,6 +88,15 @@ class RectMorpher extends Morpher {
         this.shallowUpDate();
     }
 
+    set show(s: boolean) {
+        super.show = s;
+
+        if (!s) {
+            this.selectPoint.clear();
+        } else {
+            this.shallowUpDate();
+        }
+    }
     destroy(options?: DestroyOptions | undefined): void {
         super.destroy(options);
         this.unwatchScale();
@@ -232,7 +241,7 @@ class RectMorpher extends Morpher {
         for (const item of this.selectPoint) {
             this.circle(item.x, item.y, 6 / this.appScale)
                 .stroke({
-                    color: 0xff0000,
+                    color: 0x00ff00,
                     width: 2 / this.appScale
                 })
         }

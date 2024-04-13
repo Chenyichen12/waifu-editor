@@ -4,15 +4,22 @@
  */
 import { Container } from "pixi.js";
 import Morpher from "./Morpher";
-import { instanceApp } from "../StageApp";
+import StageApp, { instanceApp } from "../StageApp";
 import RectMorpher from "./RectMorpher";
+import { xy } from "../TwoDType";
+import StageEventHandler from "../EventHandler/StageEventHandler";
+import { MorpherSelectEventHandler } from "./MorpherEventHandler";
 
 class MorpherContainer extends Container {
     protected morphers: Morpher[];
+    eventHandler: StageEventHandler
     protected selectedMorphers = new Set<Morpher>();
-    constructor(morphers: Morpher[]) {
+
+
+    constructor(morphers: Morpher[], stage: StageApp) {
         super();
         this.morphers = morphers;
+        this.eventHandler = new MorpherSelectEventHandler(stage, this);
     }
 
     addRectMorphers(xDot: number, yDot: number) {
@@ -44,10 +51,52 @@ class MorpherContainer extends Container {
         }
 
         this.morphers.push(newRectMorpher);
-
         this.addChild(newRectMorpher);
+        this.selectedMorphers.add(newRectMorpher)
     }
 
+    addSelectMorpher(morphers: Morpher | Morpher[]) {
+        if (morphers instanceof Array) {
+            morphers.forEach((v) => {
+                this.selectedMorphers.add(v);
+                v.show = true;
+            })
+        } else {
+            this.selectedMorphers.add(morphers);
+            morphers.show = true;
+        }
+    }
+
+    removeAllSelect() {
+        this.selectedMorphers.forEach((v) => {
+            v.show = false;
+        })
+        this.selectedMorphers.clear();
+    }
+
+    removeSelectMorpher(morpher: Morpher | Morpher[]) {
+        if (morpher instanceof Array) {
+            morpher.forEach((v) => {
+                const move = this.selectedMorphers.delete(v);
+                if (move) {
+                    v.show = false;
+                }
+            })
+        } else {
+            const move = this.selectedMorphers.delete(morpher);
+            if (move) {
+                morpher.show = false;
+            }
+        }
+    }
+
+    pointHitSelectMorpher(pos: xy): Morpher | undefined {
+        for (const morpher of this.selectedMorphers) {
+            if (morpher.ifHitMorpher(pos.x, pos.y)) {
+                return morpher;
+            }
+        }
+    }
 }
 
 export default MorpherContainer;
