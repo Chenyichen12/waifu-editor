@@ -9,9 +9,11 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { ifInQuad, trianglePointCalculate, triangleUVCalculate } from "./util";
+import { ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
+import MeshLine from "../GraphicsBase/MeshLine";
+import MeshPoint from "../GraphicsBase/MeshPoint";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
@@ -32,7 +34,7 @@ class RectMorpher extends Morpher {
     protected xDot: number
     protected yDot: number
     readonly pointSize = 5
-    private appScale = instanceApp.value?.appScale.value ?? 1;
+    appScale = instanceApp.value?.appScale.value ?? 1;
     private unwatchScale
 
     protected _morpherChildren: RectMorpherChild[];
@@ -40,6 +42,7 @@ class RectMorpher extends Morpher {
 
     protected selectPoint = new Set<xyBefore>();
 
+    forEdgeRect: MorpherRectHandler
     constructor(option: Partial<RectMorpherOption>) {
         super(option);
         if (option.children == undefined || option.children.length == 0) {
@@ -87,6 +90,7 @@ class RectMorpher extends Morpher {
             this.appScale = v;
             this.shallowUpDate();
         })
+        this.forEdgeRect = new MorpherRectHandler(this);
         this.shallowUpDate();
     }
 
@@ -213,6 +217,7 @@ class RectMorpher extends Morpher {
     shallowUpDate(): void {
         this.clear()
 
+        const r = 3 / this.appScale
         for (let i = 0; i < this.yDot - 1; i++) {
             for (let j = 0; j < this.xDot; j++) {
                 const p1 = this.getDotPoint(j, i);
@@ -238,7 +243,7 @@ class RectMorpher extends Morpher {
             }
         }
         this.rectPoints.forEach((item) => {
-            this.circle(item.x, item.y, 3 / this.appScale)
+            this.circle(item.x, item.y, r)
                 .fill({
                     color: 0x00ff00
                 })
@@ -251,6 +256,33 @@ class RectMorpher extends Morpher {
                     width: 2 / this.appScale
                 })
         }
+        const bound = this.forEdgeRect.rect;
+        this.moveTo(bound.topLeft.x, bound.topLeft.y)
+            .lineTo(bound.topRight.x, bound.topRight.y)
+            .lineTo(bound.buttonRight.x, bound.buttonRight.y)
+            .lineTo(bound.buttonLeft.x, bound.buttonLeft.y)
+            .lineTo(bound.topLeft.x, bound.topLeft.y)
+            .stroke({
+                color: 0xff0000,
+                width: 1 / this.appScale
+            })
+
+        const drawRect = (x: number, y: number) => {
+            this.rect(x - 2 / this.appScale, y - 2 / this.appScale, 4 / this.appScale, 4 / this.appScale)
+                .fill({
+                    color: 0xff0000
+                })
+            return drawRect
+        }
+
+        drawRect(bound.topLeft.x, bound.topLeft.y)
+            (bound.topRight.x, bound.topRight.y)
+            (bound.buttonRight.x, bound.buttonRight.y)
+            (bound.buttonLeft.x, bound.buttonLeft.y)
+            ((bound.topLeft.x + bound.topRight.x) / 2, (bound.topLeft.y + bound.topLeft.y) / 2)
+            ((bound.topRight.x + bound.buttonRight.x) / 2, (bound.topRight.y + bound.buttonRight.y) / 2)
+            ((bound.buttonRight.x + bound.buttonLeft.x) / 2, (bound.buttonRight.y + bound.buttonLeft.y) / 2)
+            ((bound.buttonLeft.x + bound.topLeft.x) / 2, (bound.buttonLeft.y + bound.topLeft.y) / 2)
     }
 
 
@@ -381,4 +413,148 @@ class RectMorpher extends Morpher {
     }
 }
 
+
+
+class MorpherRectHandler {
+    protected context: RectMorpher
+    protected p1: xy
+    protected p2: xy
+    protected width: number
+    protected height: number
+
+    get rect() {
+        return {
+            topLeft: this.p1,
+            topRight: { x: this.p1.x + Math.cos(this.rotation) * this.width, y: this.p1.y + Math.sin(this.rotation) * this.height },
+            buttonRight: this.p2,
+            buttonLeft: { x: this.p2.x - Math.cos(this.rotation) * this.width, y: this.p2.y - Math.sin(this.rotation) * this.height }
+        }
+    }
+
+    private padding: number
+
+    private rotation: number
+    constructor(context: RectMorpher) {
+        this.context = context;
+        const border = context.points;
+        const p1 = border[0];
+        const p2 = border[border.length - 1];
+
+        this.rotation = 0;
+        this.padding = 5 / context.appScale
+        this.p1 = { x: p1.x - this.padding, y: p1.y - this.padding }
+        this.p2 = { x: p2.x + this.padding, y: p2.y + this.padding }
+
+        this.width = p2.x - p1.x + this.padding * 2;
+        this.height = p2.y - p1.y + this.padding * 2;
+    }
+    ifHitRect(x: number, y: number): edge | undefined {
+
+        const p1 = new MeshPoint(this.p1.x, this.p1.y, 0, 0);
+        const p2 = new MeshPoint(this.p1.x + Math.cos(this.rotation) * this.width, this.p1.y + Math.sin(this.rotation) * this.height, 0, 0);
+        const p3 = new MeshPoint(this.p2.x, this.p2.y, 0, 0);
+        const p4 = new MeshPoint(this.p2.x - Math.cos(this.rotation) * this.width, this.p2.y - Math.sin(this.rotation) * this.height, 0, 0);
+
+        const topLine = new MeshLine(p1, p2);
+        const buttonLine = new MeshLine(p4, p3);
+        const leftLine = new MeshLine(p1, p4);
+        const rightLine = new MeshLine(p2, p3);
+
+        if (topLine.ifHitLine(x, y, 5 / this.context.appScale))
+            return edge.TOP;
+        if (buttonLine.ifHitLine(x, y, 5 / this.context.appScale))
+            return edge.BUTTON
+        if (leftLine.ifHitLine(x, y, 5 / this.context.appScale))
+            return edge.LEFT
+        if (rightLine.ifHitLine(x, y, 5 / this.context.appScale))
+            return edge.RIGHT
+
+
+        return undefined
+    }
+
+    moveAllPoint(movementX: number, movementY: number) {
+        const points = this.context.points.map((v) => {
+            return { x: v.x + movementX, y: v.y + movementY }
+        })
+
+        this.p1.x += movementX;
+        this.p1.y += movementY;
+        this.p2.x += movementX;
+        this.p2.y += movementY;
+
+        this.context.setFromPointList(points);
+    }
+
+    rotationFromPoint(degree: number, point: xy) {
+        const points = this.context.points.map((v) => {
+            return rotationPoint(v, degree, point);
+        })
+
+        this.p1 = rotationPoint(this.p1, degree, point);
+        this.p2 = rotationPoint(this.p1, degree, point);
+
+        this.rotation += degree
+        this.context.setFromPointList(points);
+    }
+    resizeFormPointList(pList: xy[]) {
+        const zheng = pList.map((v) => {
+            return rotationPoint(v, -this.rotation, { x: 0, y: 0 });
+        })
+        const res = RectInSelected.getBound(zheng);
+        this.p1.x = res.left - this.padding;
+        this.p1.y = res.top - this.padding;
+        this.p2.x = res.right + this.padding;
+        this.p2.y = res.button + this.padding;
+        this.width = res.right - res.left;
+        this.height = res.button - res.top;
+
+        this.p1 = rotationPoint(this.p1, this.rotation, { x: 0, y: 0 });
+        this.p2 = rotationPoint(this.p2, this.rotation, { x: 0, y: 0 });
+    }
+
+    extrusion(whichEdge: edge, moveMent: number) {
+        const zheng = this.context.points.map((v) => {
+            return rotationPoint(v, -this.rotation, { x: 0, y: 0 });
+        })
+
+        const zp1 = rotationPoint(this.p1, -this.rotation, { x: 0, y: 0 });
+        //const zp2 = rotationPoint(this.p2, -this.rotation, { x: 0, y: 0 });
+
+        const uvList = zheng.map((val) => {
+            return {
+                u: (val.x - zp1.x) / this.width,
+                v: (val.y - zp1.y) / this.height
+            }
+        })
+        if (whichEdge == edge.LEFT) {
+            this.width -= moveMent;
+            this.p1.x += moveMent;
+        }
+        if (whichEdge == edge.RIGHT) {
+            this.width += moveMent;
+            this.p2.x += moveMent
+        }
+        if (whichEdge == edge.TOP) {
+            this.height -= moveMent;
+            this.p1.y += moveMent;
+        }
+        if (whichEdge == edge.BUTTON) {
+            this.height += moveMent
+            this.p2.y += moveMent;
+        }
+
+        const remakePoint = uvList.map((v) => {
+            const zheng2 = {
+                x: zp1.x + v.u * this.width,
+                y: zp1.y + v.v * this.height
+            }
+            return rotationPoint(zheng2, this.rotation, { x: 0, y: 0 })
+        })
+        this.context.setFromPointList(remakePoint)
+    }
+}
+enum edge {
+    LEFT, RIGHT, TOP, BUTTON
+}
 export default RectMorpher;

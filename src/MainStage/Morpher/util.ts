@@ -106,4 +106,11 @@ function trianglePointCalculate(A: xy, B: xy, C: xy, alpha: number, beta: number
         y: A.y * alpha + B.y * beta + C.y * gama
     }
 }
-export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform, trianglePointCalculate, triangleUVCalculate }
+
+function rotationPoint(origin: xy, degree: number, point: xy): xy {
+    return {
+        x: (origin.x - point.x) * Math.cos(degree) - (origin.y - point.y) * Math.sin(degree) + point.x,
+        y: (origin.x - point.x) * Math.sin(degree) + (origin.y - point.y) * Math.cos(degree) + point.y
+    }
+}
+export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform, trianglePointCalculate, triangleUVCalculate, rotationPoint }
