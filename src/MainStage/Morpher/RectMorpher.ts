@@ -451,24 +451,34 @@ class MorpherRectHandler {
     }
     ifHitRect(x: number, y: number): edge | undefined {
 
-        const p1 = new MeshPoint(this.p1.x, this.p1.y, 0, 0);
-        const p2 = new MeshPoint(this.p1.x + Math.cos(this.rotation) * this.width, this.p1.y + Math.sin(this.rotation) * this.height, 0, 0);
-        const p3 = new MeshPoint(this.p2.x, this.p2.y, 0, 0);
-        const p4 = new MeshPoint(this.p2.x - Math.cos(this.rotation) * this.width, this.p2.y - Math.sin(this.rotation) * this.height, 0, 0);
+        const p1 = { x: this.p1.x, y: this.p1.y }
+        const p2 = { x: this.p1.x + Math.cos(this.rotation) * this.width, y: this.p1.y + Math.sin(this.rotation) * this.height }
+        const p3 = { x: this.p2.x, y: this.p2.y }
+        const p4 = { x: this.p2.x - Math.cos(this.rotation) * this.width, y: this.p2.y - Math.sin(this.rotation) * this.height }
 
-        const topLine = new MeshLine(p1, p2);
-        const buttonLine = new MeshLine(p4, p3);
-        const leftLine = new MeshLine(p1, p4);
-        const rightLine = new MeshLine(p2, p3);
+        const p12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }
+        const p23 = { x: (p2.x + p3.x) / 2, y: (p2.y + p3.y) / 2 }
+        const p34 = { x: (p3.x + p4.x) / 2, y: (p3.y + p4.y) / 2 }
+        const p41 = { x: (p4.x + p1.x) / 2, y: (p4.y + p1.y) / 2 }
 
-        if (topLine.ifHitLine(x, y, 5 / this.context.appScale))
+        const distance = 3 / this.context.appScale
+        if (ifHitPoint(p12, x, y, distance))
             return edge.TOP;
-        if (buttonLine.ifHitLine(x, y, 5 / this.context.appScale))
+        if (ifHitPoint(p34, x, y, distance))
             return edge.BUTTON
-        if (leftLine.ifHitLine(x, y, 5 / this.context.appScale))
+        if (ifHitPoint(p41, x, y, distance))
             return edge.LEFT
-        if (rightLine.ifHitLine(x, y, 5 / this.context.appScale))
+        if (ifHitPoint(p23, x, y, distance))
             return edge.RIGHT
+
+        if (ifHitPoint(p1, x, y, distance))
+            return edge.TOPLEFT
+        if (ifHitPoint(p2, x, y, distance))
+            return edge.TOPRIGHT
+        if (ifHitPoint(p3, x, y, distance))
+            return edge.BUTTONRIGHT
+        if (ifHitPoint(p4, x, y, distance))
+            return edge.BUTTONLEFT
 
         const p5 = {
             x: (this.p1.x + this.p2.x) / 2,
@@ -481,6 +491,14 @@ class MorpherRectHandler {
         }
 
         return undefined
+
+        function ifHitPoint(point: xy, x: number, y: number, r: number = 3) {
+            const rtest = (point.x - x) * (point.x - x) + (point.y - y) * (point.y - y);
+            if (rtest < r * r) {
+                return true;
+            }
+            return false
+        }
     }
 
     moveAllPoint(movementX: number, movementY: number) {
@@ -561,6 +579,46 @@ class MorpherRectHandler {
             this.height += moveMentY
             this.p2.y += moveMentY;
         }
+        if (whichEdge == edge.TOPLEFT) {
+            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? moveMentY / this.height : moveMentX / this.width
+            this.p1.x += this.width * scale;
+            zp1.x += this.width * scale;
+            this.p1.y += this.height * scale
+            zp1.y += this.height * scale
+
+            this.width -= this.width * scale
+            this.height -= this.height * scale;
+        }
+        if (whichEdge == edge.TOPRIGHT) {
+            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? -moveMentY / this.height : moveMentX / this.width
+
+            this.p2.x += this.width * scale
+            this.p1.y -= this.height * scale
+            zp1.y -= this.height * scale
+
+            this.width += this.width * scale
+            this.height += this.height * scale;
+        }
+        if (whichEdge == edge.BUTTONRIGHT) {
+            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? moveMentY / this.height : moveMentX / this.width
+            this.p2.x += this.width * scale;
+            this.p2.y += this.height * scale
+
+            this.width += this.width * scale
+            this.height += this.height * scale;
+        }
+        if (whichEdge == edge.BUTTONLEFT) {
+            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? moveMentY / this.height : -moveMentX / this.width
+
+            this.p1.x -= this.width * scale
+            this.p2.y += this.height * scale
+            zp1.x -= this.width * scale
+
+            this.width += this.width * scale
+            this.height += this.height * scale;
+        }
+
+
 
         const remakePoint = uvList.map((v) => {
             const zheng2 = {
@@ -573,7 +631,8 @@ class MorpherRectHandler {
     }
 }
 enum edge {
-    LEFT, RIGHT, TOP, BUTTON, CENTER
+    LEFT, RIGHT, TOP, BUTTON, CENTER,
+    TOPLEFT, TOPRIGHT, BUTTONRIGHT, BUTTONLEFT
 }
 export default RectMorpher;
 export type { edge }
