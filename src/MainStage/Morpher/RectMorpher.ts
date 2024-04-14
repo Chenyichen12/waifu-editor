@@ -283,6 +283,7 @@ class RectMorpher extends Morpher {
             ((bound.topRight.x + bound.buttonRight.x) / 2, (bound.topRight.y + bound.buttonRight.y) / 2)
             ((bound.buttonRight.x + bound.buttonLeft.x) / 2, (bound.buttonRight.y + bound.buttonLeft.y) / 2)
             ((bound.buttonLeft.x + bound.topLeft.x) / 2, (bound.buttonLeft.y + bound.topLeft.y) / 2)
+            ((bound.topLeft.x + bound.buttonRight.x) / 2, (bound.topLeft.y + bound.buttonRight.y) / 2)
     }
 
 
@@ -469,6 +470,15 @@ class MorpherRectHandler {
         if (rightLine.ifHitLine(x, y, 5 / this.context.appScale))
             return edge.RIGHT
 
+        const p5 = {
+            x: (this.p1.x + this.p2.x) / 2,
+            y: (this.p1.y + this.p2.y) / 2
+        }
+
+        const r = (p5.x - x) * (p5.x - x) + (p5.y - y) * (p5.y - y);
+        if (r < 3 / this.context.appScale) {
+            return edge.CENTER
+        }
 
         return undefined
     }
@@ -513,7 +523,13 @@ class MorpherRectHandler {
         this.p2 = rotationPoint(this.p2, this.rotation, { x: 0, y: 0 });
     }
 
-    extrusion(whichEdge: edge, moveMent: number) {
+    extrusion(whichEdge: edge, moveMentX: number, moveMentY: number) {
+
+        if (whichEdge == edge.CENTER) {
+            this.moveAllPoint(moveMentX, moveMentY)
+            return
+        }
+
         const zheng = this.context.points.map((v) => {
             return rotationPoint(v, -this.rotation, { x: 0, y: 0 });
         })
@@ -528,20 +544,20 @@ class MorpherRectHandler {
             }
         })
         if (whichEdge == edge.LEFT) {
-            this.width -= moveMent;
-            this.p1.x += moveMent;
+            this.width -= moveMentX;
+            this.p1.x += moveMentX;
         }
         if (whichEdge == edge.RIGHT) {
-            this.width += moveMent;
-            this.p2.x += moveMent
+            this.width += moveMentX;
+            this.p2.x += moveMentX;
         }
         if (whichEdge == edge.TOP) {
-            this.height -= moveMent;
-            this.p1.y += moveMent;
+            this.height -= moveMentY;
+            this.p1.y += moveMentY;
         }
         if (whichEdge == edge.BUTTON) {
-            this.height += moveMent
-            this.p2.y += moveMent;
+            this.height += moveMentY
+            this.p2.y += moveMentY;
         }
 
         const remakePoint = uvList.map((v) => {
@@ -555,6 +571,7 @@ class MorpherRectHandler {
     }
 }
 enum edge {
-    LEFT, RIGHT, TOP, BUTTON
+    LEFT, RIGHT, TOP, BUTTON, CENTER
 }
 export default RectMorpher;
+export type { edge }

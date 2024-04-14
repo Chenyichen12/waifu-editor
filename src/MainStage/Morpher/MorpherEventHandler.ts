@@ -6,7 +6,7 @@
 import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher from "./Morpher";
-import RectMorpher from "./RectMorpher";
+import RectMorpher, { edge } from "./RectMorpher";
 
 
 enum MorpherEventRes {
@@ -59,6 +59,11 @@ class MorpherSelectHandler extends MorpherEventHandler {
                 this.changeToState(new DragPointHandler(this.context, index));
                 return MorpherEventRes.CHANGE_DRAG_POINT
             }
+            const rectHit = this.context.forEdgeRect.ifHitRect(point.x, point.y);
+            if (rectHit != undefined) {
+                this.changeToState(new DragRectMorpherRect(this.context, rectHit, point))
+                return MorpherEventRes.CHANGE_DRAG_POINT
+            }
         }
         return MorpherEventRes.DEFAUT
     }
@@ -87,6 +92,34 @@ class DragPointHandler extends MorpherEventHandler {
     }
     handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
         this.changeToState(new MorpherSelectHandler(this.context))
+        return MorpherEventRes.DEFAUT
+    }
+}
+
+class DragRectMorpherRect extends MorpherEventHandler {
+    protected dragItem
+    protected context
+    protected firstDrag
+    protected lastDrag
+    constructor(context: RectMorpher, witch: edge, point: xy) {
+        super(context);
+        this.context = context;
+        this.dragItem = witch
+        this.firstDrag = point;
+        this.lastDrag = point;
+    }
+
+    handleMouseMoveEvent(e: MouseEvent): MorpherEventRes {
+        const last = this.toStagePos(e.offsetX, e.offsetY);
+
+        this.context.forEdgeRect.extrusion(this.dragItem, last.x - this.lastDrag.x, last.y - this.lastDrag.y);
+        this.lastDrag = last;
+
+        return MorpherEventRes.DRAG_POINT
+    }
+
+    handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
+        this.changeToState(new MorpherSelectHandler(this.context));
         return MorpherEventRes.DEFAUT
     }
 }
