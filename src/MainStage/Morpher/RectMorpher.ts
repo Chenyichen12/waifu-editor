@@ -546,6 +546,7 @@ class MorpherRectHandler {
         if (whichEdge == edge.LEFT) {
             this.width -= moveMentX;
             this.p1.x += moveMentX;
+            zp1.x += moveMentX
         }
         if (whichEdge == edge.RIGHT) {
             this.width += moveMentX;
@@ -554,6 +555,7 @@ class MorpherRectHandler {
         if (whichEdge == edge.TOP) {
             this.height -= moveMentY;
             this.p1.y += moveMentY;
+            zp1.y += moveMentY
         }
         if (whichEdge == edge.BUTTON) {
             this.height += moveMentY
