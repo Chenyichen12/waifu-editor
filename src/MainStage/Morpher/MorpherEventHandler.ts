@@ -67,6 +67,34 @@ class MorpherSelectHandler extends MorpherEventHandler {
         }
         return MorpherEventRes.DEFAUT
     }
+
+    handleMouseMoveEvent(e: MouseEvent): MorpherEventRes {
+        const point = this.toStagePos(e.offsetX, e.offsetY);
+        if (this.context instanceof RectMorpher) {
+            const hitRect = this.context.forEdgeRect.ifHitRect(point.x, point.y);
+            if (hitRect == undefined) {
+                instanceApp.value!.containerDom.style.cursor = "default";
+            }
+            if (hitRect == edge.CENTER) {
+                instanceApp.value!.containerDom.style.cursor = "move";
+            }
+            if (hitRect == edge.LEFT || hitRect == edge.RIGHT) {
+                instanceApp.value!.containerDom.style.cursor = "ew-resize";
+            }
+            if (hitRect == edge.TOP || hitRect == edge.BUTTON) {
+                instanceApp.value!.containerDom.style.cursor = "ns-resize";
+            }
+            if (hitRect == edge.BUTTONRIGHT || hitRect == edge.TOPLEFT) {
+                instanceApp.value!.containerDom.style.cursor = "nwse-resize"
+            }
+            if (hitRect == edge.BUTTONLEFT || hitRect == edge.TOPRIGHT) {
+                instanceApp.value!.containerDom.style.cursor = "nesw-resize"
+            }
+            return MorpherEventRes.HIT_POINT
+        }
+        return MorpherEventRes.DEFAUT
+    }
+
 }
 
 class DragPointHandler extends MorpherEventHandler {

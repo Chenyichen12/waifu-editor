@@ -635,4 +635,4 @@ enum edge {
     TOPLEFT, TOPRIGHT, BUTTONRIGHT, BUTTONLEFT
 }
 export default RectMorpher;
-export type { edge }
+export { edge }
