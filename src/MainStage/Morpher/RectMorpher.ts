@@ -406,8 +406,9 @@ class RectMorpher extends Morpher {
     upDateChildPointIndex(child: StageLayer | Morpher) {
         const pointList = this.distributePoint(child instanceof StageLayer ? child.mesh.listPoint : child.points);
         const s = this._morpherChildren.find((v) => {
-            v.data === child
+            return v.data == child
         })
+
         if (s != undefined) {
             s.pointsInWhichRect = pointList;
         }

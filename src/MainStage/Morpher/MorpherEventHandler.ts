@@ -74,6 +74,7 @@ class MorpherSelectHandler extends MorpherEventHandler {
             const hitRect = this.context.forEdgeRect.ifHitRect(point.x, point.y);
             if (hitRect == undefined) {
                 instanceApp.value!.containerDom.style.cursor = "default";
+                return MorpherEventRes.DEFAUT
             }
             if (hitRect == edge.CENTER) {
                 instanceApp.value!.containerDom.style.cursor = "move";

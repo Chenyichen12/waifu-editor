@@ -191,8 +191,8 @@ class StageLayer extends Container {
      */
     upDatePoint() {
         this.faceMesh.upDate();
-        if (this.faceMesh.parent instanceof RectMorpher) {
-            this.faceMesh.parent.upDateChildPointIndex(this);
+        if (this.morpherParent instanceof RectMorpher) {
+            this.morpherParent.upDateChildPointIndex(this);
         }
         this.textureLayer.upDatePositionBuffer(this.getPointList());
     }
