@@ -9,6 +9,8 @@ import StageLayer from "../LayerBase/StageLayer"
 import { result } from "./LayerEventHandler"
 import { xy } from "../TwoDType"
 import RectInSelected from "../GraphicsBase/RectInSelected"
+import RectMorpher from "../Morpher/RectMorpher"
+import { MorpherEventRes } from "../Morpher/MorpherEventHandler"
 
 enum StageEventRes {
     DEFAULT,
@@ -16,6 +18,10 @@ enum StageEventRes {
 
     SELECT_LAYER,
     CLICK,
+    NOHITPOINT,
+    NOHIT,
+
+    DRAG_ITEM,
 
     SELECT_RECT_MOVE
 }
@@ -98,6 +104,12 @@ class SelectedEventHandler extends StageEventHandler {
         return super.handleKeyDownEvent(e);
     }
     handleLongPressEvent(e: MouseEvent): StageEventRes {
+
+        for (const child of this.context.morpherContainer.selectedMorpher) {
+            const res = child.eventHandler.handleMouseLongPressEvent(e);
+            if (res == MorpherEventRes.CHANGE_DRAG_POINT) { return StageEventRes.DEFAULT }
+        }
+
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
         for (const selectedLayer of this.context.layerContainer.selectedLayer) {
             const layerPos = selectedLayer.transformFormStage(stagePos);
@@ -119,14 +131,31 @@ class SelectedEventHandler extends StageEventHandler {
 
     handleClickEvent(e: MouseEvent): StageEventRes {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
+
+        const hitMorpher = this.context.morpherContainer.pointHitSelectMorpher(stagePos);
+        if (hitMorpher == undefined && !e.shiftKey) {
+            this.context.morpherContainer.removeAllSelect();
+        }
+
+        if (hitMorpher != undefined) {
+            const res = hitMorpher.eventHandler.handleMouseClickEvent(e);
+            if (res == MorpherEventRes.HIT_POINT) { return StageEventRes.DEFAULT }
+        }
+
         const hitSelect = this.context.layerContainer.pointHitSelectedLayer(stagePos);
+
         if (hitSelect == undefined) {
             const hitLayer = this.context.layerContainer.pointHitLayer(stagePos);
             if (!e.shiftKey) {
                 this.context.layerContainer.removeAllSelected();
             }
             if (hitLayer != undefined) {
-                this.context.layerContainer.addSelected([hitLayer]);
+                if (hitLayer.morpherParent != undefined && hitLayer.morpherParent instanceof RectMorpher) {
+                    this.context.morpherContainer.addSelectMorpher(hitLayer.morpherParent);
+                }
+                else {
+                    this.context.layerContainer.addSelected([hitLayer]);
+                }
                 return StageEventRes.SELECT_LAYER;
             }
             return StageEventRes.DEFAULT;
@@ -152,6 +181,16 @@ class SelectedEventHandler extends StageEventHandler {
     handleMouseMoveEvent(e: MouseEvent): StageEventRes {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
         let ifInRect = false;
+
+
+        for (const morpher of this.context.morpherContainer.selectedMorpher) {
+            const res = morpher.eventHandler.handleMouseMoveEvent(e);
+            if (res != MorpherEventRes.DEFAUT) {
+                return StageEventRes.DEFAULT;
+            }
+        }
+
+
         for (const child of this.context.layerContainer.selectedLayer) {
             const res = child.mouseState.handleMouseMoveEvent({
                 point: child.transformFormStage(stagePos),
@@ -175,6 +214,10 @@ class SelectedEventHandler extends StageEventHandler {
         if (super.handleMouseUpEvent(e) == StageEventRes.CLICK) {
             return StageEventRes.CLICK
         };
+
+        for (const child of this.context.morpherContainer.selectedMorpher) {
+            child.eventHandler.handleMouseUpEvent(e);
+        }
         const stagePos = this.toStagePos(e.offsetX, e.offsetY)
         for (const child of this.context.layerContainer.selectedLayer) {
             const p = child.transformFormStage(stagePos);

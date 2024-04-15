@@ -11,6 +11,7 @@ import { Group, LayerType, NormalLayer, Root } from "../components/Project/Layer
 import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 import EditMeshMode from "./EditMeshMode/EditMeshMode";
+import MorpherContainer from "./Morpher/MorpherContainer";
 
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
@@ -29,6 +30,8 @@ class StageApp extends Application {
 
     layerContainer: StageLayerContainer = new StageLayerContainer([]);
 
+    morpherContainer: MorpherContainer
+
     constructor(dom: HTMLDivElement) {
         super();
         this.stageDom = dom;
@@ -41,7 +44,7 @@ class StageApp extends Application {
                 child = this.stageDom.lastElementChild;
             }
         }
-
+        this.morpherContainer = new MorpherContainer([]);
         instanceApp.value = this;
     }
 
@@ -91,6 +94,8 @@ class StageApp extends Application {
         const { mesh, texture } = this.layerContainer.getMeshAndTexture();
         this.stage.addChild(texture);
         this.stage.addChild(mesh);
+
+        this.stage.addChild(this.morpherContainer);
         /**
          * 递归添加到childLayer
          * @param group 

@@ -525,6 +525,11 @@
   resolved "https://registry.npmmirror.com/@sinclair/typebox/-/typebox-0.27.8.tgz#6667fac16c436b5434a387a34dedb013198f6e6e"
   integrity sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==
 
+"@techstark/opencv-js@^4.9.0-release.3":
+  version "4.9.0-release.3"
+  resolved "https://registry.npmmirror.com/@techstark/opencv-js/-/opencv-js-4.9.0-release.3.tgz#efcf5b33611a05f3f3eb5b180e6582a064f4b5d1"
+  integrity sha512-y+KoLLlkXVUHWozYlN1vmMD9TQMPJObqml5nPA5vPWgHtOgm8q5O74UtzM23eayidvmeFX6tF5e2gDdyxcpy3Q==
+
 "@types/css-font-loading-module@^0.0.12":
   version "0.0.12"
   resolved "https://registry.npmmirror.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.12.tgz#65494833928823f998fbe8e86312821875d80db5"
