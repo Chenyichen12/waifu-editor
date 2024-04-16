@@ -55,6 +55,7 @@ abstract class StageEventHandler {
     handleKeyDownEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
     handleKeyUpEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
     handleWheelEvent(e: WheelEvent): StageEventRes {
+        e.preventDefault();
         const stage = this.context.stage;
         const stagePos = stage.toLocal({ x: e.offsetX, y: e.offsetY });
         const oldZoom = stage.scale.x
@@ -68,7 +69,6 @@ abstract class StageEventHandler {
                 stage.position.x + oldDx, stage.position.y + oldDy
             )
         );
-
         return StageEventRes.DEFAULT
     }
 
@@ -150,7 +150,7 @@ class SelectedEventHandler extends StageEventHandler {
                 this.context.layerContainer.removeAllSelected();
             }
             if (hitLayer != undefined) {
-                if (hitLayer.morpherParent != undefined && hitLayer.morpherParent instanceof RectMorpher) {
+                if (hitLayer.morpherParent != undefined) {
                     this.context.morpherContainer.addSelectMorpher(hitLayer.morpherParent);
                 }
                 else {
@@ -182,15 +182,6 @@ class SelectedEventHandler extends StageEventHandler {
         const stagePos = this.toStagePos(e.offsetX, e.offsetY);
         let ifInRect = false;
 
-
-        for (const morpher of this.context.morpherContainer.selectedMorpher) {
-            const res = morpher.eventHandler.handleMouseMoveEvent(e);
-            if (res != MorpherEventRes.DEFAUT) {
-                return StageEventRes.DEFAULT;
-            }
-        }
-
-
         for (const child of this.context.layerContainer.selectedLayer) {
             const res = child.mouseState.handleMouseMoveEvent({
                 point: child.transformFormStage(stagePos),
@@ -204,8 +195,13 @@ class SelectedEventHandler extends StageEventHandler {
                 ifInRect = true;
             }
         }
-
         this.context.containerDom.style.cursor = ifInRect ? "move" : "default";
+        for (const morpher of this.context.morpherContainer.selectedMorpher) {
+            const res = morpher.eventHandler.handleMouseMoveEvent(e);
+            if (res != MorpherEventRes.DEFAUT) {
+                return StageEventRes.DEFAULT;
+            }
+        }
 
         return StageEventRes.DEFAULT;
 

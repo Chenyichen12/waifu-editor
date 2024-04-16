@@ -9,11 +9,9 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
+import { generateBound, ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
-import MeshLine from "../GraphicsBase/MeshLine";
-import MeshPoint from "../GraphicsBase/MeshPoint";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
@@ -49,7 +47,7 @@ class RectMorpher extends Morpher {
             throw new Error("矩形变形器至少包含一个图层")
         }
 
-        let { rectLeft, rectTop, rectRight, rectButton } = this.generateBound(option.children!);
+        let { rectLeft, rectTop, rectRight, rectButton } = generateBound(option.children!);
         //加padding
         const w = Project.instance.value!.root.bound.width;
         const h = Project.instance.value!.root.bound.height;
@@ -88,7 +86,8 @@ class RectMorpher extends Morpher {
 
         this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(1), (v) => {
             this.appScale = v;
-            this.shallowUpDate();
+            if (this.show)
+                this.shallowUpDate();
         })
         this.forEdgeRect = new MorpherRectHandler(this);
         this.shallowUpDate();
@@ -134,27 +133,6 @@ class RectMorpher extends Morpher {
     }
 
 
-    private generateBound(childLayer: (StageLayer | Morpher)[]) {
-        const farAway = 100000;
-        let rectLeft = farAway;
-        let rectTop = farAway;
-        let rectRight = -farAway;
-        let rectButton = -farAway;
-        for (const layer of childLayer) {
-            let ps: xy[];
-            if (layer instanceof Morpher) {
-                ps = layer.points;
-            } else {
-                ps = layer.mesh.listPoint;
-            }
-            const { top, left, button, right } = RectInSelected.getBound(ps);
-            rectTop = rectTop > top ? top : rectTop;
-            rectLeft = rectLeft > left ? left : rectLeft;
-            rectRight = rectRight < right ? right : rectRight;
-            rectButton = rectButton < button ? button : rectButton;
-        }
-        return { rectLeft, rectTop, rectRight, rectButton }
-    }
 
     private getRectFromIndex(i: number) {
         const left = i % (this.xDot - 1);
@@ -279,7 +257,7 @@ class RectMorpher extends Morpher {
             (bound.topRight.x, bound.topRight.y)
             (bound.buttonRight.x, bound.buttonRight.y)
             (bound.buttonLeft.x, bound.buttonLeft.y)
-            ((bound.topLeft.x + bound.topRight.x) / 2, (bound.topLeft.y + bound.topLeft.y) / 2)
+            ((bound.topLeft.x + bound.topRight.x) / 2, (bound.topLeft.y + bound.topRight.y) / 2)
             ((bound.topRight.x + bound.buttonRight.x) / 2, (bound.topRight.y + bound.buttonRight.y) / 2)
             ((bound.buttonRight.x + bound.buttonLeft.x) / 2, (bound.buttonRight.y + bound.buttonLeft.y) / 2)
             ((bound.buttonLeft.x + bound.topLeft.x) / 2, (bound.buttonLeft.y + bound.topLeft.y) / 2)
@@ -320,10 +298,6 @@ class RectMorpher extends Morpher {
         return false;
     }
 
-    private getPointsFromChild(child: StageLayer | Morpher): xy[] {
-        return child instanceof StageLayer ? [...child.getPointList()] : child.points
-    }
-
     private getTriangleFromIndex(rectPointList: xy[], i: number) {
         const index = Math.floor(i / 2);
         const ansRect = RectMorpher.getNewRectFromIndex(index, rectPointList, this.xDot, this.yDot);
@@ -341,9 +315,12 @@ class RectMorpher extends Morpher {
             }
         }
     }
-    setFromPointList(pointList: xy[]): void {
+    setFromPointList(pointList: xy[], shouldUpDateParent: boolean): void {
+
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
+
+            // ifChildUpdate
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
 
                 if (child.pointsInWhichRect[index] == -1) {
@@ -366,13 +343,16 @@ class RectMorpher extends Morpher {
                 })
                 child.data.mopherUpDate();
             } else {
-                child.data.setFromPointList(pList);
+                child.data.setFromPointList(pList, false);
             }
         }
         this.rectPoints.forEach((v, i) => {
             v.x = pointList[i].x;
             v.y = pointList[i].y;
         })
+        if (shouldUpDateParent && this.morpherParent != undefined) {
+            this.morpherParent.upDateChildPointIndex();
+        }
         this.shallowUpDate();
     }
 
@@ -403,13 +383,10 @@ class RectMorpher extends Morpher {
         })
     }
 
-    upDateChildPointIndex(child: StageLayer | Morpher) {
-        const pointList = this.distributePoint(child instanceof StageLayer ? child.mesh.listPoint : child.points);
-        const s = this._morpherChildren.find((v) => {
-            v.data === child
-        })
-        if (s != undefined) {
-            s.pointsInWhichRect = pointList;
+    upDateChildPointIndex() {
+        for (const children of this._morpherChildren) {
+            const pList = this.distributePoint(children.data instanceof StageLayer ? children.data.mesh.listPoint : children.data.points);
+            children.pointsInWhichRect = pList;
         }
     }
 }
@@ -426,9 +403,9 @@ class MorpherRectHandler {
     get rect() {
         return {
             topLeft: this.p1,
-            topRight: { x: this.p1.x + Math.cos(this.rotation) * this.width, y: this.p1.y + Math.sin(this.rotation) * this.height },
+            topRight: { x: this.p1.x + Math.cos(this.rotation) * this.width, y: this.p1.y + Math.sin(this.rotation) * this.width },
             buttonRight: this.p2,
-            buttonLeft: { x: this.p2.x - Math.cos(this.rotation) * this.width, y: this.p2.y - Math.sin(this.rotation) * this.height }
+            buttonLeft: { x: this.p2.x - Math.cos(this.rotation) * this.width, y: this.p2.y - Math.sin(this.rotation) * this.width }
         }
     }
 
@@ -450,12 +427,7 @@ class MorpherRectHandler {
         this.height = p2.y - p1.y + this.padding * 2;
     }
     ifHitRect(x: number, y: number): edge | undefined {
-
-        const p1 = { x: this.p1.x, y: this.p1.y }
-        const p2 = { x: this.p1.x + Math.cos(this.rotation) * this.width, y: this.p1.y + Math.sin(this.rotation) * this.height }
-        const p3 = { x: this.p2.x, y: this.p2.y }
-        const p4 = { x: this.p2.x - Math.cos(this.rotation) * this.width, y: this.p2.y - Math.sin(this.rotation) * this.height }
-
+        const { topLeft: p1, topRight: p2, buttonRight: p3, buttonLeft: p4 } = this.rect;
         const p12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }
         const p23 = { x: (p2.x + p3.x) / 2, y: (p2.y + p3.y) / 2 }
         const p34 = { x: (p3.x + p4.x) / 2, y: (p3.y + p4.y) / 2 }
@@ -511,7 +483,7 @@ class MorpherRectHandler {
         this.p2.x += movementX;
         this.p2.y += movementY;
 
-        this.context.setFromPointList(points);
+        this.context.setFromPointList(points, true);
     }
 
     rotationFromPoint(degree: number, point: xy) {
@@ -520,10 +492,10 @@ class MorpherRectHandler {
         })
 
         this.p1 = rotationPoint(this.p1, degree, point);
-        this.p2 = rotationPoint(this.p1, degree, point);
+        this.p2 = rotationPoint(this.p2, degree, point);
 
         this.rotation += degree
-        this.context.setFromPointList(points);
+        this.context.setFromPointList(points, true);
     }
     resizeFormPointList(pList: xy[]) {
         const zheng = pList.map((v) => {
@@ -534,8 +506,8 @@ class MorpherRectHandler {
         this.p1.y = res.top - this.padding;
         this.p2.x = res.right + this.padding;
         this.p2.y = res.button + this.padding;
-        this.width = res.right - res.left;
-        this.height = res.button - res.top;
+        this.width = res.right - res.left + this.padding * 2;
+        this.height = res.button - res.top + this.padding * 2;
 
         this.p1 = rotationPoint(this.p1, this.rotation, { x: 0, y: 0 });
         this.p2 = rotationPoint(this.p2, this.rotation, { x: 0, y: 0 });
@@ -552,55 +524,52 @@ class MorpherRectHandler {
             return rotationPoint(v, -this.rotation, { x: 0, y: 0 });
         })
 
-        const zp1 = rotationPoint(this.p1, -this.rotation, { x: 0, y: 0 });
-        //const zp2 = rotationPoint(this.p2, -this.rotation, { x: 0, y: 0 });
+        this.p1 = rotationPoint(this.p1, -this.rotation, { x: 0, y: 0 });
+        this.p2 = rotationPoint(this.p2, -this.rotation, { x: 0, y: 0 });
+        const transformMove = rotationPoint({ x: moveMentX, y: moveMentY }, -this.rotation, { x: 0, y: 0 });
+
 
         const uvList = zheng.map((val) => {
             return {
-                u: (val.x - zp1.x) / this.width,
-                v: (val.y - zp1.y) / this.height
+                u: (val.x - this.p1.x) / this.width,
+                v: (val.y - this.p1.y) / this.height
             }
         })
         if (whichEdge == edge.LEFT) {
-            this.width -= moveMentX;
-            this.p1.x += moveMentX;
-            zp1.x += moveMentX
+            this.width -= transformMove.x;
+            this.p1.x += transformMove.x;
         }
         if (whichEdge == edge.RIGHT) {
-            this.width += moveMentX;
-            this.p2.x += moveMentX;
+            this.width += transformMove.x;
+            this.p2.x += transformMove.x;
         }
         if (whichEdge == edge.TOP) {
-            this.height -= moveMentY;
-            this.p1.y += moveMentY;
-            zp1.y += moveMentY
+            this.height -= transformMove.y;
+            this.p1.y += transformMove.y;
         }
         if (whichEdge == edge.BUTTON) {
-            this.height += moveMentY
-            this.p2.y += moveMentY;
+            this.height += transformMove.y
+            this.p2.y += transformMove.y;
         }
         if (whichEdge == edge.TOPLEFT) {
-            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? moveMentY / this.height : moveMentX / this.width
+            const scale = Math.abs(transformMove.x) > Math.abs(transformMove.y) ? transformMove.y / this.height : transformMove.x / this.width
             this.p1.x += this.width * scale;
-            zp1.x += this.width * scale;
             this.p1.y += this.height * scale
-            zp1.y += this.height * scale
 
             this.width -= this.width * scale
             this.height -= this.height * scale;
         }
         if (whichEdge == edge.TOPRIGHT) {
-            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? -moveMentY / this.height : moveMentX / this.width
+            const scale = Math.abs(transformMove.x) > Math.abs(transformMove.y) ? -transformMove.y / this.height : transformMove.x / this.width
 
             this.p2.x += this.width * scale
             this.p1.y -= this.height * scale
-            zp1.y -= this.height * scale
 
             this.width += this.width * scale
             this.height += this.height * scale;
         }
         if (whichEdge == edge.BUTTONRIGHT) {
-            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? moveMentY / this.height : moveMentX / this.width
+            const scale = Math.abs(transformMove.x) > Math.abs(transformMove.y) ? transformMove.y / this.height : transformMove.x / this.width
             this.p2.x += this.width * scale;
             this.p2.y += this.height * scale
 
@@ -608,11 +577,10 @@ class MorpherRectHandler {
             this.height += this.height * scale;
         }
         if (whichEdge == edge.BUTTONLEFT) {
-            const scale = Math.abs(moveMentX) > Math.abs(moveMentY) ? moveMentY / this.height : -moveMentX / this.width
+            const scale = Math.abs(transformMove.x) > Math.abs(transformMove.y) ? transformMove.y / this.height : -transformMove.x / this.width
 
             this.p1.x -= this.width * scale
             this.p2.y += this.height * scale
-            zp1.x -= this.width * scale
 
             this.width += this.width * scale
             this.height += this.height * scale;
@@ -622,12 +590,14 @@ class MorpherRectHandler {
 
         const remakePoint = uvList.map((v) => {
             const zheng2 = {
-                x: zp1.x + v.u * this.width,
-                y: zp1.y + v.v * this.height
+                x: this.p1.x + v.u * this.width,
+                y: this.p1.y + v.v * this.height
             }
             return rotationPoint(zheng2, this.rotation, { x: 0, y: 0 })
         })
-        this.context.setFromPointList(remakePoint)
+        this.p1 = rotationPoint(this.p1, this.rotation, { x: 0, y: 0 });
+        this.p2 = rotationPoint(this.p2, this.rotation, { x: 0, y: 0 });
+        this.context.setFromPointList(remakePoint, true)
     }
 }
 enum edge {

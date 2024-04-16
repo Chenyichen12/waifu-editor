@@ -13,7 +13,6 @@ import LayerEventState, { SelectState } from "../EventHandler/LayerEventHandler"
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
 import Morpher from "../Morpher/Morpher";
-import RectMorpher from "../Morpher/RectMorpher";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
@@ -191,8 +190,8 @@ class StageLayer extends Container {
      */
     upDatePoint() {
         this.faceMesh.upDate();
-        if (this.faceMesh.parent instanceof RectMorpher) {
-            this.faceMesh.parent.upDateChildPointIndex(this);
+        if (this.morpherParent != undefined) {
+            this.morpherParent.upDateChildPointIndex();
         }
         this.textureLayer.upDatePositionBuffer(this.getPointList());
     }
