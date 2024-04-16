@@ -150,7 +150,7 @@ class SelectedEventHandler extends StageEventHandler {
                 this.context.layerContainer.removeAllSelected();
             }
             if (hitLayer != undefined) {
-                if (hitLayer.morpherParent != undefined && hitLayer.morpherParent instanceof RectMorpher) {
+                if (hitLayer.morpherParent != undefined) {
                     this.context.morpherContainer.addSelectMorpher(hitLayer.morpherParent);
                 }
                 else {

@@ -59,6 +59,11 @@ function handlePenButtonClick() {
 
 function handleRectMorpherAdd() {
     if (instanceApp.value != null) {
+        instanceApp.value.morpherContainer.addRectMorphers(3, 3);
+    }
+}
+function handleRotationMorpherAdd() {
+    if (instanceApp.value != null) {
         instanceApp.value.morpherContainer.addRotationMorpher();
     }
 }
@@ -73,6 +78,7 @@ function handleRectMorpherAdd() {
             <img src="/src/assets/vector-pen.svg" />
         </button>
         <button @click="handleRectMorpherAdd">添加变形器</button>
+        <button @click="handleRotationMorpherAdd">添加旋转变形器</button>
     </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>

@@ -3,10 +3,12 @@
  * @Date: 2024-04-13 23:20:48
  */
 
+import { de } from "element-plus/es/locales.mjs";
 import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher from "./Morpher";
 import RectMorpher, { edge } from "./RectMorpher";
+import RotationMorpher from "./RotationMorpher";
 
 
 enum MorpherEventRes {
@@ -65,6 +67,13 @@ class MorpherSelectHandler extends MorpherEventHandler {
                 return MorpherEventRes.CHANGE_DRAG_POINT
             }
         }
+        if (this.context instanceof RotationMorpher) {
+            const hit = this.context.ifHitMorpher(point.x, point.y);
+            if (hit) {
+                this.changeToState(new DragRotationMorpher(this.context));
+                return MorpherEventRes.CHANGE_DRAG_POINT
+            }
+        }
         return MorpherEventRes.DEFAUT
     }
 
@@ -92,6 +101,15 @@ class MorpherSelectHandler extends MorpherEventHandler {
                 instanceApp.value!.containerDom.style.cursor = "nesw-resize"
             }
             return MorpherEventRes.HIT_POINT
+        }
+        if (this.context instanceof RotationMorpher) {
+            const hitMorpher = this.context.ifHitMorpher(point.x, point.y);
+            if (!hitMorpher) {
+                instanceApp.value!.containerDom.style.cursor = "default"
+                return MorpherEventRes.DEFAUT;
+            }
+            instanceApp.value!.containerDom.style.cursor = "url(/src/assets/arrow-repeat.svg) 12 12, auto"
+            console.log(instanceApp.value!.containerDom.style.cursor);
         }
         return MorpherEventRes.DEFAUT
     }
@@ -152,6 +170,29 @@ class DragRectMorpherRect extends MorpherEventHandler {
 
     handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
         this.context.forEdgeRect.resizeFormPointList(this.context.points);
+        this.changeToState(new MorpherSelectHandler(this.context));
+        return MorpherEventRes.DEFAUT
+    }
+}
+class DragRotationMorpher extends MorpherEventHandler {
+    protected context: RotationMorpher
+    constructor(context: RotationMorpher) {
+        super(context);
+        this.context = context;
+    }
+    handleMouseMoveEvent(e: MouseEvent): MorpherEventRes {
+        const point = this.toStagePos(e.offsetX, e.offsetY);
+        const xLength = point.x - this.context.rPoint.x;
+        const yLength = -point.y + this.context.rPoint.y;
+        const degree = Math.atan2(xLength, yLength);
+        this.context.rotateDeg(degree);
+        console.log(degree / Math.PI);
+
+
+        return MorpherEventRes.DRAG_POINT
+
+    }
+    handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
         this.changeToState(new MorpherSelectHandler(this.context));
         return MorpherEventRes.DEFAUT
     }

@@ -43,6 +43,7 @@ class RotationMorpher extends Morpher {
         this.shallowUpDate();
     }
 
+    get rPoint(): xy { return { ...this.rotationPoint } };
     destroy(options?: DestroyOptions | undefined): void {
         this.unwatchScale();
         super.destroy(options)
@@ -106,6 +107,8 @@ class RotationMorpher extends Morpher {
                 child.data.mopherUpDate();
             }
         }
+        this.rotationDegree = degree
+        this.shallowUpDate();
     }
     setFromPointList(pointList: xy[], _shouldUpDateParent: boolean): void {
         const movex = pointList[0].x - this.rotationPoint.x;
