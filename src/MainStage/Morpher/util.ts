@@ -1,6 +1,9 @@
 import { xy } from "../TwoDType";
 import { vec } from "../LayerBase/util";
 import cv from "@techstark/opencv-js";
+import Morpher from "./Morpher";
+import StageLayer from "../LayerBase/StageLayer";
+import RectInSelected from "../GraphicsBase/RectInSelected";
 
 //import getPerspectiveTransform from "./getPerspectiveTransform";
 /*
@@ -113,4 +116,25 @@ function rotationPoint(origin: xy, degree: number, point: xy): xy {
         y: (origin.x - point.x) * Math.sin(degree) + (origin.y - point.y) * Math.cos(degree) + point.y
     }
 }
-export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform, trianglePointCalculate, triangleUVCalculate, rotationPoint }
+function generateBound(childLayer: (StageLayer | Morpher)[]) {
+    const farAway = 100000;
+    let rectLeft = farAway;
+    let rectTop = farAway;
+    let rectRight = -farAway;
+    let rectButton = -farAway;
+    for (const layer of childLayer) {
+        let ps: xy[];
+        if (layer instanceof Morpher) {
+            ps = layer.points;
+        } else {
+            ps = layer.mesh.listPoint;
+        }
+        const { top, left, button, right } = RectInSelected.getBound(ps);
+        rectTop = rectTop > top ? top : rectTop;
+        rectLeft = rectLeft > left ? left : rectLeft;
+        rectRight = rectRight < right ? right : rectRight;
+        rectButton = rectButton < button ? button : rectButton;
+    }
+    return { rectLeft, rectTop, rectRight, rectButton }
+}
+export { quadUvCalculate, ifInQuad, quadPointCalculate, quadPerspectiveTransform, trianglePointCalculate, triangleUVCalculate, rotationPoint, generateBound }

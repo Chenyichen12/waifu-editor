@@ -59,7 +59,7 @@ function handlePenButtonClick() {
 
 function handleRectMorpherAdd() {
     if (instanceApp.value != null) {
-        instanceApp.value.morpherContainer.addRectMorphers(4, 4);
+        instanceApp.value.morpherContainer.addRotationMorpher();
     }
 }
 </script>

@@ -9,7 +9,7 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
+import { generateBound, ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
 
@@ -47,7 +47,7 @@ class RectMorpher extends Morpher {
             throw new Error("矩形变形器至少包含一个图层")
         }
 
-        let { rectLeft, rectTop, rectRight, rectButton } = this.generateBound(option.children!);
+        let { rectLeft, rectTop, rectRight, rectButton } = generateBound(option.children!);
         //加padding
         const w = Project.instance.value!.root.bound.width;
         const h = Project.instance.value!.root.bound.height;
@@ -132,27 +132,6 @@ class RectMorpher extends Morpher {
     }
 
 
-    private generateBound(childLayer: (StageLayer | Morpher)[]) {
-        const farAway = 100000;
-        let rectLeft = farAway;
-        let rectTop = farAway;
-        let rectRight = -farAway;
-        let rectButton = -farAway;
-        for (const layer of childLayer) {
-            let ps: xy[];
-            if (layer instanceof Morpher) {
-                ps = layer.points;
-            } else {
-                ps = layer.mesh.listPoint;
-            }
-            const { top, left, button, right } = RectInSelected.getBound(ps);
-            rectTop = rectTop > top ? top : rectTop;
-            rectLeft = rectLeft > left ? left : rectLeft;
-            rectRight = rectRight < right ? right : rectRight;
-            rectButton = rectButton < button ? button : rectButton;
-        }
-        return { rectLeft, rectTop, rectRight, rectButton }
-    }
 
     private getRectFromIndex(i: number) {
         const left = i % (this.xDot - 1);

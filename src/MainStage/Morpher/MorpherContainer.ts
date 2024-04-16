@@ -7,6 +7,7 @@ import Morpher from "./Morpher";
 import { instanceApp } from "../StageApp";
 import RectMorpher from "./RectMorpher";
 import { xy } from "../TwoDType";
+import RotationMorpher from "./RotationMorpher";
 
 class MorpherContainer extends Container {
     protected morphers: Morpher[];
@@ -51,6 +52,36 @@ class MorpherContainer extends Container {
         this.selectedMorphers.add(newRectMorpher)
     }
 
+    addRotationMorpher() {
+        const selectedLayer = instanceApp.value!.layerContainer.selectedLayer;
+        const select = [...this.selectedMorphers, ...selectedLayer];
+        if (select.length == 0) {
+            return
+        }
+        const parent: Morpher | undefined = select[0].morpherParent;
+        for (const sLayer of select) {
+            if (sLayer.morpherParent !== parent) {
+                throw Error("所选择的图层存在不同的父变形器，无法为其创建变形器");
+            }
+        }
+
+        const newRotation = new RotationMorpher({
+            children: select
+        })
+
+        for (const sLayer of select) {
+            sLayer.morpherParent = newRotation;
+        }
+        if (parent != undefined) {
+            parent.removeMopherChild(select)
+            parent.addMorpherChild(newRotation);
+            newRotation.morpherParent = parent;
+        }
+
+        this.morphers.push(newRotation);
+        this.addChild(newRotation);
+        this.selectedMorphers.add(newRotation)
+    }
     addSelectMorpher(morphers: Morpher | Morpher[]) {
         if (morphers instanceof Array) {
             morphers.forEach((v) => {
