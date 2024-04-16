@@ -62,6 +62,9 @@ abstract class Morpher extends Graphics {
 
 
     abstract upDateChildPointIndex(): void
+    protected getPointsFromChild(child: StageLayer | Morpher): xy[] {
+        return child instanceof StageLayer ? [...child.getPointList()] : child.points
+    }
 }
 
 export default Morpher;

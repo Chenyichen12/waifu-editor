@@ -55,6 +55,7 @@ abstract class StageEventHandler {
     handleKeyDownEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
     handleKeyUpEvent(_e: KeyboardEvent): StageEventRes { return StageEventRes.DEFAULT }
     handleWheelEvent(e: WheelEvent): StageEventRes {
+        e.preventDefault();
         const stage = this.context.stage;
         const stagePos = stage.toLocal({ x: e.offsetX, y: e.offsetY });
         const oldZoom = stage.scale.x
@@ -68,7 +69,6 @@ abstract class StageEventHandler {
                 stage.position.x + oldDx, stage.position.y + oldDy
             )
         );
-
         return StageEventRes.DEFAULT
     }
 

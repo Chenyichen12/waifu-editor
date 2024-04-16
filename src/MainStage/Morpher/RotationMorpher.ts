@@ -1,10 +1,16 @@
+/*
+ * @Author: Chenyichen12 sama1538@outlook.com
+ * @Date: 2024-04-16 14:46:25
+ */
 import { ref, watch } from "vue";
 import StageLayer from "../LayerBase/StageLayer";
 import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherOption } from "./Morpher";
-import { generateBound } from "./util";
+import { generateBound, rotationPoint } from "./util";
 import { DestroyOptions } from "pixi.js";
+import { ContainesPoint } from "../LayerBase/util";
+import RectMorpher from "./RectMorpher";
 
 class RotationMorpher extends Morpher {
 
@@ -12,7 +18,7 @@ class RotationMorpher extends Morpher {
     protected rotationDegree: number
 
     private unwatchScale
-    private appScale: number = instanceApp.value?.appScale.value ?? 1
+    appScale = instanceApp.value?.appScale.value ?? 1;
 
     constructor(option: Partial<MorpherOption>, rotationPoint?: xy) {
         super(option)
@@ -31,7 +37,8 @@ class RotationMorpher extends Morpher {
         this.rotationDegree = 0;
         this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(1), (v) => {
             this.appScale = v;
-            this.shallowUpDate();
+            if (this.show)
+                this.shallowUpDate();
         })
         this.shallowUpDate();
     }
@@ -44,7 +51,7 @@ class RotationMorpher extends Morpher {
         return [this.rotationPoint]
     }
     pointAtPosition(x: number, y: number): number | undefined {
-        const r = 5 / this.appScale
+        const r = 10 / this.appScale
         const d = (x - this.rotationPoint.x) * (x - this.rotationPoint.x) + (y - this.rotationPoint.y) * (y - this.rotationPoint.y);
         if (r * r > d) {
             return 0;
@@ -54,27 +61,81 @@ class RotationMorpher extends Morpher {
     }
 
     shallowUpDate(): void {
-        this.circle(this.rotationPoint.x, this.rotationPoint.y, 5 / this.appScale)
+        this.clear();
+        this.circle(this.rotationPoint.x, this.rotationPoint.y, 10 / this.appScale)
             .fill({
                 color: 0xff0000
             })
         const length = 100 / this.appScale
-        const dLength = 3 / this.appScale
+        const dLength = 5 / this.appScale
         this.moveTo(this.rotationPoint.x - Math.cos(this.rotationDegree) * dLength, this.rotationPoint.y - Math.sin(this.rotationDegree) * dLength)
             .lineTo(this.rotationPoint.x + Math.cos(this.rotationDegree) * dLength, this.rotationPoint.y + Math.cos(this.rotationDegree) * dLength)
             .lineTo(this.rotationPoint.x + Math.sin(this.rotationDegree) * length, this.rotationPoint.y - Math.cos(this.rotationDegree) * length)
             .closePath().fill({
                 color: 0xff0000
             })
-
-
     }
     ifHitMorpher(x: number, y: number): boolean {
-        return false;
+        const length = 100 / this.appScale;
+        const dLength = 5 / this.appScale;
+        const p1 = { x: this.rotationPoint.x - Math.cos(this.rotationDegree) * dLength, y: this.rotationPoint.y - Math.sin(this.rotationDegree) * dLength };
+        const p2 = { x: this.rotationPoint.x + Math.cos(this.rotationDegree) * dLength, y: this.rotationPoint.y + Math.cos(this.rotationDegree) * dLength };
+        const p3 = { x: this.rotationPoint.x + Math.sin(this.rotationDegree) * length, y: this.rotationPoint.y - Math.cos(this.rotationDegree) * length };
+
+        return ContainesPoint.contains(p1, p2, p3, { x, y });
+
     }
-    setFromPointList(pointList: xy[], shouldUpDateParent: boolean): void {
+    /**以y轴负方向为起始边 */
+    rotateDeg(degree: number) {
+        for (const child of this._morpherChildren) {
+            if (child.data instanceof RectMorpher) {
+                child.data.forEdgeRect.rotationFromPoint(degree - this.rotationDegree, this.rotationPoint);
+                continue;
+            }
+            const point = this.getPointsFromChild(child.data).map((v) => {
+                return rotationPoint(v, degree - this.rotationDegree, this.rotationPoint);
+            });
+
+            if (child.data instanceof Morpher) {
+                child.data.setFromPointList(point, false);
+            } else {
+                child.data.getPointList().forEach((v, i) => {
+                    v.x = point[i].x;
+                    v.y = point[i].y;
+                })
+                child.data.mopherUpDate();
+            }
+        }
+    }
+    setFromPointList(pointList: xy[], _shouldUpDateParent: boolean): void {
+        const movex = pointList[0].x - this.rotationPoint.x;
+        const movey = pointList[0].y - this.rotationPoint.y;
+
+        //degreeifChange
+
+        for (const child of this._morpherChildren) {
+            const points = this.getPointsFromChild(child.data).map((v) => {
+                return {
+                    x: v.x + movex,
+                    y: v.y + movey
+                }
+            });
+
+            if (child.data instanceof Morpher) {
+                child.data.setFromPointList(points, false);
+            } else {
+                child.data.getPointList().forEach((v, i) => {
+                    v.x = points[i].x;
+                    v.y = points[i].y;
+                })
+                child.data.mopherUpDate();
+            }
+        }
+        this.shallowUpDate();
         return
     }
+
+
     removeMopherChild(child: Morpher | StageLayer | (Morpher | StageLayer)[]): void {
         if (child instanceof Array) {
             this._morpherChildren = this._morpherChildren.filter((v) => {

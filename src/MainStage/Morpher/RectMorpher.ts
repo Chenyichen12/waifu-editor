@@ -86,7 +86,8 @@ class RectMorpher extends Morpher {
 
         this.unwatchScale = watch(instanceApp.value?.appScale ?? ref(1), (v) => {
             this.appScale = v;
-            this.shallowUpDate();
+            if (this.show)
+                this.shallowUpDate();
         })
         this.forEdgeRect = new MorpherRectHandler(this);
         this.shallowUpDate();
@@ -295,10 +296,6 @@ class RectMorpher extends Morpher {
             }
         }
         return false;
-    }
-
-    private getPointsFromChild(child: StageLayer | Morpher): xy[] {
-        return child instanceof StageLayer ? [...child.getPointList()] : child.points
     }
 
     private getTriangleFromIndex(rectPointList: xy[], i: number) {
