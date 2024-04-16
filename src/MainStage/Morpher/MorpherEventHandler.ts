@@ -3,7 +3,6 @@
  * @Date: 2024-04-13 23:20:48
  */
 
-import { de } from "element-plus/es/locales.mjs";
 import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher from "./Morpher";
