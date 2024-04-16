@@ -2,6 +2,7 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-28 12:43:46
  */
+import { rect } from "../TwoDType";
 import MeshLine from "./MeshLine";
 class MeshPoint {
     protected _x: number
@@ -45,6 +46,16 @@ class MeshPoint {
     }
     get v() {
         return this._v;
+    }
+
+    set x(x: number) { this._x = x; }
+    set y(y: number) { this._y = y }
+
+    containInRect(rec: rect) {
+        return this.x <= rec.p2.x &&
+            this.x >= rec.p1.x &&
+            this.y <= rec.p3.y &&
+            this.y >= rec.p1.y;
     }
 }
 export default MeshPoint;

@@ -8,18 +8,19 @@ import { instanceApp } from "../StageApp";
 import MeshPoint from "./MeshPoint";
 import MeshLine from "./MeshLine";
 import RectInSelected from "./RectInSelected";
+import { MergeExclusive } from "../twoSelectOne";
 /** MeshLayer的构造信息*/
-interface MeshOption {
-    /**几何信息 */
-    meshGeo?: {
-        points: MeshPoint[],
-        lines: MeshLine[],
-    }
-    /**初始包括所有点的矩形 */
-    initRect: {
-        width: number,
-        height: number
-    }
+type MeshOption = MergeExclusive<meshGeo, initRect>
+type meshGeo = {
+    points: MeshPoint[],
+    lines: MeshLine[],
+}
+/**初始包括所有点的矩形 */
+type initRect = {
+    top: number,
+    left: number
+    width: number,
+    height: number
 }
 /**
  * 用于展示网格，管理控制点的类
@@ -68,6 +69,16 @@ class MeshLayer extends Graphics {
         this.upDate();
     }
 
+    addSelectItem(p: MeshPoint | undefined, l: MeshLine | undefined) {
+        if (p != undefined) {
+            this.selectPointList.add(p);
+        }
+        if (l != undefined) {
+            this.selectLineList.add(l);
+        }
+        this.upDate();
+    }
+
     /**
      * 移除选中的点
      * @param p 
@@ -90,7 +101,12 @@ class MeshLayer extends Graphics {
             this.appScale = v;
             this.upDate();
         })
-        this.generateFirstPoints(0, 0, option.initRect.width, option.initRect.height);
+        if (option.points != undefined) {
+            this.pointList = option.points;
+            this.lineList = option.lines;
+        } else {
+            this.generateFirstPoints(option.top, option.left, option.width, option.height);
+        }
 
         this.upDate();
     }
@@ -151,27 +167,18 @@ class MeshLayer extends Graphics {
         const buttonLeft = new MeshPoint(left, top + height, 0, 1);
         const buttonRight = new MeshPoint(left + width, top + height, 1, 1);
 
-        const topMiddle = new MeshPoint(left + width / 2, top, 0.5, 0);
-        const buttonMiddle = new MeshPoint(left + width / 2, top + height, 0.5, 1);
-
         this.pointList.push(topLeft);
         this.pointList.push(topRight);
         this.pointList.push(buttonLeft);
         this.pointList.push(buttonRight);
-        this.pointList.push(topMiddle);
-        this.pointList.push(buttonMiddle);
 
-        const line1 = new MeshLine(topLeft, topMiddle);
-        const line2 = new MeshLine(topMiddle, topRight);
-        const line3 = new MeshLine(topRight, buttonRight);
-        const line4 = new MeshLine(buttonRight, buttonMiddle);
-        const line5 = new MeshLine(buttonMiddle, buttonLeft);
-        const line6 = new MeshLine(buttonLeft, topLeft);
-        const line7 = new MeshLine(topLeft, buttonMiddle);
-        const line8 = new MeshLine(topMiddle, buttonRight);
-        const line9 = new MeshLine(topMiddle, buttonMiddle);
+        const line1 = new MeshLine(topLeft, topRight);
+        const line2 = new MeshLine(topRight, buttonRight);
+        const line3 = new MeshLine(buttonRight, buttonLeft);
+        const line4 = new MeshLine(buttonLeft, topLeft);
+        const line5 = new MeshLine(topLeft, buttonRight);
 
-        this.lineList.push(line1, line2, line3, line4, line5, line6, line7, line8, line9);
+        this.lineList.push(line1, line2, line3, line4, line5);
     }
 
     /**
@@ -223,5 +230,69 @@ class MeshLayer extends Graphics {
         return undefined
     }
 
+    deepClonePointAndLine() {
+        const addPointMap = new Map<MeshPoint, MeshPoint>();
+        const newLineList: MeshLine[] = []
+        for (const line of this.lineList) {
+            let newP1: MeshPoint;
+            let newP2: MeshPoint;
+            if (addPointMap.has(line.p1)) {
+                newP1 = addPointMap.get(line.p1)!;
+            } else {
+                newP1 = copyPoint(line.p1);
+                addPointMap.set(line.p1, newP1);
+            }
+
+            if (addPointMap.has(line.p2)) {
+                newP2 = addPointMap.get(line.p2)!;
+            } else {
+                newP2 = copyPoint(line.p2);
+                addPointMap.set(line.p2, newP2);
+            }
+
+            const newLine = new MeshLine(newP1, newP2);
+            newLineList.push(newLine);
+        }
+
+        const newPointList = [...addPointMap.values()]
+        return {
+            pointList: newPointList,
+            lineList: newLineList
+        }
+
+        function copyPoint(point: MeshPoint) {
+            const newP = new MeshPoint(
+                point.x, point.y, point.u, point.v
+            )
+            return newP;
+        }
+    }
+    deepClone() {
+        const { pointList, lineList } = this.deepClonePointAndLine();
+        return new MeshLayer({
+            points: pointList,
+            lines: lineList
+        })
+    }
+
+    clonePruePoint() {
+        const res = this.pointList.map((v) => {
+            return new MeshPoint(
+                v.x, v.y, v.u, v.v
+            )
+        })
+        return res;
+    }
+
+    resetGeo(points: MeshPoint[], lines: MeshLine[]) {
+        this.pointList = points;
+        this.lineList = lines;
+        this.selectPointList.clear();
+        this.selectLineList.clear();
+
+        this.upDate();
+    }
 }
 export default MeshLayer;
+
+export type { MeshOption }

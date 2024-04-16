@@ -31,6 +31,13 @@ class vec {
     static cross(v1: xy, v2: xy) {
         return v1.x * v2.y - v1.y * v2.x;
     }
+
+    static add(v1: xy, v2: xy) {
+        return {
+            x: v1.x + v2.x,
+            y: v1.y + v2.y
+        }
+    }
 }
 class ContainesPoint {
     /**判断点是否在三角形内 */
@@ -166,4 +173,4 @@ class GenerateGlBuffer {
         return this.generate(mesh.listPoint, mesh.listLine);
     }
 }
-export { ContainesPoint, GenerateGlBuffer }
+export { ContainesPoint, GenerateGlBuffer, vec }

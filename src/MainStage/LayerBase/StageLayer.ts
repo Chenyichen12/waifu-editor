@@ -2,16 +2,17 @@
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-30 11:34:21
  */
-import { Container, DestroyOptions, Matrix } from "pixi.js";
+import { Container, DestroyOptions } from "pixi.js";
 import { Ref, watch } from "vue";
 import MeshLayer from "../GraphicsBase/MeshLayer";
 import TextureLayer from "../TextureBase/TextureLayer";
 import { ImageAsset } from "../../components/Project/ProjectAssets";
 import { ContainesPoint } from "./util";
 import Project from "../../components/Project/Project";
-import LayerEventState, { LayerNormalState } from "../EventHandler/LayerEventHandler";
+import LayerEventState, { SelectState } from "../EventHandler/LayerEventHandler";
 import RectInSelected from "../GraphicsBase/RectInSelected";
 import { instanceApp } from "../StageApp";
+import Morpher from "../Morpher/Morpher";
 
 type xy = { x: number, y: number }
 type xyuv = xy & { u: number, v: number }
@@ -34,14 +35,13 @@ class StageLayer extends Container {
     /**鼠标事件处理 */
     mouseState: LayerEventState
 
+    morpherParent: Morpher | undefined = undefined
     /**layer下面的mesh展示图层 */
     protected faceMesh: MeshLayer
     get mesh() { return this.faceMesh }
     /**底部展示图片的图层 */
     protected _textureLayer: TextureLayer
     get textureLayer() { return this._textureLayer }
-    /**如果在编辑状态展示的时编辑的网格 */
-    public editMesh?: MeshLayer
 
     /**是否选中，如果不可见直接返回 */
     set selected(isSelected: boolean) {
@@ -49,7 +49,10 @@ class StageLayer extends Container {
 
         this._selected = isSelected
         if (isSelected) this.faceMesh.alpha = 1;
-        else this.faceMesh.alpha = 0;
+        else {
+            this.faceMesh.alpha = 0;
+            this.faceMesh.removeAllSelected();
+        }
     }
     get selected() { return this._selected }
 
@@ -57,6 +60,9 @@ class StageLayer extends Container {
     set show(isShow: boolean) {
         this._show = isShow;
         this.visible = isShow;
+        this.textureLayer.visible = isShow;
+        this.faceMesh.visible = isShow;
+
         if (!isShow) {
             this.selected = false;
         }
@@ -76,30 +82,24 @@ class StageLayer extends Container {
         else this.faceMesh.alpha = 0;
     }
 
-    /**当图层几何位置变化的时候mesh由于不是图层的孩子，需要手动同步 */
-    setFromMatrix(matrix: Matrix): void {
-        this.faceMesh.setFromMatrix(matrix);
-        super.setFromMatrix(matrix);
-    }
 
     constructor(option: StageLayerOption) {
         super();
-        this.faceMesh = new MeshLayer({
-            initRect: option.texture.bound
-        })
+        this.faceMesh = new MeshLayer(option.texture.bound)
         this._textureLayer = new TextureLayer({
             texture: option.texture,
-            points: this.faceMesh.listPoint,
-            lines: this.faceMesh.listLine
+            information: {
+                points: this.faceMesh.listPoint,
+                lines: this.faceMesh.listLine
+            }
         })
         this.selected = false;
-        this.addChild(this.textureLayer);
 
         this.layerId = option.layerId
         this.unWatchShow = watch(option.isShow, (newV) => {
             this.show = newV;
         })
-        this.mouseState = new LayerNormalState(this);
+        this.mouseState = new SelectState(this);
 
     }
 
@@ -110,8 +110,8 @@ class StageLayer extends Container {
      */
     transformFormStage(stagePoint: xy) {
         return {
-            x: stagePoint.x - this.position.x,
-            y: stagePoint.y - this.position.y
+            x: stagePoint.x,
+            y: stagePoint.y
         }
     }
 
@@ -181,6 +181,23 @@ class StageLayer extends Container {
     destroy(options?: DestroyOptions | undefined): void {
         this.unWatchShow();
         super.destroy(options)
+        this.faceMesh.destroy(options);
+        this._textureLayer.destroy(options);
+    }
+
+    /**
+     * 当点发生变化的时候更新图层
+     */
+    upDatePoint() {
+        this.faceMesh.upDate();
+        if (this.morpherParent != undefined) {
+            this.morpherParent.upDateChildPointIndex();
+        }
+        this.textureLayer.upDatePositionBuffer(this.getPointList());
+    }
+    mopherUpDate() {
+        this.faceMesh.upDate();
+        this.textureLayer.upDatePositionBuffer(this.getPointList());
     }
 
 }

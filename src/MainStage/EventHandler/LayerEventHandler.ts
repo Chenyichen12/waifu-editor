@@ -5,33 +5,68 @@
  * 用于处理LayerStage的事件，处理键盘事件
  */
 
+import Project from "../../components/Project/Project"
+import MeshLayer from "../GraphicsBase/MeshLayer"
 import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
+import RectInSelected from "../GraphicsBase/RectInSelected"
 import StageLayer from "../LayerBase/StageLayer"
-
-type localPos = { x: number, y: number }
+import { rect, xy } from "../TwoDType"
 
 interface LayerEventOption {
-    point: localPos, // layer的局部坐标，和Stage的坐标不同 可以用StageLayer的transformFormStage转换
-    modifyKey?: string, // 修饰键
+    point: xy, // layer的局部坐标，和Stage的坐标不同 可以用StageLayer的transformFormStage转换
+    mouseEvent: MouseEvent,
 }
 
-/**
- * 事件处理回馈
- * prevent： 是否阻止Stage的事件处理
- */
-interface result {
-    prevent: boolean
+enum result {
+    DEFAULT,
+
+    HIT_POINT,
+    HIT_LINE,
+    NO_HIT_ITEM,
+
+    DRAG_ITEM,
+    DRAG_RECT,
+
+    TRANSFORM_SELECT,
+    TRANSFORM_DRAG,
+    TRANSFORM_DRAG_RECT,
+
+    ADD_SELECT
 }
+
 /**
  * StageLayer 处理鼠标事件抽象类
  * 仅在selected的时候才会派发这一类的事件
  */
 abstract class LayerEventState {
-    handleMouseDownEvent(_option: LayerEventOption): result | undefined { return }
-    handleMouseMoveEvent(_option: LayerEventOption): result | undefined { return }
-    handleMouseUpEvent(_option: LayerEventOption): result | undefined { return }
+    handleMouseDownEvent(_option: LayerEventOption): result { return result.DEFAULT }
+    handleMouseMoveEvent(_option: LayerEventOption): result { return result.DEFAULT }
+    handleMouseUpEvent(_option: LayerEventOption): result { return result.DEFAULT }
 
+    handleLongPressEvent(_option: LayerEventOption): result { return result.DEFAULT }
+    handleMouseClickEvent(_option: LayerEventOption): result { return result.DEFAULT }
+
+    handleRectSelect(option: LayerEventOption, rec: rect) {
+        const ps: MeshPoint[] = [];
+        const ls: MeshLine[] = []
+        this.context.getPointList().forEach((v) => {
+            if (v.containInRect(rec))
+                ps.push(v);
+        })
+        this.context.getLineList().forEach((v) => {
+            if (v.containInRect(rec)) {
+                ls.push(v);
+            }
+        })
+        if (!option.mouseEvent.shiftKey) {
+            this.context.mesh.removeAllSelected();
+        }
+        this.context.mesh.addSelected(ps, ls);
+        if (ps.length != 0 || ls.length != 0)
+            return result.ADD_SELECT
+        return result.DEFAULT
+    }
 
     context: StageLayer
     constructor(context: StageLayer) {
@@ -39,142 +74,111 @@ abstract class LayerEventState {
     }
 }
 
-/**
- * 在StageLayer非编辑状态下（正常状态下） 处理鼠标事件
- */
-class LayerNormalState extends LayerEventState {
-    protected meshTarget //正常状态下对应的mesh目标
-    protected isMousePress = false
-    protected dragItem: MeshPoint | undefined // 当前正在拖动的点
+class SelectState extends LayerEventState {
+    handleMouseClickEvent(option: LayerEventOption): result {
+        const mesh = this.context.mesh;
+        const hitPoint = mesh.pointAtPosition(option.point.x, option.point.y);
+        let hitLine: MeshLine | undefined
+        if (hitPoint == undefined)
+            hitLine = mesh.lineAtPosition(option.point.x, option.point.y);
 
-    /**
-     * 鼠标按下之后处理，如果Shift按下说明多选，转化到多选模式
-     * @param option 事件信息
-     */
-    handleMouseDownEvent(option: LayerEventOption): result | undefined {
-        if (option.modifyKey == "ShiftLeft" || option.modifyKey == "ShiftRight") {
-            this.changeToMutiState();
-            this.context.mouseState.handleMouseDownEvent(option);
-            return;
+        if (!option.mouseEvent.shiftKey) {
+            mesh.removeAllSelected();
         }
-        this.selectOneItem(option.point);
-        this.isMousePress = true;
-        if (this.dragItem != undefined)
-            return { prevent: true }
-        else return { prevent: false }
+        mesh.addSelectItem(hitPoint, hitLine);
+
+        if (hitPoint != undefined) {
+            return result.HIT_POINT
+        }
+
+        if (hitLine != undefined) {
+            return result.HIT_LINE;
+        }
+
+        return result.NO_HIT_ITEM;
     }
 
-    /**
-     * 鼠标移动的事件，当鼠标没有按下或者选中的点的数量不是1，说明不能拖动点 直接返回
-     * 反之直接对点进行拖动
-     * @param option 事件信息
-     * @returns 当正在拖动的时候阻止StageEventHandle处理MouseMoveEvent
-     */
+    handleLongPressEvent(option: LayerEventOption): result {
+        const mesh = this.context.mesh;
+        const hitPoint = mesh.pointAtPosition(option.point.x, option.point.y);
+        if (hitPoint != undefined) {
+            mesh.removeAllSelected();
+            mesh.addSelectItem(hitPoint, undefined);
+            this.context.mouseState = new DragItemState(hitPoint, this.context);
+            return result.TRANSFORM_DRAG;
+        }
+        if (mesh.selectedPoints.length > 1 && RectInSelected.ifHitRect(mesh.selectedPoints, option.point)) {
+            this.context.mouseState = new DragRectState(option.point, mesh, this.context);
+            return result.TRANSFORM_DRAG_RECT;
+        }
+        return result.DEFAULT
+    }
+
+}
+class DragItemState extends LayerEventState {
+    moveItem
+    protected firstPoint: xy
     handleMouseMoveEvent(option: LayerEventOption): result {
-        if (this.dragItem == undefined || !this.isMousePress) {
-            return { prevent: false }
+        this.moveItem.setPosition(option.point.x, option.point.y);
+        this.context.upDatePoint();
+        return result.DRAG_ITEM
+    }
+
+    handleMouseUpEvent(_option: LayerEventOption): result {
+        const undoFunc = () => {
+            this.moveItem.setPosition(this.firstPoint.x, this.firstPoint.y);
+            this.context.upDatePoint();
         }
-
-        const move = option.point
-        this.dragItem.setPosition(this.dragItem.x + move.x, this.dragItem.y + move.y);
-        this.upDatePosition();
-        return { prevent: true }
+        Project.instance.value!.unDoStack.pushUnDo(undoFunc);
+        this.context.mouseState = new SelectState(this.context);
+        return result.TRANSFORM_SELECT
     }
-
-    /**
-     * 处理point是否命中mesh中的点，如果命中点需要改变dragItem
-     * 这个状态只能命中一个item，需要清除所有选中的item
-     * @param point 事件点
-     */
-    protected selectOneItem(point: localPos) {
-        const p = this.meshTarget.pointAtPosition(point.x, point.y);
-        this.dragItem = p; // 改变dragItem
-        let l: MeshLine | undefined
-        if (p == undefined)
-            l = this.meshTarget.lineAtPosition(point.x, point.y);
-        this.meshTarget.removeAllSelected();
-        this.meshTarget.addSelected(
-            p != undefined ? [p] : [],
-            l != undefined ? [l] : []
-        )
-
-    }
-
-    /**
-     * 当鼠标提起的时候改变MousePress
-     * @param _option 
-     */
-    handleMouseUpEvent(_option: LayerEventOption): undefined {
-        this.isMousePress = false;
-    }
-
-    /**
-     * 拖动点的时候由于point改变，需要update
-     */
-    upDatePosition() {
-        this.meshTarget.upDate();
-        this.context.textureLayer.upDatePositionBuffer(this.meshTarget.listPoint);
-    }
-
-    /**
-     * 转化到多选模式
-     */
-    changeToMutiState() {
-        this.context.mouseState = new LayerMutiSelectedState(this.context);
-    }
-
-
-    constructor(context: StageLayer) {
+    constructor(moveItem: MeshPoint, context: StageLayer) {
         super(context);
-        this.meshTarget = context.mesh
+        this.firstPoint = moveItem.xy;
+        this.moveItem = moveItem;
     }
 }
 
-class LayerMutiSelectedState extends LayerEventState {
-    protected meshTarget // 编辑对象
+class DragRectState extends LayerEventState {
 
-    /**
-     * 当发现Shift键不是修饰键时，立刻转化为Normal状态并触发handleMouseDown
-     * @param option 事件信息
-     */
-    handleMouseDownEvent(option: LayerEventOption): undefined {
-        if (option.modifyKey != "ShiftLeft" && option.modifyKey != "ShiftRight") {
-            this.changeToNormalState();
-            this.context.mouseState.handleMouseDownEvent(option);
-            return;
-        }
-        this.selectMutiItem(option.point);
+    protected targetMesh: MeshLayer
+    protected lastMove: xy
+
+    protected firstMovePoint: xy
+
+    protected select: MeshPoint[];
+    handleMouseMoveEvent(option: LayerEventOption): result {
+        RectInSelected.dragRectPoint(this.select, option.point.x - this.lastMove.x, option.point.y - this.lastMove.y, (_p) => {
+            this.context.upDatePoint();
+        })
+        this.lastMove = option.point;
+        return result.DRAG_RECT;
     }
 
-    constructor(context: StageLayer) {
+    handleMouseUpEvent(_option: LayerEventOption): result {
+        this.context.mouseState = new SelectState(this.context);
+
+        const undo = () => {
+            RectInSelected.dragRectPoint(this.select, this.firstMovePoint.x - this.lastMove.x, this.firstMovePoint.y - this.lastMove.y, (_p) => {
+                this.context.upDatePoint();
+            })
+        }
+
+        Project.instance.value!.unDoStack.pushUnDo(undo);
+        return result.TRANSFORM_SELECT
+    }
+
+    constructor(point: xy, targetMesh: MeshLayer, context: StageLayer) {
         super(context);
-        this.meshTarget = context.mesh;
-    }
+        this.lastMove = point;
+        this.targetMesh = targetMesh;
 
-    /**
-     * 转化到普通状态
-     */
-    changeToNormalState() {
-        this.context.mouseState = new LayerNormalState(this.context);
-    }
-
-    /**
-     * 多选Item
-     * @param point 位置信息
-     */
-    selectMutiItem(point: localPos) {
-        const p = this.meshTarget.pointAtPosition(point.x, point.y);
-
-        let l: MeshLine | undefined;
-        if (p == undefined) {
-            l = this.meshTarget.lineAtPosition(point.x, point.y);
-        }
-        this.meshTarget.addSelected(
-            p != undefined ? [p] : [],
-            l != undefined ? [l] : []
-        )
+        this.firstMovePoint = point;
+        this.select = targetMesh.selectedPoints;
     }
 }
+
 export default LayerEventState
 
-export { LayerNormalState, LayerMutiSelectedState }
+export { SelectState, DragItemState, result }

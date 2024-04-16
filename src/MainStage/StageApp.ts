@@ -3,12 +3,16 @@
  * @Date: 2024-03-30 11:34:21
  * PIXIApp类
  */
-import { Application, DestroyOptions, Graphics, Matrix, RendererDestroyOptions } from "pixi.js";
+import { Application, Graphics } from "pixi.js";
 import StageLayer from "./LayerBase/StageLayer";
-import { ref, shallowRef, watch } from "vue";
-import StageEventState, { StageNormalEvent } from "./EventHandler/StageEventHandler";
+import { ref, shallowRef } from "vue";
 import Project from "../components/Project/Project";
 import { Group, LayerType, NormalLayer, Root } from "../components/Project/LayerStruct";
+import StageLayerContainer from "./LayerBase/StageLayerContainer";
+import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
+import EditMeshMode from "./EditMeshMode/EditMeshMode";
+import MorpherContainer from "./Morpher/MorpherContainer";
+
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
 const instanceApp = shallowRef<StageApp | null>(null)
@@ -18,35 +22,29 @@ class StageApp extends Application {
     protected stageDom
     get containerDom() { return this.stageDom }
 
-    /**选中的图层 */
-    public selectedLayer
-    protected unWatchSelected
-
-    /**所有子图层 */
-    protected _childLayer: StageLayer[] = []
-    get childLayer() { return this._childLayer }
-
     /**Stage的缩放 */
     appScale = ref(1)
 
     /**事件处理器 */
-    eventHandler: StageEventState = new StageNormalEvent(this);
+    eventHandler: StageEventHandler = new SelectedEventHandler(this);
+
+    layerContainer: StageLayerContainer = new StageLayerContainer([]);
+
+    morpherContainer: MorpherContainer
 
     constructor(dom: HTMLDivElement) {
         super();
         this.stageDom = dom;
         this.stage.interactive = true;
-        this.selectedLayer = shallowRef<StageLayer[]>([]);
-        this.unWatchSelected = watch(this.selectedLayer, (newV, oldV) => {
-            oldV.forEach((item) => {
-                item.selected = false;
-            })
-            newV.forEach((item) => {
-                item.selected = true;
-            })
-        })
-        if (instanceApp.value != null)
+        if (instanceApp.value != null) {
             instanceApp.value.destroy();
+            let child = this.stageDom.lastElementChild;
+            while (child != undefined) {
+                this.stageDom.removeChild(child);
+                child = this.stageDom.lastElementChild;
+            }
+        }
+        this.morpherContainer = new MorpherContainer([]);
         instanceApp.value = this;
     }
 
@@ -71,16 +69,16 @@ class StageApp extends Application {
         this.stage.position.set(this.screen.width / 2 - scaleAfterX / 2, this.screen.height / 2 - scaleAfterY / 2)
 
         this.canvas.onmousedown = (e) => {
-            this.eventHandler.handleMouseDown(e);
+            this.eventHandler.handleMouseDownEvent(e);
         }
         this.canvas.onmouseup = (e) => {
-            this.eventHandler.handleMouseUp(e);
+            this.eventHandler.handleMouseUpEvent(e);
         }
         this.canvas.onmousemove = (e) => {
-            this.eventHandler.handleMouseMove(e);
+            this.eventHandler.handleMouseMoveEvent(e);
         }
         this.canvas.onwheel = (e) => {
-            this.eventHandler.handleWheelChange(e);
+            this.eventHandler.handleWheelEvent(e);
         }
     }
 
@@ -90,36 +88,35 @@ class StageApp extends Application {
      */
     protected addSprite(project: Project) {
         const proRoot = project.root
-        this.addLayer(proRoot);
-        this.childLayer.forEach((v, i) => {
-            v.zIndex = this.childLayer.length - i;
-            this.stage.addChild(v);
+        const layers: StageLayer[] = []
+        addLayer(proRoot);
+        this.layerContainer = new StageLayerContainer(layers);
+        const { mesh, texture } = this.layerContainer.getMeshAndTexture();
+        this.stage.addChild(texture);
+        this.stage.addChild(mesh);
 
-            this.stage.addChild(v.mesh);
-            v.mesh.zIndex = this.childLayer.length * 2 - i;
-        })
-    }
-
-    /**
-     * 递归添加到childLayer
-     * @param group 
-     */
-    protected addLayer(group: Root | Group) {
-        for (const child of group.children.value) {
-            if (child.type === LayerType.NormalLayer) {
-                const normal = child as NormalLayer;
-                const item = Project.instance.value!.assetList.get(normal.assetId);
-                if (item == null) continue;
-                const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
-                const tranformMat = new Matrix(1, 0, 0, 1, item.bound.left, item.bound.top);
-                gra.setFromMatrix(tranformMat);
-                this.childLayer.push(gra);
-            } else {
-                const gro = child as Group;
-                this.addLayer(gro);
+        this.stage.addChild(this.morpherContainer);
+        /**
+         * 递归添加到childLayer
+         * @param group 
+         */
+        function addLayer(group: Root | Group) {
+            for (const child of group.children.value) {
+                if (child.type === LayerType.NormalLayer) {
+                    const normal = child as NormalLayer;
+                    const item = Project.instance.value!.assetList.get(normal.assetId);
+                    if (item == null) continue;
+                    const gra = new StageLayer({ texture: item, isShow: child.isVisible, layerId: normal.layerId });
+                    layers.push(gra);
+                } else {
+                    const gro = child as Group;
+                    addLayer(gro);
+                }
             }
         }
     }
+
+
 
     /**
      * 添加背景
@@ -142,11 +139,16 @@ class StageApp extends Application {
         return scale;
     }
 
-    /**销毁监听器 */
-    destroy(rendererDestroyOptions?: RendererDestroyOptions | undefined, options?: DestroyOptions | undefined): void {
-        this.unWatchSelected();
-        super.destroy(rendererDestroyOptions, options);
+
+    createEditMode() {
+        let select: StageLayer = this.layerContainer.showedLayer[0];
+        for (const layer of this.layerContainer.selectedLayer) {
+            select = layer;
+            break;
+        }
+        return new EditMeshMode(this, select);
     }
+
 }
 
 export default StageApp
