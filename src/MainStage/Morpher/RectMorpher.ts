@@ -12,8 +12,6 @@ import { DestroyOptions } from "pixi.js";
 import { ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
-import MeshLine from "../GraphicsBase/MeshLine";
-import MeshPoint from "../GraphicsBase/MeshPoint";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
@@ -341,9 +339,12 @@ class RectMorpher extends Morpher {
             }
         }
     }
-    setFromPointList(pointList: xy[]): void {
+    setFromPointList(pointList: xy[], shouldUpDateParent: boolean): void {
+
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
+
+            // ifChildUpdate
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
 
                 if (child.pointsInWhichRect[index] == -1) {
@@ -366,13 +367,16 @@ class RectMorpher extends Morpher {
                 })
                 child.data.mopherUpDate();
             } else {
-                child.data.setFromPointList(pList);
+                child.data.setFromPointList(pList, false);
             }
         }
         this.rectPoints.forEach((v, i) => {
             v.x = pointList[i].x;
             v.y = pointList[i].y;
         })
+        if (shouldUpDateParent && this.morpherParent != undefined) {
+            this.morpherParent.upDateChildPointIndex();
+        }
         this.shallowUpDate();
     }
 
@@ -403,14 +407,10 @@ class RectMorpher extends Morpher {
         })
     }
 
-    upDateChildPointIndex(child: StageLayer | Morpher) {
-        const pointList = this.distributePoint(child instanceof StageLayer ? child.mesh.listPoint : child.points);
-        const s = this._morpherChildren.find((v) => {
-            return v.data == child
-        })
-
-        if (s != undefined) {
-            s.pointsInWhichRect = pointList;
+    upDateChildPointIndex() {
+        for (const children of this._morpherChildren) {
+            const pList = this.distributePoint(children.data instanceof StageLayer ? children.data.mesh.listPoint : children.data.points);
+            children.pointsInWhichRect = pList;
         }
     }
 }
@@ -512,7 +512,7 @@ class MorpherRectHandler {
         this.p2.x += movementX;
         this.p2.y += movementY;
 
-        this.context.setFromPointList(points);
+        this.context.setFromPointList(points, true);
     }
 
     rotationFromPoint(degree: number, point: xy) {
@@ -524,7 +524,7 @@ class MorpherRectHandler {
         this.p2 = rotationPoint(this.p1, degree, point);
 
         this.rotation += degree
-        this.context.setFromPointList(points);
+        this.context.setFromPointList(points, true);
     }
     resizeFormPointList(pList: xy[]) {
         const zheng = pList.map((v) => {
@@ -535,8 +535,8 @@ class MorpherRectHandler {
         this.p1.y = res.top - this.padding;
         this.p2.x = res.right + this.padding;
         this.p2.y = res.button + this.padding;
-        this.width = res.right - res.left;
-        this.height = res.button - res.top;
+        this.width = res.right - res.left + this.padding * 2;
+        this.height = res.button - res.top + this.padding * 2;
 
         this.p1 = rotationPoint(this.p1, this.rotation, { x: 0, y: 0 });
         this.p2 = rotationPoint(this.p2, this.rotation, { x: 0, y: 0 });
@@ -628,7 +628,7 @@ class MorpherRectHandler {
             }
             return rotationPoint(zheng2, this.rotation, { x: 0, y: 0 })
         })
-        this.context.setFromPointList(remakePoint)
+        this.context.setFromPointList(remakePoint, true)
     }
 }
 enum edge {

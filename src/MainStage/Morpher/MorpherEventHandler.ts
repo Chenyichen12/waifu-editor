@@ -107,7 +107,10 @@ class DragPointHandler extends MorpherEventHandler {
             x: point.x,
             y: point.y
         }
-        this.context.setFromPointList(points);
+        this.context.setFromPointList(points, true);
+        if (this.context instanceof RectMorpher) {
+            this.context.forEdgeRect.resizeFormPointList(this.context.points)
+        }
         return MorpherEventRes.DRAG_POINT
     }
 
@@ -148,6 +151,7 @@ class DragRectMorpherRect extends MorpherEventHandler {
     }
 
     handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
+        this.context.forEdgeRect.resizeFormPointList(this.context.points);
         this.changeToState(new MorpherSelectHandler(this.context));
         return MorpherEventRes.DEFAUT
     }

@@ -56,11 +56,12 @@ abstract class Morpher extends Graphics {
     abstract pointAtPosition(x: number, y: number): number | undefined
     abstract ifHitMorpher(x: number, y: number): boolean
 
-    abstract setFromPointList(pointList: xy[]): void
+    abstract setFromPointList(pointList: xy[], shouldUpDateParent: boolean): void
     abstract removeMopherChild(child: (Morpher | StageLayer) | (Morpher | StageLayer)[]): void
     abstract addMorpherChild(child: Morpher | StageLayer): void
 
 
+    abstract upDateChildPointIndex(): void
 }
 
 export default Morpher;
