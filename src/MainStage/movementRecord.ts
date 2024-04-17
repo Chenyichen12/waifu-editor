@@ -51,23 +51,23 @@ class AnimateRecordManager {
             const records = this.recordList.get(id);
             if (records != undefined) {
                 const points = unionFromRecord(records);
-                setLayerFromPoints(points, layer);
+                setLayerFromMoveMent(points, layer);
             }
         }
 
 
-        function setLayerFromPoints(points: xy[], layer: StageLayer | Morpher) {
+        function setLayerFromMoveMent(move: xy[], layer: StageLayer | Morpher) {
             if (layer instanceof StageLayer) {
                 layer.getPointList().forEach((v, i) => {
-                    v.x += points[i].x;
-                    v.y += points[i].y;
+                    v.x += move[i].x;
+                    v.y += move[i].y;
                 })
                 layer.upDatePoint();
             } else {
                 const p = layer.points.map((v, i) => {
                     return {
-                        x: v.x + points[i].x,
-                        y: v.y + points[i].y
+                        x: v.x + move[i].x,
+                        y: v.y + move[i].y
                     }
                 })
                 layer.setFromPointList(p, false);

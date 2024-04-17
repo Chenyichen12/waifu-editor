@@ -65,6 +65,10 @@ abstract class Morpher extends Graphics {
     protected getPointsFromChild(child: StageLayer | Morpher): xy[] {
         return child instanceof StageLayer ? [...child.getPointList()] : child.points
     }
+
+    protected getIdFromChild(child: StageLayer | Morpher): string {
+        return child instanceof StageLayer ? child.layerId : child.morpherId
+    }
 }
 
 export default Morpher;

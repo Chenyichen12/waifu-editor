@@ -13,6 +13,7 @@ import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEve
 import EditMeshMode from "./EditMeshMode/EditMeshMode";
 import MorpherContainer from "./Morpher/MorpherContainer";
 import Morpher from "./Morpher/Morpher";
+import AnimateRecordManager from "./movementRecord";
 
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
@@ -31,6 +32,8 @@ class StageApp extends Application {
 
     layerContainer: StageLayerContainer = new StageLayerContainer([]);
 
+    moveMentRecord: AnimateRecordManager
+
     morpherContainer: MorpherContainer
 
     constructor(dom: HTMLDivElement) {
@@ -46,6 +49,7 @@ class StageApp extends Application {
             }
         }
         this.morpherContainer = new MorpherContainer([]);
+        this.moveMentRecord = new AnimateRecordManager(this)
         instanceApp.value = this;
     }
 

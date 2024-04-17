@@ -12,6 +12,7 @@ import { DestroyOptions } from "pixi.js";
 import { generateBound, ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
+import { unionFromRecord } from "../movementRecord";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
@@ -320,7 +321,12 @@ class RectMorpher extends Morpher {
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
 
+            const id = this.getIdFromChild(child.data)
             // ifChildUpdate
+            const record = instanceApp.value!.moveMentRecord.getRecordFromeId(id)
+            if (record != undefined) {
+                const moveMent = unionFromRecord(record);
+            }
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
 
                 if (child.pointsInWhichRect[index] == -1) {
