@@ -96,6 +96,18 @@ class StageLayerContainer {
             v.mesh.visible = isVisible;
         })
     }
+
+    getLayerById(id: string) {
+        return this._layers.find((v) => {
+            v.layerId == id;
+        })
+    }
+
+    findLayerWithNoParent() {
+        return this._layers.filter((v) => {
+            return v.morpherParent != undefined
+        })
+    }
 }
 
 export default StageLayerContainer;

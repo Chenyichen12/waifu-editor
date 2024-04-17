@@ -125,6 +125,17 @@ class MorpherContainer extends Container {
         }
     }
 
+    getMorpherById(id: string) {
+        return this.morphers.find((v) => {
+            v.morpherId == id;
+        })
+    }
+
+    findMorpherWithNoParent() {
+        return this.morphers.filter((v) => {
+            v.morpherParent != undefined
+        })
+    }
     get selectedMorpher() { return [...this.selectedMorphers] }
 }
 

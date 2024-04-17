@@ -12,6 +12,7 @@ import StageLayerContainer from "./LayerBase/StageLayerContainer";
 import StageEventHandler, { SelectedEventHandler } from "./EventHandler/StageEventHandler";
 import EditMeshMode from "./EditMeshMode/EditMeshMode";
 import MorpherContainer from "./Morpher/MorpherContainer";
+import Morpher from "./Morpher/Morpher";
 
 
 //在生命周期中仅能存在一个instaceApp，更换时候需要销毁原先的
@@ -147,6 +148,21 @@ class StageApp extends Application {
             break;
         }
         return new EditMeshMode(this, select);
+    }
+
+    findLayerById(id: string): StageLayer | Morpher | undefined {
+        const layer = this.layerContainer.getLayerById(id);
+        const morpher = this.morpherContainer.getMorpherById(id);
+        if (layer != undefined) {
+            return layer;
+        }
+        if (morpher != undefined) {
+            return morpher
+        }
+    }
+
+    findLayerWithNoParent() {
+        return [...this.morpherContainer.findMorpherWithNoParent(), ...this.layerContainer.findLayerWithNoParent()]
     }
 
 }
