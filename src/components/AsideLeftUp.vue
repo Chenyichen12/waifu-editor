@@ -4,9 +4,8 @@
 
 
 <script setup lang="ts">
-import { computed,  ref, shallowRef, watch ,Component} from "vue";
+import { computed,  ref,reactive, shallowRef, watch ,Component} from "vue";
 import FileFunction from "./BarFunction/FileFunction.vue";
-
 
 const GraphCommandList = [FileFunction]
 const searchText = ref('');
@@ -55,29 +54,33 @@ const isAddIconVisible = ref(true);//可视图标的点击改变图标
       isAddIconsearch.value = !isAddIconsearch.value;
       // 触发相应事件
       if (isAddIconsearch.value) {
-        // 如果当前图标是添加图标，则触发事件       
+            
       } else {
-        // 如果当前图标是删除图标，则触发事件    
+           
     }
   }
 
-   
-import type Node from 'element-plus/es/components/tree/src/model/node'
-
+   import type Node from 'element-plus/es/components/tree/src/model/node'
+  
+  const nameIndex=ref<string>('n');
 interface Tree {
   id: number
-  label: string
+  label: string   
+  checkOrnot?: boolean
+  lockOrnot?: boolean      
   children?: Tree[]
 }
 let id = 1000
 
 const append = (data: Tree) => {
-  const newChild = { id: id++, label: 'testtest', children: [] }
+             
+  const newChild = { id: id++, label: nameIndex.value, children: [] }
   if (!data.children) {
     data.children = []
   }
   data.children.push(newChild)
   dataSource.value = [...dataSource.value]
+
 }
 
 const remove = (node: Node, data: Tree) => {
@@ -141,8 +144,11 @@ const dataSource = ref<Tree[]>([
 
 
 
-
 </script>
+
+
+
+
 
 
 <template>
@@ -204,8 +210,13 @@ const dataSource = ref<Tree[]>([
 
     <!--第四层，树状部分-->  
       <div class="mainBody-box">
-        
-    <el-tree
+
+        <div class="custom-tree-container">
+    
+    <div>
+    
+  </div>
+          <el-tree
       style="max-width: 600px"
       :data="dataSource"
       show-checkbox
@@ -223,7 +234,10 @@ const dataSource = ref<Tree[]>([
         </span>
       </template>
     </el-tree>
+  </div>
 
+       
+  </div>
 
 
 
@@ -241,7 +255,7 @@ const dataSource = ref<Tree[]>([
 </button> 
          
         </div>
-         </div>
+      
       
 </template>
 
@@ -372,6 +386,9 @@ display: flex;
   background-color: #aaa; /* 滚动条 hover 时颜色 */
 }
 
+.custom-tree-container {
+  max-width: 600px;
+}
 
 
 .custom-tree-node {
@@ -382,6 +399,17 @@ display: flex;
   font-size: 7px;
   padding-right: 4px;
 }
+.button-group {
+  display: flex;
+  align-items: center;
+}
+
+.button-group el-button {
+  margin-right: 4px;
+   align-items: center;
+}
+
+
   }
 
   .downCandD-box{                 
