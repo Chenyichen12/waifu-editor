@@ -7,11 +7,15 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AsideLeftUp: typeof import('./src/components/AsideLeftUp.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
+    ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElRow: typeof import('element-plus/es')['ElRow']
+    ElTree: typeof import('element-plus/es')['ElTree']
     FileFunction: typeof import('./src/components/BarFunction/FileFunction.vue')['default']
     Stage: typeof import('./src/components/MainStage/Stage.vue')['default']
     TopBar: typeof import('./src/components/TopBar.vue')['default']

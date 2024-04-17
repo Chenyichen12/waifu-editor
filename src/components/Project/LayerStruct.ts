@@ -20,15 +20,48 @@ abstract class Layer {
 	isVisible
 	readonly layerId: string
 	abstract get type(): LayerType
+	//2023.4.13添加
+	 abstract getLayer(name: string): Layer
+	 abstract setVisible(name: string, isVisible: boolean): void
+	 abstract setLock(name: string, lock: Boolean): void
+	 abstract addLayer(l: Layer): void
+	 abstract deleteLayer(name: string): void
+	 abstract onLayerVisibleChange(callback: (l: Layer)=>void): void
+	 abstract onLayerDelete(callback: (l:Layer)=>void): void
+//.................................................
 	constructor(option: LayerOptions) {
 		this.name = option.name ?? ref("未命名");
 		this.isSelected = option.isSelected ?? ref(false);
 		this.isVisible = option.isVisible ?? ref(true);
 		this.layerId = option.layerId ?? uuid();
 	}
-}
 
+
+
+}
+//图层--图层文件夹
 class Group extends Layer {
+	getLayer(name: string): Layer {
+		throw new Error("Method not implemented.")
+	}
+	setVisible(name: string, isVisible: boolean): void {
+		throw new Error("Method not implemented.")
+	}
+	setLock(name: string, lock: Boolean): void {
+		throw new Error("Method not implemented.")
+	}
+	addLayer(l: Layer): void {
+		throw new Error("Method not implemented.")
+	}
+	deleteLayer(name: string): void {
+		throw new Error("Method not implemented.")
+	}
+	onLayerVisibleChange(callback: (l: Layer) => void): void {
+		throw new Error("Method not implemented.")
+	}
+	onLayerDelete(callback: (l: Layer) => void): void {
+		throw new Error("Method not implemented.")
+	}
 	isExpand: Ref<boolean>
 	children: ShallowRef<Layer[]>
 	get type() {
@@ -68,6 +101,27 @@ class Root extends Group {
 }
 
 class NormalLayer extends Layer {
+	getLayer(name: string): Layer {
+		throw new Error("Method not implemented.")
+	}
+	setVisible(name: string, isVisible: boolean): void {
+		throw new Error("Method not implemented.")
+	}
+	setLock(name: string, lock: Boolean): void {
+		throw new Error("Method not implemented.")
+	}
+	addLayer(l: Layer): void {
+		throw new Error("Method not implemented.")
+	}
+	deleteLayer(name: string): void {
+		throw new Error("Method not implemented.")
+	}
+	onLayerVisibleChange(callback: (l: Layer) => void): void {
+		throw new Error("Method not implemented.")
+	}
+	onLayerDelete(callback: (l: Layer) => void): void {
+		throw new Error("Method not implemented.")
+	}
 	assetId: string;
 	constructor(option: LayerOptions & { assetId: string }) {
 		super(option);

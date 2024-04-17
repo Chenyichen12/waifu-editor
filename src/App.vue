@@ -9,6 +9,7 @@
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElFooter, ElMain } from "element-plus";
 import TopBar from "./components/TopBar.vue";
+import GraphCommand from "./components/AsideLeftUp.vue"
 import Stage from "./components/MainStage/Stage.vue";
 import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
@@ -40,6 +41,7 @@ onMounted(async () => {
     </el-header>
     <el-container class="main-stage">
       <el-aside>
+        <GraphCommand/>
       </el-aside>
       <el-aside>
 
