@@ -1,15 +1,21 @@
+import Project from "../components/Project/Project";
 import StageLayer from "./LayerBase/StageLayer";
 import Morpher from "./Morpher/Morpher";
 import StageApp from "./StageApp";
-import { xy } from "./TwoDType";
 
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-04-17 19:34:52
  */
+
+type uv = {
+    u: number,
+    v: number
+}
 interface movementRecord {
     affectLayerId: string
-    pointMoment: xy[]
+    /**如果parent是矩形变形器，uv表示矩形的uv，如果parent不是则表示是全局矩形的uv */
+    pointMoment: uv[]
 }
 
 interface rotationRecord extends movementRecord {
@@ -54,20 +60,20 @@ class AnimateRecordManager {
                 setLayerFromPoints(points, layer);
             }
         }
+        function setLayerFromPoints(points: uv[], layer: StageLayer | Morpher) {
+            const bound = Project.instance.value!.root.bound
 
-
-        function setLayerFromPoints(points: xy[], layer: StageLayer | Morpher) {
             if (layer instanceof StageLayer) {
                 layer.getPointList().forEach((v, i) => {
-                    v.x += points[i].x;
-                    v.y += points[i].y;
+                    v.x = points[i].u * bound.width
+                    v.y = points[i].v * bound.height
                 })
                 layer.upDatePoint();
             } else {
-                const p = layer.points.map((v, i) => {
+                const p = layer.points.map((_v, i) => {
                     return {
-                        x: v.x + points[i].x,
-                        y: v.y + points[i].y
+                        x: points[i].u * bound.width,
+                        y: points[i].v * bound.height
                     }
                 })
                 layer.setFromPointList(p, false);
@@ -88,25 +94,19 @@ function getIdFromLayer(layer: StageLayer | Morpher) {
 }
 
 
-function unionMoveMent(move: xy[]) {
-    return move.reduce((pre, cur) => {
-        return {
-            x: pre.x + cur.x,
-            y: pre.y + cur.y
-        }
-    }, { x: 0, y: 0 })
-}
-
 function unionFromRecord(records: movementRecord[]) {
-    const res = new Array<xy>(records[0].pointMoment.length);
+    const res = new Array<uv>(records[0].pointMoment.length);
     for (let index = 0; index < res.length; index++) {
-        const move = records.map((v) => {
-            return v.pointMoment[index];
-        })
-        res[index] = unionMoveMent(move);
+        const totalU = records.reduce((pre, aft) => {
+            return pre + aft.pointMoment[index].u
+        }, 0)
+        const totalV = records.reduce((pre, aft) => {
+            return pre + aft.pointMoment[index].v;
+        }, 0)
+        res[index] = { u: totalU / records.length, v: totalV / records.length }
     }
     return res;
 }
 export default AnimateRecordManager
-export { unionFromRecord, unionMoveMent }
+export { unionFromRecord }
 export type { movementRecord, rotationRecord }

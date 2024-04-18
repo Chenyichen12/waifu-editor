@@ -9,9 +9,10 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { generateBound, ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
+import { generateBound, ifInQuad, quadPointCalculate, quadUvCalculate, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
+import { unionFromRecord } from "../movementRecord";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
@@ -321,6 +322,52 @@ class RectMorpher extends Morpher {
             const pList = this.getPointsFromChild(child.data);
 
             // ifChildUpdate
+
+            const record = instanceApp.value!.movementRecord.getRecordFromeId(this.getIdFromChild(child.data));
+            if (record != undefined) {
+                const uvMovement = unionFromRecord(record);
+                for (let index = 0; index < child.pointsInWhichRect.length; index++) {
+                    const originRect = this.getRectFromIndex(Math.floor(child.pointsInWhichRect[index] / 2));
+                    let uv = quadUvCalculate(originRect.A, originRect.B, originRect.C, originRect.D, pList[index]);
+                    const beforeA = { x: originRect.A.xBefore, y: originRect.A.yBefore };
+                    const beforeB = { x: originRect.B.xBefore, y: originRect.B.yBefore };
+                    const beforeC = { x: originRect.C.xBefore, y: originRect.C.yBefore };
+                    const beforeD = { x: originRect.D.xBefore, y: originRect.D.yBefore };
+
+                    let beforePoint = quadPointCalculate(beforeA, beforeB, beforeC, beforeD, uv);
+
+                    const rectA = { x: this.rectPoints[0].xBefore, y: this.rectPoints[0].yBefore };
+                    const rectB = { x: this.getDotPoint(this.xDot - 1, 0).xBefore, y: this.getDotPoint(this.xDot - 1, 0).yBefore };
+                    const rectC = { x: this.getDotPoint(0, this.yDot - 1).xBefore, y: this.getDotPoint(0, this.yDot - 1).yBefore };
+                    const rectD = { x: this.rectPoints[this.rectPoints.length - 1].xBefore, y: this.rectPoints[this.rectPoints.length - 1].yBefore };
+
+                    uv = quadUvCalculate(rectA, rectB, rectC, rectD, beforePoint);
+                    uv.u += uvMovement[index].u;
+                    uv.v += uvMovement[index].v;
+
+                    const xIndex = Math.floor(uv.u * (this.xDot - 1));
+                    const yIndex = Math.floor(uv.v * (this.yDot - 1));
+                    const xyIndex = xIndex + (this.xDot - 1) * yIndex;
+
+                    const newRect = this.getRectFromIndex(xyIndex);
+                    uv.u -= (1 / (this.xDot - 1)) * xIndex;
+                    uv.v -= (1 / (this.yDot - 1)) * yIndex;
+
+                    uv.u /= (1 / (this.xDot - 1));
+                    uv.v /= (1 / (this.yDot - 1));
+
+                    const newPoint = quadPointCalculate(newRect.A, newRect.B, newRect.C, newRect.D, uv);
+                    pList[index] = newPoint;
+
+                    if (uv.u > uv.v)
+                        child.pointsInWhichRect[index] = xyIndex * 2;
+                    else {
+                        child.pointsInWhichRect[index] = xyIndex * 2 + 1;
+                    }
+
+                }
+            }
+
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
 
                 if (child.pointsInWhichRect[index] == -1) {
