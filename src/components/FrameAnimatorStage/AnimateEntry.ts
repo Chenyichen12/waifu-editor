@@ -105,6 +105,37 @@ class AnimateEntry {
         return data[num.indexOf(min)!].currentValue;
     }
 
+    getCurrentValue(value: number, layerId: string) {
+        if (!this.keyData.has(layerId)) {
+            throw new Error("未注册")
+        }
+
+        const data = this.keyData.get(layerId)!.sort((a, f) => a.currentValue - f.currentValue);
+        let current: KeyFrameData | undefined
+        for (let index = 0; index < data.length - 1; index++) {
+            const before = data[index].currentValue
+            const after = data[index + 1].currentValue
+
+            if (value >= before && value <= after) {
+                const p1 = data[index].pointUvData;
+                const p2 = data[index + 1].pointUvData;
+                const deg = (value - before) / (after - before);
+                const curPoint = p1.map((v, i) => {
+                    return {
+                        u: v.u + (p2[i].u - v.u) * deg,
+                        v: v.v + (p2[i].v - v.v) * deg
+                    }
+                })
+                let rotation: number | undefined = undefined
+                if (data[index].rotationNum != undefined && data[index + 1].rotationNum != undefined) {
+                    rotation = data[index].rotationNum! + (data[index + 1].rotationNum! - data[index].rotationNum!) * deg
+                }
+                current = new KeyFrameData(value, curPoint, rotation)
+                break;
+            }
+        }
+        return current;
+    }
 
 }
 
