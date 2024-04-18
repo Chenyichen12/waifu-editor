@@ -13,4 +13,6 @@ export default interface Entry {
     isregister: boolean;
     aroundType: aroundKey
     howManyKey: number
+
+    onValueChange: (newVal: number, preVal: number) => void
 }

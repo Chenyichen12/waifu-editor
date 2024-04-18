@@ -5,15 +5,13 @@ import { ref, Ref } from "vue";
 import Entry from "./entry.ts";
 import Project from '../Project/Project';
 import EntryManager from './EntryManager';
-import { aroundKey } from './AnimateEntry'
-
+import slider from "./Slider.vue"
 const AnimateManager = shallowRef<EntryManager | undefined>(undefined)
-const listMap: Ref<Map<string, Entry>> = ref(new Map());
-let draggedId: string | undefined
+const list: Ref<Entry[]> = ref([]);
 
 watch(Project.instance, (value) => {
   if (value != null) {
-    listMap.value.clear();
+    list.value = [];
     AnimateManager.value = value.entryManager
     AnimateManager.value.entrys.forEach((value, key) => {
       const newEntry: Entry = {
@@ -22,130 +20,15 @@ watch(Project.instance, (value) => {
         howManyKey: value.howManyPoint(),
         value: value.currentValue,
         isregister: false,
-        aroundType: value.around
+        aroundType: value.around,
+        onValueChange: (n, o) => {
+          value.currentValue = n;
+        }
       };
-      listMap.value.set(newEntry.id, newEntry);
+      list.value.push(newEntry)
     })
   }
 })
-
-function handleMouseDownSilder(e: MouseEvent, dragId: string) {
-  draggedId = dragId;
-}
-
-// function handleMouseMove(e: MouseEvent) {
-//   if (draggedId == undefined || draggedContainerDom.value == undefined)
-//     return
-//   const { left, right } = draggedContainerDom.value.getBoundingClientRect();
-
-// }
-
-
-
-// const isMouseDown = ref(false);
-// //将每个滑块按钮作为数组
-// const sliderButtons: Ref<HTMLDivElement[] | undefined[]> = ref([])
-// //将每个滑块容器作为数组
-// const sliderContainers: Ref<HTMLDivElement[] | undefined[]> = ref([]);
-// // const sliderButtonRef = ref<HTMLDivElement | undefined>(undefined);
-// // const sliderContainerRef = ref<HTMLDivElement | undefined>(undefined);
-
-// onMounted(() => {
-//   window.addEventListener("mousemove", handleMouseMove)
-//   window.addEventListener("mouseup", mouseUp)
-//   window.addEventListener("mouseLeave", mouseLeave)
-//   //先对滑块按钮和滑块容器进行初始化初始化
-//   sliderButtons.value = Array.from(document.querySelectorAll('.slibtn')).map(slider => slider as HTMLDivElement)
-//   sliderContainers.value = Array.from(document.querySelectorAll('.bslider')).map(slider => slider as HTMLDivElement)
-
-// });
-// onUnmounted(() => {
-//   window.removeEventListener("mousemove", handleMouseMove)
-//   window.removeEventListener("mouseup", mouseUp)
-// })
-
-
-
-// // 鼠标点击组件滑动的逻辑
-// function mouseDown(e: MouseEvent) {
-//   // alert("我被点击了")
-//   // value.value = 100
-//   isMouseDown.value = true
-//   const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
-//   list.value[sliderIndex].value = 0.5;
-//   console.log(sliderIndex);
-//   //add
-//   //sliderButtons.value[sliderIndex]!.style.backgroundColor='green';
-
-// }
-// function mouseUp(e: MouseEvent) {
-//   // value.value = 0
-//   isMouseDown.value = false;
-
-//   const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
-//   //list.value[sliderIndex].value=0.3;
-
-
-// }
-// //新加一个鼠标移出按钮
-// function mouseLeave() {
-
-//   isMouseDown.value = false;
-// }
-
-
-
-// // 鼠标拖动组件滑动的逻辑
-// function handleMouseMove(e: MouseEvent) {
-//   if (isMouseDown.value) {
-//     //const dom = e.target as HTMLDivElement
-
-
-
-//     //这条语句用来检测，滑动是否被监听
-//     // list.value[sliderIndex].value=0.4;
-
-//     //得知动的是数组中的哪个index，向左滑的时候index为-1
-//     const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
-//     console.log(sliderIndex);
-
-
-//     //由于每个框的左边位置相同，采用第0个容器就行
-//     const { left, right } = sliderContainers.value[0]!.getBoundingClientRect();
-//     console.log(left, right);
-
-
-//     let x: number
-//     if (e.clientX < left + 10) {
-
-//       x = -2.5;
-//     } else if (e.clientX > right - 10) {
-
-//       x = right - left - 2.5
-//     } else {
-//       x = e.clientX - left;
-
-//     }
-
-//     for (let i = 0; i < list.value.length; i++) {
-//       if (list.value[i].id == sliderIndex + 1) {
-//         list.value[i].value = ((x + 2.5) / (right - left)).toFixed(2);
-//         // console.log(list.value[i].value);
-//       }
-//     }
-//     // value.value=((x+2.5)/(right-left)).toFixed(2);
-//     console.log(x);
-
-//     //检查出行代码有错，如果向左移动，则无法移动，但x会正常改变，无法移动
-
-//     sliderButtons.value[sliderIndex]!.style.left = `${x}px`;
-
-
-//     //  sliderButtonRef.value!.style.left = `${x}px`;
-//   }
-
-// }
-
 
 
 </script>
@@ -172,31 +55,8 @@ function handleMouseDownSilder(e: MouseEvent, dragId: string) {
   <hr>
   <div><el-scrollbar height="570px" id="scrollbar">
 
-      <div v-for="entry in listMap" class="test">
-        <div class="slider">
-          <a class="nameText">
-            {{ entry[1].name }}
-          </a>
-
-          <div class="bslider" :id="`${entry[0]}-slider`">
-            <div v-show="entry[1].howManyKey == 2">
-              <div class="key1"></div>
-              <div class="key2"></div>
-            </div>
-            <div v-show="entry[1].howManyKey == 3">
-              <div class="key1"></div>
-              <div class="key2"></div>
-              <div class="key3"></div>
-            </div>
-            <div class="back"></div>
-
-            <!-- slibtn为需要滑动的点 -->
-            <div class="slibtn" v-on:mousedown="(e) => handleMouseDownSilder(e, entry[0])"></div>
-          </div>
-          <a class="valueText">
-            {{ entry[1].value }}
-          </a>
-        </div>
+      <div v-for="(_entry, index) in list">
+        <slider v-model="list[index]" />
       </div>
 
 
@@ -244,18 +104,6 @@ function handleMouseDownSilder(e: MouseEvent, dragId: string) {
   margin-left: 7px;
 }
 
-.slider {
-  margin-left: 0;
-  margin-right: 0;
-  margin-bottom: 0;
-  margin-top: 0;
-}
-
-.sider:hover {
-  background-color: #DCDCDC;
-
-}
-
 .slider-demo-block .demonstration+.el-slider {
   flex: 0 0 60%;
 }
@@ -271,157 +119,5 @@ function handleMouseDownSilder(e: MouseEvent, dragId: string) {
 .footbtn {
   margin-right: 5px;
   margin-left: 0px;
-}
-
-#scrollbar {
-  /* width: 180px; */
-}
-
-.list {
-  height: 400px;
-}
-
-
-.test {
-
-  height: 20px;
-  width: 180px;
-  padding: 2px;
-  background-color: white;
-  margin-left: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-  margin-right: 0;
-
-  :hover {
-    background-color: rgb(235, 235, 235);
-  }
-
-}
-
-.slider {
-  gap: 15px;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  flex: 1;
-
-  color: black;
-
-  .nameText {
-    width: 20%;
-    height: 100%;
-    font-size: 14px;
-    white-space: nowrap;
-    margin-left: 0;
-    margin-right: 0;
-
-  }
-
-  .bslider {
-    width: 65%;
-
-
-
-
-  }
-
-  .valueText {
-    width: 10%;
-    height: 100%;
-    top: calc(50%);
-    white-space: nowrap;
-    text-align: left;
-    margin-left: 0;
-    margin-right: 0;
-    font-size: 9px;
-  }
-
-}
-
-
-/* //将滑块部分看成整体，也即将帧和滑动条视为整体 */
-.bslider {
-  flex: 1;
-  height: 100%;
-  width: 100px;
-  display: flex;
-  position: relative;
-  margin-left: 0;
-  margin-right: 0;
-
-  .back {
-    position: absolute;
-    z-index: 1;
-    top: calc(50% - 1px);
-
-
-    height: 2px;
-    width: 100%;
-
-    background-color: black;
-  }
-
-  .key1 {
-    position: absolute;
-    top: calc(50% - 5px);
-    left: calc(-2.5px);
-    height: 10px;
-    width: 10px;
-    border-radius: 5px;
-    z-index: 2;
-    background-color: green;
-  }
-
-  .slibtn {
-    position: absolute;
-    top: calc(50% - 5px);
-    left: calc(50% - 2.5px);
-
-    z-index: 3;
-
-    width: 10px;
-    /* 按钮的宽度 */
-    height: 10px;
-    /* 按钮的高度 */
-    line-height: 5px;
-    /* 行高与按钮高度相同，用于垂直居中文本 */
-    border-radius: 5px;
-    /* 边框半径为50%，创建一个圆形 */
-
-    background-color: red;
-    /* 背景颜色 */
-    color: #000;
-    /* 文本颜色 */
-    text-align: center;
-    /* 文本居中 */
-    cursor: pointer;
-    /* 鼠标悬停时显示手形光标 */
-    /* 可以添加其他样式，如阴影、过渡效果等 */
-  }
-
-  .key2 {
-    position: absolute;
-    top: calc(50% - 5px);
-    left: calc(100% - 2.5px);
-    height: 10px;
-    width: 10px;
-    z-index: 2;
-    border-radius: 5px;
-    background-color: green;
-
-  }
-
-  .key3 {
-    position: absolute;
-    top: calc(50% - 5px);
-    left: calc(50% - 2.5px);
-    height: 10px;
-    width: 10px;
-    z-index: 2;
-    border-radius: 5px;
-    background-color: green;
-  }
 }
 </style>

@@ -1,64 +1,100 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { Ref, onMounted, onUnmounted, ref } from 'vue';
+import Entry from './entry';
+import { aroundKey } from './AnimateEntry';
 
-const value = ref(0.5)
+const model = defineModel<Entry>({ required: true })
+const container: Ref<HTMLDivElement | undefined> = ref(undefined);
+const sliButton: Ref<HTMLDivElement | undefined> = ref(undefined);
 
-const isMouseDown = ref(false);
+const isMousePress = ref(false)
 
-const sliderButtonRef = ref<HTMLDivElement | undefined>(undefined);
-const sliderContainerRef = ref<HTMLDivElement | undefined>(undefined);
-onMounted(() => {
-    window.addEventListener("mousemove", handleMouseMove)
-    window.addEventListener("mouseup", mouseUp)
-})
-function mouseDown() {
-    // alert("我被点击了")
-    // value.value = 100
-    isMouseDown.value = true
+function handleMouseDown(_e: MouseEvent) {
+    isMousePress.value = true;
 }
-function mouseUp() {
-    // value.value = 0
-    isMouseDown.value = false;
-}
-
-// 鼠标拖动组件滑动的逻辑
 function handleMouseMove(e: MouseEvent) {
-    if (isMouseDown.value) {
-        //const dom = e.target as HTMLDivElement
-        const { left, right } = sliderContainerRef.value!.getBoundingClientRect();
-
+    if (isMousePress.value) {
+        const { left, right, width } = container.value!.getBoundingClientRect();
         let x: number
-        if (e.clientX < left + 10) {
+        let modelVal: number
+        const modelMin = model.value.aroundType == aroundKey.one2one ? -1 : 0
+        if (e.clientX < left + 5) {
             x = -2.5;
-        } else if (e.clientX > right - 10) {
+            modelVal = modelMin
+        } else if (e.clientX > right - 5) {
             x = right - left - 2.5
+            modelVal = 1;
         } else {
             x = e.clientX - left;
+            modelVal = (e.clientX - left) / width * (1 - modelMin) + modelMin
         }
-        value.value=((x+2.5)/(right-left)).toFixed(2);
-        sliderButtonRef.value!.style.left = `${x}px`;
+
+        sliButton.value!.style.left = `${x}px`;
+
+        const oldVal = model.value.value;
+
+        if (oldVal != modelVal) {
+            model.value.value = modelVal;
+            model.value.onValueChange(modelVal, oldVal);
+        }
     }
-
 }
+function handleMouseUp(_e: MouseEvent) {
+    isMousePress.value = false;
+}
+onMounted(() => {
+    let style = "calc(50%-2.5px)"
+    switch (model.value.aroundType) {
+        case aroundKey.one2one: {
+            const { width } = container.value!.getBoundingClientRect();
+            const left = (model.value.value + 1) / 2 * width
+            style = `${left}px`;
+            break;
+        }
+
+        case aroundKey.zero2one: {
+            const { width } = container.value!.getBoundingClientRect();
+            const left = model.value.value * width
+            style = `${left}px`
+        }
+    }
+    sliButton.value!.style.left = style;
 
 
+    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mouseup", handleMouseUp)
+})
+
+onUnmounted(() => {
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp)
+})
 </script>
 
 <template>
     <div class="test">
         <div class="slider">
             <a class="nameText">
-                左眼
+                {{ model.name }}
             </a>
-            <div class="bslider" ref="sliderContainerRef">
-                <div class="key1"></div>
+            <div class="bslider" ref="container">
+                <div v-show="model.howManyKey == 2">
+                    <div class="key1"></div>
+                    <div class="key2"></div>
+                </div>
+                <div v-show="model.howManyKey == 3">
+                    <div class="key1"></div>
+                    <div class="key2"></div>
+                    <div class="key3"></div>
+                </div>
+
                 <div class="back"></div>
                 <!-- slibtn为需要滑动的点 -->
-                <div class="slibtn" ref="sliderButtonRef" v-on:mousedown="mouseDown"></div>
-                <div class="key2"></div>
+                <div class="slibtn" ref="sliButton" v-on:mousedown="handleMouseDown"></div>
+
             </div>
             <a class="valueText">
-               {{ value}}
+                {{ model.value.toFixed(2) }}
             </a>
         </div>
     </div>
@@ -101,18 +137,10 @@ function handleMouseMove(e: MouseEvent) {
 
     }
 
-    .bslider {
-        width: 65%;
-
-        //以下为自己手搓的滑动按钮
-
-
-    }
-
     .valueText {
         width: 10%;
         height: 100%;
-        top:calc(50%);
+        top: calc(50%);
         white-space: nowrap;
         text-align: left;
         margin-left: 0;
@@ -195,5 +223,16 @@ function handleMouseMove(e: MouseEvent) {
 
     }
 
+    .key3 {
+        position: absolute;
+        top: calc(50% - 5px);
+        left: calc(50% - 2.5px);
+        height: 10px;
+        width: 10px;
+        z-index: 2;
+        border-radius: 5px;
+        background-color: green;
+
+    }
 }
 </style>
