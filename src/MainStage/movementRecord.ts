@@ -50,7 +50,47 @@ class AnimateRecordManager {
         }
     }
 
-    upDateRecord() {
+    upDateRecord(beforeNumber: number[], afterNumber: number[]) {
+        this.clearRecord();
+        Project.instance.value!.entryManager.entrys.forEach((v, i) => {
+            for (const name of v.keyDatas) {
+                const p1 = v.getCurrentValue(beforeNumber[i], name[0]);
+                const p2 = v.getCurrentValue(afterNumber[i], name[0]);
+
+                if (p1 == undefined || p2 == undefined) {
+                    debugger;
+                    continue;
+                }
+
+                const move = p1.pointUvData.map((v, i) => {
+                    return {
+                        u: p2.pointUvData[i].u - v.u,
+                        v: p2.pointUvData[i].v - v.v
+                    }
+                })
+
+                const rotationMove = p2.rotationNum != undefined ? p2.rotationNum - p1.rotationNum! : undefined
+
+                if (rotationMove != undefined) {
+                    this.addRecord({
+                        affectLayerId: name[0],
+                        pointMoment: move,
+                        rotationMoveMent: rotationMove
+                    } as rotationRecord)
+                } else {
+                    this.addRecord({
+                        affectLayerId: name[0],
+                        pointMoment: move
+                    })
+                }
+
+            }
+        });
+
+
+    }
+
+    applyRecord() {
         const setLayer = this.context.findLayerWithNoParent()
         for (const layer of setLayer) {
             const id = getIdFromLayer(layer);

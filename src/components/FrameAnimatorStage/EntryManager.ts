@@ -25,3 +25,5 @@ class EntryManager {
 
 
 }
+
+export default EntryManager

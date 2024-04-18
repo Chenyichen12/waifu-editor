@@ -51,6 +51,7 @@ class AnimateEntry {
             }
         })
     }
+    get keyDatas() { return this.keyData }
 
     getData(id: string, key: number) {
         if (!this.keyData.get(id))
@@ -95,6 +96,8 @@ class AnimateEntry {
         if (!this.keyData.has(layerId)) {
             throw new Error("未注册")
         }
+
+
         const data = this.keyData.get(layerId)!;
 
         const num = data.map((v) => {
