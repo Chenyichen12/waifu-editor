@@ -28,6 +28,15 @@ class AnimateEntry {
     //key是layer的id value存储当前layer的数据 -1，1，0等
     protected keyData: Map<string, KeyFrameData[]>
 
+    howManyPoint() {
+        if (this.keyData.size == 0) {
+            return 0;
+        }
+        for (const datas of this.keyData) {
+            return datas[1].length;
+        }
+        return 0;
+    }
     constructor(option: Partial<EntryOption>) {
         this.id = option.id ?? v4();
         this.entryName = option.name ?? "未命名";
