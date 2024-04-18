@@ -103,7 +103,9 @@ function unionFromRecord(records: movementRecord[]) {
         const totalV = records.reduce((pre, aft) => {
             return pre + aft.pointMoment[index].v;
         }, 0)
-        res[index] = { u: totalU / records.length, v: totalV / records.length }
+        res[index] = {
+            u: totalU, v: totalV
+        }
     }
     return res;
 }
