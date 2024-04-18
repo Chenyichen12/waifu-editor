@@ -6,9 +6,16 @@ import { createApp } from 'vue'
 import './style.css'
 import 'element-plus/dist/index.css'
 import App from './App.vue'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import 'element-plus/theme-chalk/index.css'
+
 createApp(App).mount('#app')
 
-window.onload = function () {
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    App.component(key, component)
+  }
+
+  window.onload = function () {
     document.addEventListener('touchstart', function (event) {
         if (event.touches.length > 1) {
             event.preventDefault();

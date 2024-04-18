@@ -7,12 +7,17 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    Botton: typeof import('./src/components/Layerchange/botton.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
+    ElButton: typeof import('element-plus/es')['ElButton']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElIcon: typeof import('element-plus/es')['ElIcon']
     FileFunction: typeof import('./src/components/BarFunction/FileFunction.vue')['default']
+    Layerchange: typeof import('./src/components/Layerchange/Layerchange.vue')['default']
+    NestedDirective: typeof import('./src/components/Layerchange/NestedDirective.vue')['default']
     Stage: typeof import('./src/components/MainStage/Stage.vue')['default']
     TopBar: typeof import('./src/components/TopBar.vue')['default']
   }

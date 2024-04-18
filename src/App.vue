@@ -10,6 +10,7 @@
 import { ElContainer, ElHeader, ElFooter, ElMain } from "element-plus";
 import TopBar from "./components/TopBar.vue";
 import Stage from "./components/MainStage/Stage.vue";
+import Layerchange from "./components/Layerchange/Layerchange.vue";
 import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
 
@@ -27,10 +28,12 @@ onMounted(async () => {
       <TopBar />
     </el-header>
     <el-container class="main-stage">
-      <el-aside>
-      </el-aside>
-      <el-aside>
-
+      <!-- <el-aside width="300px">
+        hohq
+      </el-aside> -->
+      <el-aside width = "500px" id="layerchage">
+        变形器
+        <Layerchange />
       </el-aside>
       <el-main>
         <Stage />
@@ -69,7 +72,7 @@ onMounted(async () => {
     border-style: none solid;
     border-color: var(--el-color-primary-light-8);
     margin: 0 1px;
-    width: 200px;
+    width: 500px;
   }
 
   .el-main {
