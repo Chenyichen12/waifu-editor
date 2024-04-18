@@ -321,6 +321,7 @@ class RectMorpher extends Morpher {
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
 
+            const id = this.getIdFromChild(child.data)
             // ifChildUpdate
 
             const record = instanceApp.value!.movementRecord.getRecordFromeId(this.getIdFromChild(child.data));
