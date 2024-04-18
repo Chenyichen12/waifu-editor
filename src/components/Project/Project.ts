@@ -49,6 +49,7 @@ class Project {
 			height: p.height,
 		})
 		newProject._root = newRoot;
+		newProject.entryManager.initDefault();
 		Project._instance.value = newProject;
 
 		async function parseChild(nodeChild: NodeChild[]): Promise<Layer[]> {

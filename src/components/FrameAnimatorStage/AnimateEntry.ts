@@ -152,3 +152,4 @@ class AnimateEntry {
 }
 
 export default AnimateEntry
+export { aroundKey }

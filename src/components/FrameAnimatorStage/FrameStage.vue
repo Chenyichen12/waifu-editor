@@ -1,138 +1,150 @@
 <script setup lang="ts">
 import { Plus, Delete } from '@element-plus/icons-vue';
-import { onMounted, onUnmounted, shallowRef, watch } from "vue";
+import { shallowRef, watch } from "vue";
 import { ref, Ref } from "vue";
-import { Entry, KeyType } from "./entry.ts";
+import Entry from "./entry.ts";
 import Project from '../Project/Project';
 import EntryManager from './EntryManager';
+import { aroundKey } from './AnimateEntry'
 
 const AnimateManager = shallowRef<EntryManager | undefined>(undefined)
-const list: Ref<Entry[]> = ref([])
-
+const listMap: Ref<Map<string, Entry>> = ref(new Map());
+let draggedId: string | undefined
 
 watch(Project.instance, (value) => {
   if (value != null) {
+    listMap.value.clear();
     AnimateManager.value = value.entryManager
     AnimateManager.value.entrys.forEach((value, key) => {
-      const pointsNum = value.howManyPoint();
-      let type: KeyType
-      if (pointsNum == 0) {
-        type = KeyType.One;
-      } else if (pointsNum == 2) {
-        type = KeyType.TWO
-      } else {
-        type = KeyType.THREE
-      }
-      const entry = new Entry(key, value.name, value.currentValue, false, type);
-      list.value.push(entry);
+      const newEntry: Entry = {
+        id: key,
+        name: value.name,
+        howManyKey: value.howManyPoint(),
+        value: value.currentValue,
+        isregister: false,
+        aroundType: value.around
+      };
+      listMap.value.set(newEntry.id, newEntry);
     })
   }
 })
 
-
-const isMouseDown = ref(false);
-//将每个滑块按钮作为数组
-const sliderButtons: Ref<HTMLDivElement[] | undefined[]> = ref([])
-//将每个滑块容器作为数组
-const sliderContainers: Ref<HTMLDivElement[] | undefined[]> = ref([]);
-// const sliderButtonRef = ref<HTMLDivElement | undefined>(undefined);
-// const sliderContainerRef = ref<HTMLDivElement | undefined>(undefined);
-
-onMounted(() => {
-  window.addEventListener("mousemove", handleMouseMove)
-  window.addEventListener("mouseup", mouseUp)
-  window.addEventListener("mouseLeave", mouseLeave)
-  //先对滑块按钮和滑块容器进行初始化初始化
-  sliderButtons.value = Array.from(document.querySelectorAll('.slibtn')).map(slider => slider as HTMLDivElement)
-  sliderContainers.value = Array.from(document.querySelectorAll('.bslider')).map(slider => slider as HTMLDivElement)
-
-});
-onUnmounted(() => {
-  window.removeEventListener("mousemove", handleMouseMove)
-  window.removeEventListener("mouseup", mouseUp)
-})
-
-
-
-// 鼠标点击组件滑动的逻辑
-function mouseDown(e: MouseEvent) {
-  // alert("我被点击了")
-  // value.value = 100
-  isMouseDown.value = true
-  const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
-  list.value[sliderIndex].value = 0.5;
-  console.log(sliderIndex);
-  //add
-  //sliderButtons.value[sliderIndex]!.style.backgroundColor='green';
-
-}
-function mouseUp(e: MouseEvent) {
-  // value.value = 0
-  isMouseDown.value = false;
-
-  const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
-  //list.value[sliderIndex].value=0.3;
-
-
-}
-//新加一个鼠标移出按钮
-function mouseLeave() {
-
-  isMouseDown.value = false;
+function handleMouseDownSilder(e: MouseEvent, dragId: string) {
+  draggedId = dragId;
 }
 
+// function handleMouseMove(e: MouseEvent) {
+//   if (draggedId == undefined || draggedContainerDom.value == undefined)
+//     return
+//   const { left, right } = draggedContainerDom.value.getBoundingClientRect();
+
+// }
 
 
-// 鼠标拖动组件滑动的逻辑
-function handleMouseMove(e: MouseEvent) {
-  if (isMouseDown.value) {
-    //const dom = e.target as HTMLDivElement
+
+// const isMouseDown = ref(false);
+// //将每个滑块按钮作为数组
+// const sliderButtons: Ref<HTMLDivElement[] | undefined[]> = ref([])
+// //将每个滑块容器作为数组
+// const sliderContainers: Ref<HTMLDivElement[] | undefined[]> = ref([]);
+// // const sliderButtonRef = ref<HTMLDivElement | undefined>(undefined);
+// // const sliderContainerRef = ref<HTMLDivElement | undefined>(undefined);
+
+// onMounted(() => {
+//   window.addEventListener("mousemove", handleMouseMove)
+//   window.addEventListener("mouseup", mouseUp)
+//   window.addEventListener("mouseLeave", mouseLeave)
+//   //先对滑块按钮和滑块容器进行初始化初始化
+//   sliderButtons.value = Array.from(document.querySelectorAll('.slibtn')).map(slider => slider as HTMLDivElement)
+//   sliderContainers.value = Array.from(document.querySelectorAll('.bslider')).map(slider => slider as HTMLDivElement)
+
+// });
+// onUnmounted(() => {
+//   window.removeEventListener("mousemove", handleMouseMove)
+//   window.removeEventListener("mouseup", mouseUp)
+// })
 
 
 
-    //这条语句用来检测，滑动是否被监听
-    // list.value[sliderIndex].value=0.4;
+// // 鼠标点击组件滑动的逻辑
+// function mouseDown(e: MouseEvent) {
+//   // alert("我被点击了")
+//   // value.value = 100
+//   isMouseDown.value = true
+//   const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
+//   list.value[sliderIndex].value = 0.5;
+//   console.log(sliderIndex);
+//   //add
+//   //sliderButtons.value[sliderIndex]!.style.backgroundColor='green';
 
-    //得知动的是数组中的哪个index，向左滑的时候index为-1
-    const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
-    console.log(sliderIndex);
+// }
+// function mouseUp(e: MouseEvent) {
+//   // value.value = 0
+//   isMouseDown.value = false;
 
-
-    //由于每个框的左边位置相同，采用第0个容器就行
-    const { left, right } = sliderContainers.value[0]!.getBoundingClientRect();
-    console.log(left, right);
-
-
-    let x: number
-    if (e.clientX < left + 10) {
-
-      x = -2.5;
-    } else if (e.clientX > right - 10) {
-
-      x = right - left - 2.5
-    } else {
-      x = e.clientX - left;
-
-    }
-
-    for (let i = 0; i < list.value.length; i++) {
-      if (list.value[i].id == sliderIndex + 1) {
-        list.value[i].value = ((x + 2.5) / (right - left)).toFixed(2);
-        // console.log(list.value[i].value);
-      }
-    }
-    // value.value=((x+2.5)/(right-left)).toFixed(2);
-    console.log(x);
-
-    //检查出行代码有错，如果向左移动，则无法移动，但x会正常改变，无法移动
-
-    sliderButtons.value[sliderIndex]!.style.left = `${x}px`;
+//   const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
+//   //list.value[sliderIndex].value=0.3;
 
 
-    //  sliderButtonRef.value!.style.left = `${x}px`;
-  }
+// }
+// //新加一个鼠标移出按钮
+// function mouseLeave() {
 
-}
+//   isMouseDown.value = false;
+// }
+
+
+
+// // 鼠标拖动组件滑动的逻辑
+// function handleMouseMove(e: MouseEvent) {
+//   if (isMouseDown.value) {
+//     //const dom = e.target as HTMLDivElement
+
+
+
+//     //这条语句用来检测，滑动是否被监听
+//     // list.value[sliderIndex].value=0.4;
+
+//     //得知动的是数组中的哪个index，向左滑的时候index为-1
+//     const sliderIndex = sliderButtons.value.indexOf(e.target as HTMLDivElement);
+//     console.log(sliderIndex);
+
+
+//     //由于每个框的左边位置相同，采用第0个容器就行
+//     const { left, right } = sliderContainers.value[0]!.getBoundingClientRect();
+//     console.log(left, right);
+
+
+//     let x: number
+//     if (e.clientX < left + 10) {
+
+//       x = -2.5;
+//     } else if (e.clientX > right - 10) {
+
+//       x = right - left - 2.5
+//     } else {
+//       x = e.clientX - left;
+
+//     }
+
+//     for (let i = 0; i < list.value.length; i++) {
+//       if (list.value[i].id == sliderIndex + 1) {
+//         list.value[i].value = ((x + 2.5) / (right - left)).toFixed(2);
+//         // console.log(list.value[i].value);
+//       }
+//     }
+//     // value.value=((x+2.5)/(right-left)).toFixed(2);
+//     console.log(x);
+
+//     //检查出行代码有错，如果向左移动，则无法移动，但x会正常改变，无法移动
+
+//     sliderButtons.value[sliderIndex]!.style.left = `${x}px`;
+
+
+//     //  sliderButtonRef.value!.style.left = `${x}px`;
+//   }
+
+// }
 
 
 
@@ -160,39 +172,39 @@ function handleMouseMove(e: MouseEvent) {
   <hr>
   <div><el-scrollbar height="570px" id="scrollbar">
 
-      <div v-for="entry in list" class="test">
+      <div v-for="entry in listMap" class="test">
         <div class="slider">
           <a class="nameText">
-            {{ entry.name }}
+            {{ entry[1].name }}
           </a>
-          <div class="bslider" ref="sliderContainerRef${entry.id}">
-            <div class="key1"></div>
+
+          <div class="bslider" :id="`${entry[0]}-slider`">
+            <div v-show="entry[1].howManyKey == 2">
+              <div class="key1"></div>
+              <div class="key2"></div>
+            </div>
+            <div v-show="entry[1].howManyKey == 3">
+              <div class="key1"></div>
+              <div class="key2"></div>
+              <div class="key3"></div>
+            </div>
             <div class="back"></div>
+
             <!-- slibtn为需要滑动的点 -->
-            <div class="slibtn" ref="sliderButtonRef${entry.id}" v-on:mousedown="mouseDown"></div>
-            <div class="key2"></div>
-            <div v-if="twoFrame" class="key3"></div>
+            <div class="slibtn" v-on:mousedown="(e) => handleMouseDownSilder(e, entry[0])"></div>
           </div>
           <a class="valueText">
-            {{ entry.value }}
+            {{ entry[1].value }}
           </a>
         </div>
       </div>
-      <!-- <slider name="左眼" :initValue="initValue"></slider>
-      <slider name="右眼"></slider>
-      <slider name="嘴巴"></slider>
-      <slider name="鼻子左"></slider> -->
+
 
     </el-scrollbar></div>
 
   <el-button type="primary" :icon="Plus" circle size="small" class="footbtn" style="float: right;"></el-button>
 
   <el-button type="primary" :icon="Plus" circle size="small" class="footbtn" style="float: right;"></el-button>
-
-
-  <!-- <el-input v-model="newEntryName" placeholder="请输入新条目名称" /> -->
-  <!-- <el-button type="primary" icon="el-icon-plus"  circle class="btn"></el-button> -->
-
 
 
 </template>

@@ -1,4 +1,4 @@
-import AnimateEntry from "./AnimateEntry";
+import AnimateEntry, { aroundKey } from "./AnimateEntry";
 
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
@@ -15,7 +15,8 @@ class EntryManager {
         return this._entrys.get(id)
     }
 
-    addNewEntry() {
+    addNewEntry(entry: AnimateEntry) {
+        this._entrys.set(entry.id, entry);
     }
 
     deleteEntry() {
@@ -31,6 +32,24 @@ class EntryManager {
         return res;
     }
 
+    initDefault() {
+        const entry1 = new AnimateEntry({
+            name: "左眼",
+            around: aroundKey.one2one
+        })
+        const entry2 = new AnimateEntry({
+            name: "右眼",
+            around: aroundKey.one2one
+        })
+
+        const entry3 = new AnimateEntry({
+            name: "测试",
+            around: aroundKey.zero2one
+        })
+        this.addNewEntry(entry1);
+        this.addNewEntry(entry2);
+        this.addNewEntry(entry3);
+    }
 }
 
 export default EntryManager
