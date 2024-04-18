@@ -11,7 +11,7 @@ import { generateBound, rotationPoint } from "./util";
 import { DestroyOptions } from "pixi.js";
 import { ContainesPoint } from "../LayerBase/util";
 import RectMorpher from "./RectMorpher";
-import { unionFromRecord } from "../movementRecord";
+import { rotationRecord, unionFromRecord } from "../movementRecord";
 import Project from "../../components/Project/Project";
 
 class RotationMorpher extends Morpher {
@@ -117,9 +117,17 @@ class RotationMorpher extends Morpher {
         const movey = pointList[0].y - this.rotationPoint.y;
 
         //degreeifChange
+        const rotationRecord = instanceApp.value!.movementRecord.getRecordFromeId(this.morpherId);
+        let moveDegree = 0;
+        if (rotationRecord != undefined) {
+            moveDegree = rotationRecord.reduce((pre, aft) => {
+                return pre + (aft as rotationRecord).rotationMoveMent;
+            }, 0)
+        }
+
         for (const child of this._morpherChildren) {
 
-            const pList = this.getPointsFromChild(child.data)
+            let pList = this.getPointsFromChild(child.data)
             const record = instanceApp.value!.movementRecord.getRecordFromeId(this.getIdFromChild(child.data));
 
             if (record != undefined) {
@@ -133,12 +141,15 @@ class RotationMorpher extends Morpher {
                     }
                 }
             }
-
-            const points = this.getPointsFromChild(child.data).map((v) => {
+            pList = pList.map((v) => {
                 return {
                     x: v.x + movex,
                     y: v.y + movey
                 }
+            })
+
+            const points = pList.map((v) => {
+                return rotationPoint(v, moveDegree - this.rotationDegree, this.rotationPoint);
             });
 
             if (child.data instanceof Morpher) {
