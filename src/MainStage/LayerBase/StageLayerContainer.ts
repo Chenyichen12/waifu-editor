@@ -105,7 +105,7 @@ class StageLayerContainer {
 
     findLayerWithNoParent() {
         return this._layers.filter((v) => {
-            return v.morpherParent != undefined
+            return v.morpherParent == undefined
         })
     }
 }

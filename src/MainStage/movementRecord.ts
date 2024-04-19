@@ -107,6 +107,10 @@ class AnimateRecordManager {
             if (records != undefined) {
                 const points = unionFromRecord(records);
                 setLayerFromPoints(points, layer);
+            } else {
+                if (layer instanceof Morpher) {
+                    layer.setFromPointList(layer.points, false);
+                }
             }
         }
         function setLayerFromPoints(points: uv[], layer: StageLayer | Morpher) {
@@ -114,15 +118,15 @@ class AnimateRecordManager {
 
             if (layer instanceof StageLayer) {
                 layer.getPointList().forEach((v, i) => {
-                    v.x = points[i].u * bound.width
-                    v.y = points[i].v * bound.height
+                    v.x += points[i].u * bound.width
+                    v.y += points[i].v * bound.height
                 })
                 layer.upDatePoint();
             } else {
-                const p = layer.points.map((_v, i) => {
+                const p = layer.points.map((v, i) => {
                     return {
-                        x: points[i].u * bound.width,
-                        y: points[i].v * bound.height
+                        x: v.x + points[i].u * bound.width,
+                        y: v.x + points[i].v * bound.height
                     }
                 })
                 layer.setFromPointList(p, false);

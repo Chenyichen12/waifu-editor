@@ -84,6 +84,7 @@ class EntryManager {
         const after = this.getEntryKeyValue();
         if (instanceApp.value != null) {
             instanceApp.value.movementRecord.upDateRecord(before, after);
+            instanceApp.value.movementRecord.applyRecord();
         }
     }
 

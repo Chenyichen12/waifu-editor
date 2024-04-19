@@ -5,12 +5,15 @@
  * 用于处理LayerStage的事件，处理键盘事件
  */
 
+import KeyFrameData from "../../components/FrameAnimatorStage/KeyFrame"
 import Project from "../../components/Project/Project"
 import MeshLayer from "../GraphicsBase/MeshLayer"
 import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
 import RectInSelected from "../GraphicsBase/RectInSelected"
 import StageLayer from "../LayerBase/StageLayer"
+import RectMorpher from "../Morpher/RectMorpher"
+import { instanceApp } from "../StageApp"
 import { rect, xy } from "../TwoDType"
 
 interface LayerEventOption {
@@ -104,6 +107,9 @@ class SelectState extends LayerEventState {
         if (hitPoint != undefined) {
             mesh.removeAllSelected();
             mesh.addSelectItem(hitPoint, undefined);
+            if (!this.handleIfInKey()) {
+                return result.DEFAULT
+            }
             this.context.mouseState = new DragItemState(hitPoint, this.context);
             return result.TRANSFORM_DRAG;
         }
@@ -112,6 +118,27 @@ class SelectState extends LayerEventState {
             return result.TRANSFORM_DRAG_RECT;
         }
         return result.DEFAULT
+    }
+    protected handleIfInKey() {
+        const entry = Project.instance.value!.entryManager.registerEntry(this.context.layerId);
+        if (entry.length == 0) {
+            return;
+        }
+        const before = Project.instance.value!.entryManager.getEntryKeyValue();
+        let upDateFlag = false;
+        for (const en of entry) {
+            if (!en.ifHitKey(this.context.layerId)) {
+                en.currentValue = en.nearestKey(this.context.layerId);
+                upDateFlag = true;
+            }
+        }
+        if (upDateFlag) {
+            const after = Project.instance.value!.entryManager.getEntryKeyValue();
+            instanceApp.value!.movementRecord.upDateRecord(before, after);
+            instanceApp.value!.movementRecord.applyRecord();
+            return false;
+        }
+        return true;
     }
 
 }
@@ -129,6 +156,19 @@ class DragItemState extends LayerEventState {
             this.moveItem.setPosition(this.firstPoint.x, this.firstPoint.y);
             this.context.upDatePoint();
         }
+
+        const entry = Project.instance.value!.entryManager.registerEntry(this.context.layerId);
+        for (const en of entry) {
+            if ((this.context.morpherParent as RectMorpher) != undefined) {
+                const uvs = (this.context.morpherParent as RectMorpher).getChildUvForBigRect(this.context.layerId);
+                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs))
+            } else {
+                const bound = Project.instance.value!.root.bound;
+                const uvs = this.context.getPointList().map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs));
+            }
+        }
+
         Project.instance.value!.unDoStack.pushUnDo(undoFunc);
         this.context.mouseState = new SelectState(this.context);
         return result.TRANSFORM_SELECT

@@ -133,7 +133,7 @@ class MorpherContainer extends Container {
 
     findMorpherWithNoParent() {
         return this.morphers.filter((v) => {
-            v.morpherParent != undefined
+            v.morpherParent == undefined
         })
     }
     get selectedMorpher() { return [...this.selectedMorphers] }
