@@ -13,16 +13,23 @@ watch(Project.instance, (value) => {
   if (value != null) {
     list.value = [];
     AnimateManager.value = value.entryManager
-    AnimateManager.value.entrys.forEach((value, key) => {
+    AnimateManager.value.entrys.forEach((value) => {
       const newEntry: Entry = {
-        id: key,
+        id: value.id,
         name: value.name,
         howManyKey: value.howManyPoint(),
         value: value.currentValue,
         isregister: false,
         aroundType: value.around,
-        onValueChange: (n, o) => {
-          value.currentValue = n;
+        onValueChange: (n) => {
+          const num = AnimateManager.value!.entrys.map((v) => {
+            if (v.id == value.id) {
+              return n;
+            } else {
+              return v.currentValue;
+            }
+          });
+          AnimateManager.value!.setKeyValue(num);
         }
       };
       list.value.push(newEntry)

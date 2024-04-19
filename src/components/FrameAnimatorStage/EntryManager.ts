@@ -1,3 +1,4 @@
+import { instanceApp } from "../../MainStage/StageApp";
 import AnimateEntry, { aroundKey } from "./AnimateEntry";
 
 /*
@@ -5,18 +6,20 @@ import AnimateEntry, { aroundKey } from "./AnimateEntry";
  * @Date: 2024-04-18 15:30:05
  */
 class EntryManager {
-    protected _entrys: Map<string, AnimateEntry> = new Map();
+    protected _entrys: AnimateEntry[] = []
     constructor() {
 
     }
 
     get entrys() { return this._entrys }
     getEntryById(id: string) {
-        return this._entrys.get(id)
+        return this._entrys.find((v) => {
+            return v.id == id;
+        })
     }
 
     addNewEntry(entry: AnimateEntry) {
-        this._entrys.set(entry.id, entry);
+        this._entrys.push(entry);
     }
 
     deleteEntry() {
@@ -25,8 +28,8 @@ class EntryManager {
     registerEntry(layerId: string) {
         const res: AnimateEntry[] = []
         for (const entry of this._entrys) {
-            if (entry[1].isRegister(layerId)) {
-                res.push(entry[1]);
+            if (entry.isRegister(layerId)) {
+                res.push(entry)
             }
         }
         return res;
@@ -49,6 +52,26 @@ class EntryManager {
         this.addNewEntry(entry1);
         this.addNewEntry(entry2);
         this.addNewEntry(entry3);
+    }
+
+    getEntryKeyValue() {
+        return this._entrys.map((v) => {
+            return v.currentValue;
+        })
+    }
+    setKeyValue(num: number[]) {
+        if (num.length != this._entrys.length) {
+            return;
+        }
+
+        const before = this.getEntryKeyValue();
+        this._entrys.forEach((v, i) => {
+            v.currentValue = num[i];
+        })
+        const after = this.getEntryKeyValue();
+        if (instanceApp.value != null) {
+            instanceApp.value.movementRecord.upDateRecord(before, after);
+        }
     }
 }
 

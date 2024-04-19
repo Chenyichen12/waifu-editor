@@ -1,3 +1,4 @@
+import KeyFrameData from "../components/FrameAnimatorStage/KeyFrame";
 import Project from "../components/Project/Project";
 import StageLayer from "./LayerBase/StageLayer";
 import Morpher from "./Morpher/Morpher";
@@ -54,8 +55,16 @@ class AnimateRecordManager {
         this.clearRecord();
         Project.instance.value!.entryManager.entrys.forEach((v, i) => {
             for (const name of v.keyDatas) {
-                const p1 = v.getCurrentValue(beforeNumber[i], name[0]);
-                const p2 = v.getCurrentValue(afterNumber[i], name[0]);
+                let p1: KeyFrameData | undefined
+                let p2: KeyFrameData | undefined
+                try {
+                    p1 = v.getCurrentValue(beforeNumber[i], name[0]);
+                    p2 = v.getCurrentValue(afterNumber[i], name[0]);
+                } catch {
+                    debugger;
+                    continue;
+                }
+
 
                 if (p1 == undefined || p2 == undefined) {
                     debugger;
