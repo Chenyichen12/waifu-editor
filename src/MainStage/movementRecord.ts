@@ -126,12 +126,13 @@ class AnimateRecordManager {
                 const p = layer.points.map((v, i) => {
                     return {
                         x: v.x + points[i].u * bound.width,
-                        y: v.x + points[i].v * bound.height
+                        y: v.y + points[i].v * bound.height
                     }
                 })
                 layer.setFromPointList(p, false);
             }
         }
+        this.clearRecord();
     }
 
     getRecordFromeId(id: string) {

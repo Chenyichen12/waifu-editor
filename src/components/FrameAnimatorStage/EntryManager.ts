@@ -102,20 +102,26 @@ class EntryManager {
 
         } else {
             const bound = Project.instance.value!.root.bound;
-            uvs = (layer as StageLayer) != undefined ?
-                (layer as StageLayer).getPointList().map((v) => {
-                    return {
-                        u: v.x / bound.width,
-                        v: v.y / bound.height,
-                    }
-                }) :
-                (layer as Morpher).points.map((v) => {
-                    return {
-                        u: v.x / bound.width,
-                        v: v.y / bound.height,
-                    }
-                })
-
+            // uvs = (layer as StageLayer) != undefined ?
+            //     (layer as StageLayer).getPointList().map((v) => {
+            //         return {
+            //             u: v.x / bound.width,
+            //             v: v.y / bound.height,
+            //         }
+            //     }) :
+            //     (layer as Morpher).points.map((v) => {
+            //         return {
+            //             u: v.x / bound.width,
+            //             v: v.y / bound.height,
+            //         }
+            //     })
+            uvs = ("layerId" in layer) ? layer.getPointList().map((v) => ({
+                u: v.x / bound.width,
+                v: v.y / bound.height,
+            })) : layer.points.map((v) => ({
+                u: v.x / bound.width,
+                v: v.y / bound.height
+            }))
         }
         if ((layer as RotationMorpher) != undefined) {
             return {

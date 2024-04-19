@@ -114,6 +114,9 @@ class SelectState extends LayerEventState {
             return result.TRANSFORM_DRAG;
         }
         if (mesh.selectedPoints.length > 1 && RectInSelected.ifHitRect(mesh.selectedPoints, option.point)) {
+            if (!this.handleIfInKey()) {
+                return result.DEFAULT
+            }
             this.context.mouseState = new DragRectState(option.point, mesh, this.context);
             return result.TRANSFORM_DRAG_RECT;
         }
@@ -122,7 +125,7 @@ class SelectState extends LayerEventState {
     protected handleIfInKey() {
         const entry = Project.instance.value!.entryManager.registerEntry(this.context.layerId);
         if (entry.length == 0) {
-            return;
+            return true
         }
         const before = Project.instance.value!.entryManager.getEntryKeyValue();
         let upDateFlag = false;
@@ -204,7 +207,17 @@ class DragRectState extends LayerEventState {
                 this.context.upDatePoint();
             })
         }
-
+        const entry = Project.instance.value!.entryManager.registerEntry(this.context.layerId);
+        for (const en of entry) {
+            if ((this.context.morpherParent as RectMorpher) != undefined) {
+                const uvs = (this.context.morpherParent as RectMorpher).getChildUvForBigRect(this.context.layerId);
+                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs))
+            } else {
+                const bound = Project.instance.value!.root.bound;
+                const uvs = this.context.getPointList().map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs));
+            }
+        }
         Project.instance.value!.unDoStack.pushUnDo(undo);
         return result.TRANSFORM_SELECT
     }
