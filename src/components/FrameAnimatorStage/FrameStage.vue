@@ -64,12 +64,12 @@ function addTwoKeyData() {
     return;
   }
   const selectLayer = instanceApp.value?.getLayerIsSelected();
-  if (selectLayer == undefined) {
+  if (selectLayer == undefined || selectLayer.length == 0) {
     return;
   }
 
   for (const layer of selectLayer) {
-    const datas = EntryManager.getCurrentLayerData(layer);
+    const datas = EntryManager.getCurrentLayerData(layer)
     const minNum = selectEntry.around == aroundKey.zero2one ? 0 : -1
     const key1 = new KeyFrameData(minNum, datas.uvs, datas.rotation);
     const key2 = new KeyFrameData(1, datas.uvs, datas.rotation);

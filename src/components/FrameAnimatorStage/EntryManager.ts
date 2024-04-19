@@ -87,21 +87,28 @@ class EntryManager {
         }
     }
 
+    static getLayerId(layer: StageLayer | Morpher) {
+        if ("layerId" in layer) {
+            return layer.layerId
+        } else {
+            return layer.morpherId;
+        }
+    }
     static getCurrentLayerData(layer: StageLayer | Morpher) {
         let uvs: { u: number, v: number }[];
-        if (layer.morpherParent instanceof RectMorpher) {
-            uvs = layer.morpherParent.getChildUvForBigRect(layer instanceof Morpher ? layer.morpherId : layer.layerId)
+        if ((layer.morpherParent as RectMorpher) != undefined) {
+            uvs = (layer.morpherParent as RectMorpher).getChildUvForBigRect(this.getLayerId(layer))
 
         } else {
             const bound = Project.instance.value!.root.bound;
-            uvs = layer instanceof StageLayer ?
-                layer.getPointList().map((v) => {
+            uvs = (layer as StageLayer) != undefined ?
+                (layer as StageLayer).getPointList().map((v) => {
                     return {
                         u: v.x / bound.width,
                         v: v.y / bound.height,
                     }
                 }) :
-                layer.points.map((v) => {
+                (layer as Morpher).points.map((v) => {
                     return {
                         u: v.x / bound.width,
                         v: v.y / bound.height,
@@ -109,15 +116,15 @@ class EntryManager {
                 })
 
         }
-        if (layer instanceof RotationMorpher) {
+        if ((layer as RotationMorpher) != undefined) {
             return {
-                id: layer instanceof StageLayer ? layer.layerId : layer.morpherId,
+                id: this.getLayerId(layer),
                 uvs,
-                rotation: layer.currentRotation
+                rotation: (layer as RotationMorpher).currentRotation
             }
         } else {
             return {
-                id: layer instanceof StageLayer ? layer.layerId : layer.morpherId,
+                id: this.getLayerId(layer),
                 uvs
             }
         }
