@@ -162,14 +162,11 @@ class DragItemState extends LayerEventState {
 
         const entry = Project.instance.value!.entryManager.registerEntry(this.context.layerId);
         for (const en of entry) {
-            if ((this.context.morpherParent as RectMorpher) != undefined) {
-                const uvs = (this.context.morpherParent as RectMorpher).getChildUvForBigRect(this.context.layerId);
-                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs))
-            } else {
-                const bound = Project.instance.value!.root.bound;
-                const uvs = this.context.getPointList().map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
-                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs));
-            }
+
+            const bound = Project.instance.value!.root.bound;
+            const uvs = this.context.getPointList().map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+            en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs));
+
         }
 
         Project.instance.value!.unDoStack.pushUnDo(undoFunc);
@@ -209,14 +206,11 @@ class DragRectState extends LayerEventState {
         }
         const entry = Project.instance.value!.entryManager.registerEntry(this.context.layerId);
         for (const en of entry) {
-            if ((this.context.morpherParent as RectMorpher) != undefined) {
-                const uvs = (this.context.morpherParent as RectMorpher).getChildUvForBigRect(this.context.layerId);
-                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs))
-            } else {
-                const bound = Project.instance.value!.root.bound;
-                const uvs = this.context.getPointList().map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
-                en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs));
-            }
+
+            const bound = Project.instance.value!.root.bound;
+            const uvs = this.context.getPointList().map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+            en.setKeyData(this.context.layerId, new KeyFrameData(en.currentValue, uvs));
+
         }
         Project.instance.value!.unDoStack.pushUnDo(undo);
         return result.TRANSFORM_SELECT

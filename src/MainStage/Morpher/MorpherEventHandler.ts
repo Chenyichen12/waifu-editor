@@ -175,14 +175,11 @@ class DragPointHandler extends MorpherEventHandler {
     handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
         const entry = Project.instance.value!.entryManager.registerEntry(this.context.morpherId);
         for (const en of entry) {
-            if ((this.context.morpherParent as RectMorpher) != undefined) {
-                const uvs = (this.context.morpherParent as RectMorpher).getChildUvForBigRect(this.context.morpherId);
-                en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs))
-            } else {
-                const bound = Project.instance.value!.root.bound;
-                const uvs = this.context.points.map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
-                en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs));
-            }
+
+            const bound = Project.instance.value!.root.bound;
+            const uvs = this.context.points.map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+            en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs));
+
         }
         this.changeToState(new MorpherSelectHandler(this.context))
         return MorpherEventRes.DEFAUT

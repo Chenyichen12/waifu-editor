@@ -97,32 +97,16 @@ class EntryManager {
     }
     static getCurrentLayerData(layer: StageLayer | Morpher) {
         let uvs: { u: number, v: number }[];
-        if ((layer.morpherParent as RectMorpher) != undefined) {
-            uvs = (layer.morpherParent as RectMorpher).getChildUvForBigRect(this.getLayerId(layer))
 
-        } else {
-            const bound = Project.instance.value!.root.bound;
-            // uvs = (layer as StageLayer) != undefined ?
-            //     (layer as StageLayer).getPointList().map((v) => {
-            //         return {
-            //             u: v.x / bound.width,
-            //             v: v.y / bound.height,
-            //         }
-            //     }) :
-            //     (layer as Morpher).points.map((v) => {
-            //         return {
-            //             u: v.x / bound.width,
-            //             v: v.y / bound.height,
-            //         }
-            //     })
-            uvs = ("layerId" in layer) ? layer.getPointList().map((v) => ({
-                u: v.x / bound.width,
-                v: v.y / bound.height,
-            })) : layer.points.map((v) => ({
-                u: v.x / bound.width,
-                v: v.y / bound.height
-            }))
-        }
+        const bound = Project.instance.value!.root.bound;
+        uvs = ("layerId" in layer) ? layer.getPointList().map((v) => ({
+            u: v.x / bound.width,
+            v: v.y / bound.height,
+        })) : layer.points.map((v) => ({
+            u: v.x / bound.width,
+            v: v.y / bound.height
+        }))
+
         if ((layer as RotationMorpher) != undefined) {
             return {
                 id: this.getLayerId(layer),
