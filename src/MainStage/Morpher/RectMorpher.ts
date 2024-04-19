@@ -316,6 +316,39 @@ class RectMorpher extends Morpher {
             }
         }
     }
+
+    getChildUvForBigRect(layerId: string) {
+        let selectedChild: RectMorpherChild | undefined = undefined
+        for (const child of this._morpherChildren) {
+            if (this.getIdFromChild(child.data) == layerId) {
+                selectedChild = child;
+                break;
+            }
+        }
+        if (selectedChild == undefined) {
+            throw new Error("没找到子图层");
+        }
+
+        const pList = this.getPointsFromChild(selectedChild.data);
+        const res: { u: number, v: number }[] = []
+        for (let index = 0; index < pList.length; index++) {
+            const originRect = this.getRectFromIndex(Math.floor(selectedChild.pointsInWhichRect[index] / 2));
+            let uv = quadUvCalculate(originRect.A, originRect.B, originRect.C, originRect.D, pList[index]);
+            const beforeA = { x: originRect.A.xBefore, y: originRect.A.yBefore };
+            const beforeB = { x: originRect.B.xBefore, y: originRect.B.yBefore };
+            const beforeC = { x: originRect.C.xBefore, y: originRect.C.yBefore };
+            const beforeD = { x: originRect.D.xBefore, y: originRect.D.yBefore };
+            let beforePoint = quadPointCalculate(beforeA, beforeB, beforeC, beforeD, uv);
+            const rectA = { x: this.rectPoints[0].xBefore, y: this.rectPoints[0].yBefore };
+            const rectB = { x: this.getDotPoint(this.xDot - 1, 0).xBefore, y: this.getDotPoint(this.xDot - 1, 0).yBefore };
+            const rectC = { x: this.getDotPoint(0, this.yDot - 1).xBefore, y: this.getDotPoint(0, this.yDot - 1).yBefore };
+            const rectD = { x: this.rectPoints[this.rectPoints.length - 1].xBefore, y: this.rectPoints[this.rectPoints.length - 1].yBefore };
+
+            uv = quadUvCalculate(rectA, rectB, rectC, rectD, beforePoint);
+            res.push(uv);
+        }
+        return res;
+    }
     setFromPointList(pointList: xy[], shouldUpDateParent: boolean): void {
 
         for (const child of this._morpherChildren) {

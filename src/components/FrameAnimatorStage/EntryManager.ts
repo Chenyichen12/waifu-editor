@@ -1,5 +1,10 @@
+import StageLayer from "../../MainStage/LayerBase/StageLayer";
+import Morpher from "../../MainStage/Morpher/Morpher";
+import RectMorpher from "../../MainStage/Morpher/RectMorpher";
 import { instanceApp } from "../../MainStage/StageApp";
+import Project from "../Project/Project";
 import AnimateEntry, { aroundKey } from "./AnimateEntry";
+import RotationMorpher from "../../MainStage/Morpher/RotationMorpher";
 
 /*
  * @Author: Chenyichen12 sama1538@outlook.com
@@ -7,6 +12,7 @@ import AnimateEntry, { aroundKey } from "./AnimateEntry";
  */
 class EntryManager {
     protected _entrys: AnimateEntry[] = []
+    protected _selectEntry: AnimateEntry | undefined
     constructor() {
 
     }
@@ -18,7 +24,14 @@ class EntryManager {
         })
     }
 
+    set selectEntry(entry: AnimateEntry | undefined) {
+        this._selectEntry = entry;
+    }
+    get selectEntry() {
+        return this._selectEntry;
+    }
     addNewEntry(entry: AnimateEntry) {
+
         this._entrys.push(entry);
     }
 
@@ -71,6 +84,42 @@ class EntryManager {
         const after = this.getEntryKeyValue();
         if (instanceApp.value != null) {
             instanceApp.value.movementRecord.upDateRecord(before, after);
+        }
+    }
+
+    static getCurrentLayerData(layer: StageLayer | Morpher) {
+        let uvs: { u: number, v: number }[];
+        if (layer.morpherParent instanceof RectMorpher) {
+            uvs = layer.morpherParent.getChildUvForBigRect(layer instanceof Morpher ? layer.morpherId : layer.layerId)
+
+        } else {
+            const bound = Project.instance.value!.root.bound;
+            uvs = layer instanceof StageLayer ?
+                layer.getPointList().map((v) => {
+                    return {
+                        u: v.x / bound.width,
+                        v: v.y / bound.height,
+                    }
+                }) :
+                layer.points.map((v) => {
+                    return {
+                        u: v.x / bound.width,
+                        v: v.y / bound.height,
+                    }
+                })
+
+        }
+        if (layer instanceof RotationMorpher) {
+            return {
+                id: layer instanceof StageLayer ? layer.layerId : layer.morpherId,
+                uvs,
+                rotation: layer.currentRotation
+            }
+        } else {
+            return {
+                id: layer instanceof StageLayer ? layer.layerId : layer.morpherId,
+                uvs
+            }
         }
     }
 }

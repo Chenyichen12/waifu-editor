@@ -69,10 +69,19 @@ onUnmounted(() => {
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp)
 })
+function handleSelectClick(e: MouseEvent) {
+    model.value.isSelect = true;
+    model.value.onSelect();
+    e.stopPropagation();
+}
+
+
 </script>
 
 <template>
-    <div class="test">
+    <div class="outerSlider"
+        :style="model.isSelect ? { backgroundColor: 'rgb(235, 235, 235)' } : { backgroundColor: 'white' }"
+        @click="handleSelectClick">
         <div class="slider">
             <a class="nameText">
                 {{ model.name }}
@@ -101,7 +110,7 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss">
-.test {
+.outerSlider {
 
     height: 20px;
     // width: 180px;

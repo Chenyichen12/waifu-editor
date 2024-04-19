@@ -6,6 +6,9 @@ import Entry from "./entry.ts";
 import Project from '../Project/Project';
 import EntryManager from './EntryManager';
 import slider from "./Slider.vue"
+import { instanceApp } from '../../MainStage/StageApp';
+import { aroundKey } from './AnimateEntry';
+import KeyFrameData from './KeyFrame';
 const AnimateManager = shallowRef<EntryManager | undefined>(undefined)
 const list: Ref<Entry[]> = ref([]);
 
@@ -21,6 +24,16 @@ watch(Project.instance, (value) => {
         value: value.currentValue,
         isregister: false,
         aroundType: value.around,
+        isSelect: false,
+        onSelect: () => {
+          const entry = AnimateManager.value!.getEntryById(value.id);
+          AnimateManager.value!.selectEntry = entry;
+          list.value.forEach((v) => {
+            if (v.id != value.id) {
+              v.isSelect = false;
+            }
+          })
+        },
         onValueChange: (n) => {
           const num = AnimateManager.value!.entrys.map((v) => {
             if (v.id == value.id) {
@@ -37,13 +50,47 @@ watch(Project.instance, (value) => {
   }
 })
 
+function handleClearSelect() {
+  if (AnimateManager.value != undefined) {
+    AnimateManager.value.selectEntry = undefined;
+  }
+  list.value.forEach((v) => {
+    v.isSelect = false;
+  })
+}
+function addTwoKeyData() {
+  const selectEntry = AnimateManager.value?.selectEntry;
+  if (selectEntry == undefined) {
+    return;
+  }
+  const selectLayer = instanceApp.value?.getLayerIsSelected();
+  if (selectLayer == undefined) {
+    return;
+  }
+
+  for (const layer of selectLayer) {
+    const datas = EntryManager.getCurrentLayerData(layer);
+    const minNum = selectEntry.around == aroundKey.zero2one ? 0 : -1
+    const key1 = new KeyFrameData(minNum, datas.uvs, datas.rotation);
+    const key2 = new KeyFrameData(1, datas.uvs, datas.rotation);
+    selectEntry.addKeyData(datas.id, [key1, key2]);
+  }
+
+  const v = list.value.find((v) => {
+    return v.id == selectEntry.id;
+  });
+  if (v != undefined) v.howManyKey = 2;
+}
+
+
 
 </script>
 
 <template>
 
   <el-tooltip content="添加两帧" placement="top">
-    <el-button type="primary" :icon="Plus" circle size="small" class="headbtn"></el-button>
+    <el-button type="primary" :icon="Plus" circle size="small" class="headbtn"
+      v-bind:onclick="addTwoKeyData"></el-button>
   </el-tooltip>
 
   <el-tooltip content="添加三帧" placement="top">
@@ -60,7 +107,7 @@ watch(Project.instance, (value) => {
 
   <!-- //先只添加一个下划线，后续可能会更改 -->
   <hr>
-  <div><el-scrollbar height="570px" id="scrollbar">
+  <div @click="handleClearSelect"><el-scrollbar height="570px" id="scrollbar">
 
       <div v-for="(_entry, index) in list">
         <slider v-model="list[index]" />

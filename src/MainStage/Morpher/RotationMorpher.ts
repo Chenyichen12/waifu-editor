@@ -19,6 +19,8 @@ class RotationMorpher extends Morpher {
     protected rotationPoint: xy
     protected rotationDegree: number
 
+    get currentRotation() { return this.rotationDegree }
+
     private unwatchScale
     appScale = instanceApp.value?.appScale.value ?? 1;
 

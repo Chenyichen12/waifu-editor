@@ -169,6 +169,10 @@ class StageApp extends Application {
         return [...this.morpherContainer.findMorpherWithNoParent(), ...this.layerContainer.findLayerWithNoParent()]
     }
 
+    getLayerIsSelected() {
+        return [...this.morpherContainer.selectedMorpher, ...this.layerContainer.selectedLayer];
+    }
+
 }
 
 export default StageApp
