@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, onMounted, onUnmounted, ref } from 'vue';
+import { Ref, computed, onMounted, onUnmounted, ref } from 'vue';
 import Entry from './entry';
 import { aroundKey } from './AnimateEntry';
 
@@ -7,6 +7,21 @@ const model = defineModel<Entry>({ required: true })
 const container: Ref<HTMLDivElement | undefined> = ref(undefined);
 const sliButton: Ref<HTMLDivElement | undefined> = ref(undefined);
 
+const sliderLeft = computed(()=>{
+    const modelVal = model.value.value;
+    const minVal = model.value.aroundType == aroundKey.one2one ? -1 : 0
+    if(container.value != undefined){
+        const {width} = container.value.getBoundingClientRect();
+        const x = width*(modelVal - minVal)/(1-minVal)-2.5;
+        return {
+            left: `${x}px`
+        }
+    }else{
+        return {
+            left: "calc(50%-2.5px)"
+        }
+    }
+})
 const isMousePress = ref(false)
 
 function handleMouseDown(_e: MouseEvent) {
@@ -15,21 +30,15 @@ function handleMouseDown(_e: MouseEvent) {
 function handleMouseMove(e: MouseEvent) {
     if (isMousePress.value) {
         const { left, right, width } = container.value!.getBoundingClientRect();
-        let x: number
         let modelVal: number
         const modelMin = model.value.aroundType == aroundKey.one2one ? -1 : 0
         if (e.clientX < left + 5) {
-            x = -2.5;
             modelVal = modelMin
         } else if (e.clientX > right - 5) {
-            x = right - left - 2.5
             modelVal = 1;
         } else {
-            x = e.clientX - left;
             modelVal = (e.clientX - left) / width * (1 - modelMin) + modelMin
         }
-
-        sliButton.value!.style.left = `${x}px`;
 
         const oldVal = model.value.value;
 
@@ -39,28 +48,12 @@ function handleMouseMove(e: MouseEvent) {
         }
     }
 }
+
+
 function handleMouseUp(_e: MouseEvent) {
     isMousePress.value = false;
 }
 onMounted(() => {
-    let style = "calc(50%-2.5px)"
-    switch (model.value.aroundType) {
-        case aroundKey.one2one: {
-            const { width } = container.value!.getBoundingClientRect();
-            const left = (model.value.value + 1) / 2 * width
-            style = `${left}px`;
-            break;
-        }
-
-        case aroundKey.zero2one: {
-            const { width } = container.value!.getBoundingClientRect();
-            const left = model.value.value * width
-            style = `${left}px`
-        }
-    }
-    sliButton.value!.style.left = style;
-
-
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("mouseup", handleMouseUp)
 })
@@ -99,7 +92,7 @@ function handleSelectClick(e: MouseEvent) {
 
                 <div class="back"></div>
                 <!-- slibtn为需要滑动的点 -->
-                <div class="slibtn" ref="sliButton" v-on:mousedown="handleMouseDown"></div>
+                <div class="slibtn" :style="sliderLeft" ref="sliButton" v-on:mousedown="handleMouseDown"></div>
 
             </div>
             <a class="valueText">

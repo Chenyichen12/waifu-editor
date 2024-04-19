@@ -16,7 +16,7 @@ watch(Project.instance, (value) => {
   if (value != null) {
     list.value = [];
     AnimateManager.value = value.entryManager
-    AnimateManager.value.entrys.forEach((value) => {
+    AnimateManager.value.entrys.forEach((value,i) => {
       const newEntry: Entry = {
         id: value.id,
         name: value.name,
@@ -45,6 +45,9 @@ watch(Project.instance, (value) => {
           AnimateManager.value!.setKeyValue(num);
         }
       };
+      value.onValueChange = ()=>{
+        list.value[i].value = value.currentValue;
+      }
       list.value.push(newEntry)
     })
   }

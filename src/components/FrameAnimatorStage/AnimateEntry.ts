@@ -20,9 +20,16 @@ class AnimateEntry {
     readonly id: string;
     protected entryName: string
 
-    currentValue: number = 0
+    protected _currentValue: number = 0
+
+    get currentValue() { return this._currentValue };
+    set currentValue(num: number) {
+        this._currentValue = num;
+        this.onValueChange();
+    }
     get name() { return this.entryName };
 
+    onValueChange: () => void = () => { }
     readonly around: aroundKey
 
     //key是layer的id value存储当前layer的数据 -1，1，0等
