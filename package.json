@@ -12,13 +12,15 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@webtoon/psd": "^0.4.0",
-    "element-plus": "^2.5.6",
+    "element-plus": "^2.7.0",
     "pixi.js": "^8.0.0",
     "sass": "^1.71.1",
     "sass-loader": "^14.1.1",
     "uuid": "^9.0.1",
     "vue": "^3.4.19",
-    "vue-draggable-plus": "^0.4.0"
+    "vue-draggable-plus": "^0.4.0",
+    "vue-tree-list": "^1.5.0",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.8",

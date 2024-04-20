@@ -4,11 +4,11 @@
 
 
 <script setup lang="ts">
-import { computed,  ref,reactive, shallowRef, watch ,Component} from "vue";
+import { computed,  ref,Ref,reactive, shallowRef, watch ,Component,CSSProperties} from "vue";
 import FileFunction from "./BarFunction/FileFunction.vue";
-
 const GraphCommandList = [FileFunction]
-const searchText = ref('');
+import { ElTree } from 'element-plus'
+
 
 const isAddIconVisible = ref(true);//可视图标的点击改变图标
     // 切换图标和触发事件的方法
@@ -60,91 +60,186 @@ const isAddIconVisible = ref(true);//可视图标的点击改变图标
     }
   }
 
-   import type Node from 'element-plus/es/components/tree/src/model/node'
+   let getdata: Tree={   //用来接受当前树节点值的变量
+    id: 1,
+  label: "wrong excute",
+  children: [
+    {
+      id: 2,
+      label: "Child 1",
+     isSelect: ref(false)
+
+    }]
+  }
+
+    //用来接收当前树节点的Node
+ let parentNode: Partial<Node> = {};
+  let lockDelete: number=0;  //两个变量，锁增加节点函数与删除节点函数。
+  let lockAdd: number=0;    
+
+
+const isAddIconBeselect = ref(true);//区分树的某个节点是否被选中
+  const toggleIconSelect = (dataList :Tree,data :Node) => {
+      
+    
+    
+    
+    // 切换图标状态
+    isAddIconBeselect.value = !isAddIconBeselect.value;
+      // 触发相应事件
+      if (isAddIconBeselect.value) {
+        lockDelete=0;//上锁
+        lockAdd=0;
+            console.log('111')
+      } else {
+           
+reDataAndKeyClick(dataList,data);
+    lockDelete = 1;
+    lockAdd = 1;
+    }
+  }
+
+
+
+
   
-  const nameIndex=ref<string>('n');
+//下面是单独对树组件的构建
+import type Node from 'element-plus/es/components/tree/src/model/node'
+
 interface Tree {
   id: number
-  label: string   
-  checkOrnot?: boolean
-  lockOrnot?: boolean      
+  [label: string] :any         
   children?: Tree[]
+  isSelect?: Ref<boolean>;
 }
+const treeRef = ref<InstanceType<typeof ElTree>>();
+  const filterText = ref('');//这个值用作el-tree的筛选
+watch(filterText, (val) => {
+  treeRef.value!.filter(val)
+})
+
+const filterNode = (value: string, data: Tree) => {
+  if (!value) return true
+  return data.label.includes(value)
+}
+
 let id = 1000
 
-const append = (data: Tree) => {
-             
-  const newChild = { id: id++, label: nameIndex.value, children: [] }
+const append = (data: Tree,name: string) => {
+  
+      
+  
+  
+  if(lockAdd===0)
+  {
+     return;
+  }
+  const newChild = { id: id++, label: name, children: [] ,isSelect: ref(false)}
   if (!data.children) {
     data.children = []
   }
   data.children.push(newChild)
   dataSource.value = [...dataSource.value]
+    lockAdd=0;//重新上锁
 
 }
 
+
+
+
 const remove = (node: Node, data: Tree) => {
+  if(lockDelete===0)
+  {
+     return;
+  }
   const parent = node.parent
   const children: Tree[] = parent.data.children || parent.data
   const index = children.findIndex((d) => d.id === data.id)
   children.splice(index, 1)
   dataSource.value = [...dataSource.value]
 }
+const getCheckedNodes=(data: Tree)=>{    //一个节点被选中时，返回这个结点
+  getdata=data
+
+}
+const getCheckedNodesParent=(data: Node)=>{    //返回node
+         parentNode=data  
+
+}
 
 const dataSource = ref<Tree[]>([
   {
     id: 1,
     label: 'Level one 1',
-    children: [
-      {
-        id: 4,
-        label: 'Level two 1-1',
-        children: [
-          {
-            id: 9,
-            label: 'Level three 1-1-1',
-          },
-          {
-            id: 10,
-            label: 'Level three 1-1-2',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: 'Level one 2',
-    children: [
-      {
-        id: 5,
-        label: 'Level two 2-1',
-      },
-      {
-        id: 6,
-        label: 'Level two 2-2',
-      },
-    ],
-  },
-  {
-    id: 3,
-    label: 'Level one 3',
-    children: [
-      {
-        id: 7,
-        label: 'Level two 3-1',
-      },
-      {
-        id: 8,
-        label: 'Level two 3-2',
-      },
-    ],
+    isSelect: ref(false)
   },
 ])
 
 
+const reDataAndKeyClick=(dataList :Tree,data :Node) =>{  //选中点击事件1
+    getCheckedNodes(dataList);
+    getCheckedNodesParent(data);
+    lockDelete=1;
+    lockAdd=1;     //解锁，使得删除与增加可工作
+    
+}
+
+
+const showGreateDialog=()=>{
+       if(lockAdd===0)
+       {
+        return;//这里也应该有个小弹窗“未选中，请先选中对象
+       }
+       else
+       {
+        dialogFormVisible.value = true;
+       }
+
+}
+
+
+
+
+
+
+  //树状组件创建节点时出现对话框
+ let dialogFormVisible = ref(false)
+const formLabelWidth = '140px'
+
+//对话框中的小输入框
+let inputValue = ref<string>('');
+let storeInputValue: string;
+    // 样式设计
+    const inputStyle: CSSProperties = {
+      padding: '8px',
+      border: '1px solid #ccc',
+      borderRadius: '4px',
+      width: '100px',
+      fontSize: '16px',
+    };
+  
+
+    const clickconfirm=()=>{
+             if(inputValue.value==='')
+               {
+                  //应该出现一个弹窗“文件名不可为空”
+                  return;
+               }
+               else
+               {
+                storeInputValue=inputValue.value;
+                append(getdata,storeInputValue);
+                dialogFormVisible.value = false;
+                inputValue.value='';
+               }
+
+    }
+
+
+
 
 </script>
+
 
 
 
@@ -169,7 +264,12 @@ const dataSource = ref<Tree[]>([
     <img v-else src="/src/assets/banSearch.svg"  />
 </button> 
 <div class="Search-box">
-<input type="text" v-model="searchText" placeholder="搜索..." class="custom-input" />
+ <el-input
+    v-model="filterText"
+    style="width: 240px"
+    placeholder="Filter keyword"
+  />
+  
 </div>
 
       </div>
@@ -211,52 +311,83 @@ const dataSource = ref<Tree[]>([
     <!--第四层，树状部分-->  
       <div class="mainBody-box">
 
-        <div class="custom-tree-container">
-    
-    <div>
-    
-  </div>
-          <el-tree
+
+        <el-dialog v-model="dialogFormVisible"
+     title="创建文件"
+      width="500"
+        draggable=true
+           >
+        <input
+    v-model="inputValue"
+    type="text"
+    :style="inputStyle"
+    placeholder="输入文件名字"
+  />
+
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+        <el-button type="primary" @click="clickconfirm">
+          确定
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+<!-- draggable:可拖拽     -->
+     <el-tree
       style="max-width: 600px"
+      ref="treeRef"
+      class="filter-tree"
       :data="dataSource"
-      show-checkbox
+      :filter-node-method="filterNode"
+      highlight-current
       node-key="id"
       default-expand-all
+      draggable
+       
       :expand-on-click-node="false"
     >
-      <template #default="{ node, data }">
+      <template #default="{ node, data,isSelect }">
         <span class="custom-tree-node">
-          <span>{{ node.label }}</span>
           <span>
-            <a @click="append(data)"> Append </a>
-            <a style="margin-left: 8px" @click="remove(node, data)"> Delete </a>
+            <button class="custom-button" @click="toggleIconSelect(data,node)"> 
+            <img v-if="isAddIconBeselect" src="/src/assets/notBeselect.svg"  />
+    <img v-else src="/src/assets/Beselect.svg"  />
+            </button>
+           
           </span>
+
+          <span>{{ node.label }}</span>
         </span>
       </template>
     </el-tree>
+   
   </div>
+     
 
        
-  </div>
 
 
 
-      </div>
+
+      
 
 
 <!--第五层，添加，删除-->
         <div class="downCandD-box">
 
-<button class="custom-button " title="新部件">
+<button class="custom-button " title="新部件" @click="showGreateDialog" >
   <img src='/src/assets/fileAdd.svg'/>
 </button> 
-<button class="custom-button " title="删除选定元素">
+<button class="custom-button " title="删除选定元素" @click="remove(parentNode as Node,getdata)"><!--这里as Node的写法虽然不够严谨，但仅仅有关于节点的内容，对图层应该没有影响.....-->
 <img src='/src/assets/fileDelete.svg'/>
 </button> 
          
         </div>
       
-      
+     
+      </div>
 </template>
 
 
@@ -269,6 +400,7 @@ const dataSource = ref<Tree[]>([
   padding: 0px 2px; /* 设置按钮内边距 */
   margin-right: 0px; /* 设置按钮之间的右边距 */
   border-radius: 5px; 
+   font-size: 8px; 
   cursor: pointer; /* 设置鼠标样式为手型 */
   outline: none; /* 去除按钮聚焦时的边框 */
   border: 1px solid #000000; /* 添加黑色边框线 */
@@ -386,28 +518,15 @@ display: flex;
   background-color: #aaa; /* 滚动条 hover 时颜色 */
 }
 
-.custom-tree-container {
-  max-width: 600px;
-}
-
-
 .custom-tree-node {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 7px;
-  padding-right: 4px;
-}
-.button-group {
-  display: flex;
-  align-items: center;
+  font-size: 14px;
+  padding-right: 8px;
 }
 
-.button-group el-button {
-  margin-right: 4px;
-   align-items: center;
-}
 
 
   }
@@ -424,10 +543,4 @@ border: 1px solid #4b96c2; /* 添加边框线 */
   }
 }
 
-
-
-
-
-
 </style>
-
