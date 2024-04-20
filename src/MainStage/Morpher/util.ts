@@ -24,7 +24,10 @@ function quadUvCalculate(A: xy, B: xy, C: xy, D: xy, p: xy) {
     const k1 = E.x * F.y - E.y * F.x + H.x * G.y - H.y * G.x;
     const k2 = G.x * F.y - G.y * F.x
     const v = equation(k0, k1, k2);
-    const u = (H.x - F.x * v) / (E.x + G.x * v);
+    let u = (H.x - F.x * v) / (E.x + G.x * v);
+    if (E.x + G.x * v === 0) {
+        u = 0;
+    }
     return {
         u, v
     }

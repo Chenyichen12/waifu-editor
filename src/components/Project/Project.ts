@@ -7,6 +7,7 @@ import { ref, shallowRef } from "vue";
 import { ImageAsset } from './ProjectAssets'
 import Psd, { NodeChild } from '@webtoon/psd'
 import UnDoStack from "../../UnDoStack/UnDoStack";
+import EntryManager from "../FrameAnimatorStage/EntryManager";
 class Project {
 	protected static _instance = shallowRef<Project | null>(null);
 	name: string = "未命名";
@@ -17,11 +18,15 @@ class Project {
 
 	unDoStack: UnDoStack
 
+	protected _entryManager: EntryManager
+	get entryManager() { return this._entryManager }
+
 	//图片合集 内有texture
 	protected _assetsList: Map<string, ImageAsset> = new Map<string, ImageAsset>();
 
 	protected constructor() {
 		this.unDoStack = new UnDoStack();
+		this._entryManager = new EntryManager();
 	}
 	static get instance() {
 		return Project._instance;
@@ -44,6 +49,7 @@ class Project {
 			height: p.height,
 		})
 		newProject._root = newRoot;
+		newProject.entryManager.initDefault();
 		Project._instance.value = newProject;
 
 		async function parseChild(nodeChild: NodeChild[]): Promise<Layer[]> {

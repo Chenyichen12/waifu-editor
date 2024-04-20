@@ -12,6 +12,7 @@ import { DestroyOptions } from "pixi.js";
 import { generateBound, ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
+import { unionFromRecord } from "../movementRecord";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },
@@ -316,11 +317,27 @@ class RectMorpher extends Morpher {
         }
     }
     setFromPointList(pointList: xy[], shouldUpDateParent: boolean): void {
-
+        let shouldReDistube = false
         for (const child of this._morpherChildren) {
             const pList = this.getPointsFromChild(child.data);
 
             // ifChildUpdate
+            const record = instanceApp.value!.movementRecord.getRecordFromeId(this.getIdFromChild(child.data));
+            if (record != undefined) {
+                const uvMovement = unionFromRecord(record);
+                for (let index = 0; index < child.pointsInWhichRect.length; index++) {
+                    const originWidth = this.getDotPoint(this.xDot - 1, 0).xBefore - this.getDotPoint(0, 0).xBefore
+                    const originHeight = this.getDotPoint(0, this.yDot - 1).yBefore - this.getDotPoint(0, 0).yBefore
+                    const nowRect = RectInSelected.getBound(this.rectPoints);
+                    const xScale = (nowRect.right - nowRect.left) / originWidth
+                    const yScale = (nowRect.button - nowRect.top) / originHeight
+                    const bound = Project.instance.value!.root.bound;
+                    pList[index].x += uvMovement[index].u * bound.width * xScale
+                    pList[index].y += uvMovement[index].v * bound.height * yScale
+                    shouldReDistube = true;
+                }
+
+            }
             for (let index = 0; index < child.pointsInWhichRect.length; index++) {
 
                 if (child.pointsInWhichRect[index] == -1) {
@@ -346,6 +363,9 @@ class RectMorpher extends Morpher {
                 child.data.setFromPointList(pList, false);
             }
         }
+        if (shouldReDistube) {
+            this.upDateChildPointIndex();
+        }
         this.rectPoints.forEach((v, i) => {
             v.x = pointList[i].x;
             v.y = pointList[i].y;
@@ -353,6 +373,7 @@ class RectMorpher extends Morpher {
         if (shouldUpDateParent && this.morpherParent != undefined) {
             this.morpherParent.upDateChildPointIndex();
         }
+        this.forEdgeRect.resizeFormPointList(this.rectPoints);
         this.shallowUpDate();
     }
 
@@ -381,8 +402,8 @@ class RectMorpher extends Morpher {
             data: child,
             pointsInWhichRect: pointList
         })
-    }
 
+    }
     upDateChildPointIndex() {
         for (const children of this._morpherChildren) {
             const pList = this.distributePoint(children.data instanceof StageLayer ? children.data.mesh.listPoint : children.data.points);

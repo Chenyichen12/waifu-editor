@@ -11,11 +11,15 @@ import { generateBound, rotationPoint } from "./util";
 import { DestroyOptions } from "pixi.js";
 import { ContainesPoint } from "../LayerBase/util";
 import RectMorpher from "./RectMorpher";
+import { rotationRecord, unionFromRecord } from "../movementRecord";
+import Project from "../../components/Project/Project";
 
 class RotationMorpher extends Morpher {
 
     protected rotationPoint: xy
     protected rotationDegree: number
+
+    get currentRotation() { return this.rotationDegree }
 
     private unwatchScale
     appScale = instanceApp.value?.appScale.value ?? 1;
@@ -52,7 +56,7 @@ class RotationMorpher extends Morpher {
         return [this.rotationPoint]
     }
     pointAtPosition(x: number, y: number): number | undefined {
-        const r = 10 / this.appScale
+        const r = 5 / this.appScale
         const d = (x - this.rotationPoint.x) * (x - this.rotationPoint.x) + (y - this.rotationPoint.y) * (y - this.rotationPoint.y);
         if (r * r > d) {
             return 0;
@@ -63,12 +67,12 @@ class RotationMorpher extends Morpher {
 
     shallowUpDate(): void {
         this.clear();
-        this.circle(this.rotationPoint.x, this.rotationPoint.y, 10 / this.appScale)
+        this.circle(this.rotationPoint.x, this.rotationPoint.y, 5 / this.appScale)
             .fill({
                 color: 0xff0000
             })
         const length = 100 / this.appScale
-        const dLength = 5 / this.appScale
+        const dLength = 3 / this.appScale
         this.moveTo(this.rotationPoint.x - Math.cos(this.rotationDegree) * dLength, this.rotationPoint.y - Math.sin(this.rotationDegree) * dLength)
             .lineTo(this.rotationPoint.x + Math.cos(this.rotationDegree) * dLength, this.rotationPoint.y + Math.cos(this.rotationDegree) * dLength)
             .lineTo(this.rotationPoint.x + Math.sin(this.rotationDegree) * length, this.rotationPoint.y - Math.cos(this.rotationDegree) * length)
@@ -78,7 +82,7 @@ class RotationMorpher extends Morpher {
     }
     ifHitMorpher(x: number, y: number): boolean {
         const length = 100 / this.appScale;
-        const dLength = 5 / this.appScale;
+        const dLength = 3 / this.appScale;
         const p1 = { x: this.rotationPoint.x - Math.cos(this.rotationDegree) * dLength, y: this.rotationPoint.y - Math.sin(this.rotationDegree) * dLength };
         const p2 = { x: this.rotationPoint.x + Math.cos(this.rotationDegree) * dLength, y: this.rotationPoint.y + Math.cos(this.rotationDegree) * dLength };
         const p3 = { x: this.rotationPoint.x + Math.sin(this.rotationDegree) * length, y: this.rotationPoint.y - Math.cos(this.rotationDegree) * length };
@@ -114,14 +118,45 @@ class RotationMorpher extends Morpher {
         const movex = pointList[0].x - this.rotationPoint.x;
         const movey = pointList[0].y - this.rotationPoint.y;
 
+        this.rotationPoint.x = pointList[0].x;
+        this.rotationPoint.y = pointList[0].y
         //degreeifChange
+        const rotationRecord = instanceApp.value!.movementRecord.getRecordFromeId(this.morpherId);
+        let moveDegree = 0;
+        if (rotationRecord != undefined) {
+            moveDegree = rotationRecord.reduce((pre, aft) => {
+                return pre + (aft as rotationRecord).rotationMoveMent;
+            }, 0)
+            if (Number.isNaN(moveDegree)) {
+                moveDegree = 0
+            }
+        }
 
         for (const child of this._morpherChildren) {
-            const points = this.getPointsFromChild(child.data).map((v) => {
+
+            let pList = this.getPointsFromChild(child.data)
+            const record = instanceApp.value!.movementRecord.getRecordFromeId(this.getIdFromChild(child.data));
+
+            if (record != undefined) {
+                const uvMovement = unionFromRecord(record);
+                for (let index = 0; index < pList.length; index++) {
+                    const x = uvMovement[index].u * Project.instance.value!.root.bound.width
+                    const y = uvMovement[index].v * Project.instance.value!.root.bound.height
+                    pList[index] = {
+                        x: pList[index].x + x,
+                        y: pList[index].y + y
+                    }
+                }
+            }
+            pList = pList.map((v) => {
                 return {
                     x: v.x + movex,
                     y: v.y + movey
                 }
+            })
+
+            const points = pList.map((v) => {
+                return rotationPoint(v, moveDegree, this.rotationPoint);
             });
 
             if (child.data instanceof Morpher) {
@@ -134,6 +169,7 @@ class RotationMorpher extends Morpher {
                 child.data.mopherUpDate();
             }
         }
+        this.rotationDegree += moveDegree
         this.shallowUpDate();
         return
     }
