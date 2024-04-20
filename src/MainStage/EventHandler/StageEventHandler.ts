@@ -9,7 +9,6 @@ import StageLayer from "../LayerBase/StageLayer"
 import { result } from "./LayerEventHandler"
 import { xy } from "../TwoDType"
 import RectInSelected from "../GraphicsBase/RectInSelected"
-import RectMorpher from "../Morpher/RectMorpher"
 import { MorpherEventRes } from "../Morpher/MorpherEventHandler"
 
 enum StageEventRes {

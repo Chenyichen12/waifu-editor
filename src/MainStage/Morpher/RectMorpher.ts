@@ -9,11 +9,10 @@ import { instanceApp } from "../StageApp";
 import { xy } from "../TwoDType";
 import Morpher, { MorpherChild, MorpherOption } from "./Morpher";
 import { DestroyOptions } from "pixi.js";
-import { generateBound, ifInQuad, quadPointCalculate, quadUvCalculate, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
+import { generateBound, ifInQuad, rotationPoint, trianglePointCalculate, triangleUVCalculate } from "./util";
 import StageLayer from "../LayerBase/StageLayer";
 import { ContainesPoint } from "../LayerBase/util";
 import { unionFromRecord } from "../movementRecord";
-import AnimateEntry from "../../components/FrameAnimatorStage/AnimateEntry";
 
 interface RectMorpherOption extends MorpherOption {
     meshDot: { xDot: number, yDot: number },

@@ -77,11 +77,20 @@ class MorpherSelectHandler extends MorpherEventHandler {
         if (this.context instanceof RotationMorpher) {
             const hit = this.context.ifHitMorpher(point.x, point.y);
             if (hit) {
+
                 if (!this.handleIfHitKey()) {
                     return MorpherEventRes.DEFAUT;
                 }
-                this.changeToState(new DragRotationMorpher(this.context));
-                return MorpherEventRes.CHANGE_DRAG_POINT
+
+                if (this.context.pointAtPosition(point.x, point.y) != undefined) {
+                    this.changeToState(new DragPointHandler(this.context, 0));
+
+                    return MorpherEventRes.CHANGE_DRAG_POINT
+                } else {
+                    this.changeToState(new DragRotationMorpher(this.context));
+                    return MorpherEventRes.CHANGE_DRAG_POINT
+                }
+
             }
         }
         return MorpherEventRes.DEFAUT
@@ -140,8 +149,12 @@ class MorpherSelectHandler extends MorpherEventHandler {
                 instanceApp.value!.containerDom.style.cursor = "default"
                 return MorpherEventRes.DEFAUT;
             }
+            const ifHitPoint = this.context.pointAtPosition(point.x, point.y);
+            if (ifHitPoint != undefined) {
+                instanceApp.value!.containerDom.style.cursor = "move";
+                return MorpherEventRes.DEFAUT;
+            }
             instanceApp.value!.containerDom.style.cursor = "url(/src/assets/arrow-repeat.svg) 12 12, auto"
-            console.log(instanceApp.value!.containerDom.style.cursor);
         }
         return MorpherEventRes.DEFAUT
     }
@@ -178,7 +191,11 @@ class DragPointHandler extends MorpherEventHandler {
 
             const bound = Project.instance.value!.root.bound;
             const uvs = this.context.points.map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
-            en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs));
+            let rotation: number | undefined = undefined
+            if (this.context instanceof RotationMorpher) {
+                rotation = this.context.currentRotation
+            }
+            en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs, rotation));
 
         }
         this.changeToState(new MorpherSelectHandler(this.context))
@@ -226,13 +243,24 @@ class DragRotationMorpher extends MorpherEventHandler {
         const yLength = -point.y + this.context.rPoint.y;
         const degree = Math.atan2(xLength, yLength);
         this.context.rotateDeg(degree);
-        console.log(degree / Math.PI);
 
 
         return MorpherEventRes.DRAG_POINT
 
     }
     handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
+        const entry = Project.instance.value!.entryManager.registerEntry(this.context.morpherId);
+        for (const en of entry) {
+
+            const bound = Project.instance.value!.root.bound;
+            const uvs = this.context.points.map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+            let rotation: number | undefined = undefined
+            if (this.context instanceof RotationMorpher) {
+                rotation = this.context.currentRotation
+            }
+            en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs, rotation));
+
+        }
         this.changeToState(new MorpherSelectHandler(this.context));
         return MorpherEventRes.DEFAUT
     }

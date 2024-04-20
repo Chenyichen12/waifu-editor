@@ -12,7 +12,6 @@ import MeshLine from "../GraphicsBase/MeshLine"
 import MeshPoint from "../GraphicsBase/MeshPoint"
 import RectInSelected from "../GraphicsBase/RectInSelected"
 import StageLayer from "../LayerBase/StageLayer"
-import RectMorpher from "../Morpher/RectMorpher"
 import { instanceApp } from "../StageApp"
 import { rect, xy } from "../TwoDType"
 
