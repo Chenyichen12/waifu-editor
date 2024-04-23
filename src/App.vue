@@ -13,7 +13,7 @@ import Stage from "./components/MainStage/Stage.vue";
 import Layerchange from "./components/Layerchange/Layerchange.vue";
 import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
-
+import show from "./components/Layerchange/show.vue";
 
 onMounted(async () => {
   //仅用于测试，生产模式下要删除
@@ -33,7 +33,7 @@ onMounted(async () => {
       </el-aside> -->
       <el-aside width = "500px" id="layerchage">
         变形器
-        <Layerchange />
+        <show />
       </el-aside>
       <el-main>
         <Stage />
