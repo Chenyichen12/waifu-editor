@@ -9,10 +9,10 @@
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElFooter, ElMain } from "element-plus";
 import TopBar from "./components/TopBar.vue";
-import GraphCommand from "./components/AsideLeftUp.vue"
 import Stage from "./components/MainStage/Stage.vue";
 import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
+import SliderLayer from "./components/LayerSlider/SliderLayer.vue";
 
 
 onMounted(async () => {
@@ -21,11 +21,11 @@ onMounted(async () => {
   await Project.initFromPsd(await f.blob());
 
   //注册快捷键
-  document.addEventListener("keydown",(event: KeyboardEvent)=>{
-    if(event.ctrlKey && 
-    event.code == "KeyZ"){
+  document.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.ctrlKey &&
+      event.code == "KeyZ") {
       const project = Project.instance.value;
-      if(project == null){
+      if (project == null) {
         return;
       }
       project.unDoStack.unDo();
@@ -41,7 +41,7 @@ onMounted(async () => {
     </el-header>
     <el-container class="main-stage">
       <el-aside>
-        <GraphCommand/>
+        <SliderLayer></SliderLayer>
       </el-aside>
       <el-aside>
 
