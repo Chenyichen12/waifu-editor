@@ -18,6 +18,7 @@ declare module 'vue' {
     FileFunction: typeof import('./src/components/BarFunction/FileFunction.vue')['default']
     Layerchange: typeof import('./src/components/Layerchange/Layerchange.vue')['default']
     NestedDirective: typeof import('./src/components/Layerchange/NestedDirective.vue')['default']
+    Show: typeof import('./src/components/Layerchange/show.vue')['default']
     Stage: typeof import('./src/components/MainStage/Stage.vue')['default']
     TopBar: typeof import('./src/components/TopBar.vue')['default']
   }

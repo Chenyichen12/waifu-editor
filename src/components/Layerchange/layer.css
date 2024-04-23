@@ -5,11 +5,17 @@
     border-radius: 5px;
     background-color: #f8f9fa;
   }
+.active {
+    background-color: #007bff;
+  }
+  .inactive {
+    background-color: #6c757d;
+  }
   
   .list-item {
     margin-bottom: 5px;
     padding: 10px;
-    background-color: #ffffff;
+    /* background-color: #ffffff; */
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     display: flex;
