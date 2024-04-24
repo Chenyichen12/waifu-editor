@@ -46,7 +46,7 @@ function getPictureFromPictureLayer(entry: PictureLayer) {
             }
 
             const url = canvas.toDataURL("image/png", 0.4);
-
+            entry.url = url;
             return url;
         } else {
             throw Error("没找到图片");
@@ -62,10 +62,17 @@ function handleDirExpandClick(id: string) {
         item.isExpand = !item.isExpand
     }
 }
+
+function handleVisiable(id: string) {
+    const item = model.value.find((v) => v.id === id);
+    if (item != undefined) {
+        item.isShow = !item.isShow;
+    }
+}
 </script>
 
 <template>
-    <div v-for="(entry) in model">
+    <div v-for="(entry, index) in model" :key="index">
         <div v-if="ifGroup(entry)" :style="paddingLeft()">
             <div class="listEntry">
                 <div class="previewDir">
@@ -87,8 +94,10 @@ function handleDirExpandClick(id: string) {
                 <img :src="getPictureFromPictureLayer((entry as PictureLayer))" :width="10" :height="10">
                 <a>{{ showName(entry.name) }}</a>
             </div>
-            <img src="/src/assets/view.svg" v-show="entry.isShow" class="eyeIcon">
-            <img src="/src/assets/viewHide.svg" v-show="!entry.isShow" class="eyeIcon">
+            <img src="/src/assets/view.svg" v-show="entry.isShow" class="eyeIcon"
+                @click="() => handleVisiable(entry.id)">
+            <img src="/src/assets/viewHide.svg" v-show="!entry.isShow" class="eyeIcon"
+                @click="() => handleVisiable(entry.id)">
         </div>
     </div>
 </template>
