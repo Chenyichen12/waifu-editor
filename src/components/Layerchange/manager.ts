@@ -16,5 +16,10 @@ class layerChangeManager {
     public _selectedEntry: string[]= []
     
     public test=ref("test") 
+
+    public deletesselect=ref("deletesselect")
+
+    public changebefore: string=""
+    public changeafter: string=""
   }
   export default new layerChangeManager()
