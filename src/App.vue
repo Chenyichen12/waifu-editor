@@ -78,6 +78,7 @@ onMounted(async () => {
 }
 
 .main-stage {
+  height: calc(100% - 40px);
   background-color: var(--el-menu-bg-color);
   border-color: var(--el-color-primary-light-8);
 
