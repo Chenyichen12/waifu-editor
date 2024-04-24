@@ -72,7 +72,7 @@ function handleVisiable(id: string) {
 </script>
 
 <template>
-    <div v-for="(entry, index) in model" :key="index">
+    <div v-for="(entry, index) in model" :key="entry.id + '_entry'">
         <div v-if="ifGroup(entry)" :style="paddingLeft()">
             <div class="listEntry">
                 <div class="previewDir">
