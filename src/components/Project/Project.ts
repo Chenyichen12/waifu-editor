@@ -3,7 +3,7 @@
  * @Date: 2024-03-27 18:03:33
  */
 import { Root, Layer, NormalLayer, Group } from "./LayerStruct";
-import { Ref, ref, shallowRef } from "vue";
+import { ref, shallowRef } from "vue";
 import { ImageAsset } from './ProjectAssets'
 import Psd, { NodeChild } from '@webtoon/psd'
 import UnDoStack from "../../UnDoStack/UnDoStack";
@@ -24,6 +24,17 @@ class Project {
 	protected _currentSelectedLayer: string[] = []
 	set currentSelectedLayer(entry: string[]) {
 		this._currentSelectedLayer = entry;
+		for (const listen of this.selectionListener) {
+			listen(this._currentSelectedLayer);
+		}
+	}
+
+	protected selectionListener: ((selection: string[]) => void)[] = [];
+	onSelectionChange(callBack: (selection: string[]) => void) {
+		this.selectionListener.push(callBack);
+		return () => {
+			this.selectionListener = this.selectionListener.filter((v) => v !== callBack);
+		}
 	}
 	get currentSelectedLayer() { return this._currentSelectedLayer }
 	//图片合集 内有texture

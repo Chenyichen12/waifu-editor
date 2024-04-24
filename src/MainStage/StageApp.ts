@@ -85,6 +85,26 @@ class StageApp extends Application {
         this.canvas.onwheel = (e) => {
             this.eventHandler.handleWheelEvent(e);
         }
+
+        project.onSelectionChange((layerId: string[]) => {
+            this.layerContainer.removeAllSelected();
+            this.morpherContainer.removeAllSelect();
+            const layerSelected: StageLayer[] = [];
+            const morpherSelected: Morpher[] = [];
+            for (const id of layerId) {
+                const layer = this.layerContainer.getLayerById(id);
+                if (layer != undefined) {
+                    layerSelected.push(layer);
+                }
+                const morpher = this.morpherContainer.getMorpherById(id);
+                if (morpher != undefined) {
+                    morpherSelected.push(morpher);
+                }
+            }
+
+            this.layerContainer.addSelected(layerSelected);
+            this.morpherContainer.addSelectMorpher(morpherSelected);
+        })
     }
 
     /**

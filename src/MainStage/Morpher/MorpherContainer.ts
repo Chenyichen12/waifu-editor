@@ -127,7 +127,7 @@ class MorpherContainer extends Container {
 
     getMorpherById(id: string) {
         return this.morphers.find((v) => {
-            v.morpherId == id;
+            return v.morpherId == id;
         })
     }
 

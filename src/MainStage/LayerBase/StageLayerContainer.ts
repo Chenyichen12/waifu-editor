@@ -7,6 +7,7 @@
 import { Container } from "pixi.js";
 import { xy } from "../TwoDType";
 import StageLayer from "./StageLayer";
+import Project from "../../components/Project/Project";
 
 class StageLayerContainer {
     protected _layers: StageLayer[] = []
@@ -37,6 +38,7 @@ class StageLayerContainer {
             v.selected = true;
             this._selectedLayer.add(v);
         })
+        Project.instance.value!.currentSelectedLayer = layers.map((v) => v.layerId);
     }
 
     removeSelected(layers: StageLayer[]) {
@@ -99,7 +101,7 @@ class StageLayerContainer {
 
     getLayerById(id: string) {
         return this._layers.find((v) => {
-            v.layerId == id;
+            return v.layerId == id;
         })
     }
 
