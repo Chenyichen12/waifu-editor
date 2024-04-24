@@ -25,8 +25,6 @@
         <nested-directive v-model="el.children" v-show="el.listExpand" :parent-name="el.name"  />
         <!-- （应该是递归）显示子个体 -->
       </li>
-      {{ changebefore }}
-      {{ changeafter }}
     </VueDraggable>    
   </template>
 
@@ -46,8 +44,6 @@
     
   }
 //进行递归调用的东西  
-
-
   const props = defineProps<Props>()
   interface Emits {
     (e: 'update:modelValue', value: Entry[]): void
@@ -59,41 +55,16 @@
     set: value => emits('update:modelValue', value)
   })
 
-  let changebefore:string = ""//改变前的父图层
-  let changeafter:string = ""//改变后的父图层
-
   //在改变后记录改变前后的父图层
   function onAdd(modelValue: Entry[],parentname:string){
     for(let item of modelValue){
       if(parentname!==item.parentName){
-        changebefore=item.parentName
-        changeafter=parentname
+        manager.changebefore=item.parentName
+        manager.changeafter=parentname
         item.parentName=parentname
     }
     }
   }
-
-//   let intervalId= setInterval(() =>{
-//   selectIt(manager);
-// },1000);
-
-// function selectIt(manager:layerChangeManager){
-    
-  //   function traverseTree(node: Entry) {
-  //   if (node.isSelect) {
-  //     manager._selectedEntry.push(node.name);
-  //     }
-  //   if (Array.isArray(node.children)) {
-  //     for (let child of node.children) {
-  //       traverseTree(child);
-  //     }
-  //     }
-  //   }
-  // for (let entry of manager._entrys.value) {
-  //   traverseTree(entry);
-  //   }
-//   }
-
 
   function selectChild(el:Entry){  
     function traverseTree(node: Entry) {
@@ -101,6 +72,9 @@
     if (node.isSelect) {
       manager._selectedEntry.push(node.name);
       }
+    else{
+      manager._selectedEntry = manager._selectedEntry.filter(item => item !== node.name);
+    }
     
     if (Array.isArray(node.children)) {
       for (let child of node.children) {
@@ -111,17 +85,8 @@
 
     traverseTree(el);
     }
-    // for(let i in el.children){ 
-    //       let child = el.children[i]
-    //       // 能这样写？
-    //       selectChild(child)
-    //       if (child.isSelect) {
-    //         manager._selectedEntry.push(el.name)
-    //       }    
-    //   }
-    //  }
-    
-  // 图标函数
+
+    // 图标函数
   const toggleVisibility = (item: Entry) => {item.isVisible = !item.isVisible; }; // 切换图层可见性
   // 对于每次点击按钮修改列表相应值
   const toggleExpand = (item: Entry) => {item.listExpand = !item.listExpand;}; // 切换图层展开性  
