@@ -19,7 +19,7 @@ watch(Project.instance, (value) => {
         const res: Layer[] = [];
         for (const child of layer.children.value) {
             if (child instanceof NormalLayer) {
-                res.push(new PictureLayer({ id: child.layerId, name: child.name.value, isShow: child.isVisible.value }));
+                res.push(new PictureLayer({ id: child.layerId, name: child.name.value, isShow: child.isVisible.value }, child.assetId));
             } else {
                 const g = new GroupLayer({ id: child.layerId, name: child.name.value, isShow: child.isVisible.value }, (child as Group).isExpand.value);
                 g.children = addEntry(child as Group);

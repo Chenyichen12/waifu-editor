@@ -21,7 +21,15 @@ abstract class Layer {
 }
 
 class PictureLayer extends Layer {
+    readonly pictureId;
 
+    url: string | undefined = undefined;
+
+    constructor(option: LayerCon, picId: string) {
+        super(option);
+        this.pictureId = picId;
+
+    }
 }
 
 class GroupLayer extends Layer {
