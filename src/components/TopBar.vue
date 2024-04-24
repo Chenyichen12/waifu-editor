@@ -19,5 +19,6 @@ const barList = [FileFunction]
   background-color: var(--el-color-primary-light-8);
   height: 100%;
   display: flex;
+  
 }
 </style>

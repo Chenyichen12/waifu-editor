@@ -1,4 +1,3 @@
-
 <!--
  * @Author: Chenyichen12 sama1538@outlook.com
  * @Date: 2024-03-27 18:03:33
@@ -15,6 +14,8 @@ import { onMounted } from "vue";
 import Project from "./components/Project/Project.ts";
 // 添加了关键帧组件
 import FrameStage from "./components/FrameAnimatorStage/FrameStage.vue";
+import SliderLayer from "./components/LayerSlider/SliderLayer.vue";
+
 
 onMounted(async () => {
   //仅用于测试，生产模式下要删除
@@ -22,11 +23,11 @@ onMounted(async () => {
   await Project.initFromPsd(await f.blob());
 
   //注册快捷键
-  document.addEventListener("keydown",(event: KeyboardEvent)=>{
-    if(event.ctrlKey && 
-    event.code == "KeyZ"){
+  document.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.ctrlKey &&
+      event.code == "KeyZ") {
       const project = Project.instance.value;
-      if(project == null){
+      if (project == null) {
         return;
       }
       project.unDoStack.unDo();
@@ -42,10 +43,11 @@ onMounted(async () => {
     </el-header>
     <el-container class="main-stage">
       <el-aside>
+        <SliderLayer></SliderLayer>
       </el-aside>
       <el-aside>
         <!-- 添加了关键帧组件 -->
-          <FrameStage />
+        <FrameStage />
       </el-aside>
       <el-main>
         <Stage />
