@@ -12,7 +12,7 @@ abstract class Layer {
     id: string
     name: string
     isShow: boolean
-
+    isSelect: boolean = false;
     constructor(option: LayerCon) {
         this.id = option.id;
         this.name = option.name

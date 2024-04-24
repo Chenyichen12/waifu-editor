@@ -3,13 +3,15 @@
  * @Date: 2024-04-23 17:31:29
 -->
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { provide, ref, watch } from 'vue';
 import { Layer, GroupLayer, PictureLayer } from './Layers';
 import LayerSilder from "./Layer.vue"
 import Project from '../Project/Project';
 import { Group, NormalLayer } from '../Project/LayerStruct';
 
 const RootGroup = ref<GroupLayer | undefined>(undefined);
+
+const selectLayer = ref<string[] | undefined>(undefined);
 watch(Project.instance, (value) => {
     if (value == null) {
         RootGroup.value = undefined
@@ -36,6 +38,29 @@ watch(Project.instance, (value) => {
         isShow: true
     }, true);
     RootGroup.value.children = c;
+    selectLayer.value = value.currentSelectedLayer;
+})
+
+provide("selectedLayer", selectLayer);
+
+watch(selectLayer, (value) => {
+    if (RootGroup.value != undefined && value != undefined) {
+        addSelect(RootGroup.value);
+        Project.instance.value!.currentSelectedLayer = value!;
+    }
+
+    function addSelect(layer: GroupLayer) {
+        for (const child of layer.children) {
+            if (value!.includes(child.id)) {
+                child.isSelect = true;
+            } else {
+                child.isSelect = false;
+            }
+            if ("children" in child) {
+                addSelect((child as GroupLayer));
+            }
+        }
+    }
 })
 
 </script>

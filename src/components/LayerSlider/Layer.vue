@@ -3,12 +3,15 @@
  * @Date: 2024-04-23 22:20:45
 -->
 <script setup lang="ts">
+import { Ref, inject } from 'vue';
 import Project from '../Project/Project';
 import { Layer as MLayer, GroupLayer, PictureLayer } from './Layers';
 
 const props = defineProps<{
     howDeep: number
 }>();
+
+const selectedLayer = inject<Ref<string[]>>("selectedLayer")
 const model = defineModel<MLayer[]>({
     required: true
 })
@@ -56,10 +59,9 @@ function getPictureFromPictureLayer(entry: PictureLayer) {
     }
 }
 
-function handleDirExpandClick(id: string) {
-    const item = model.value.find((v) => v.id === id);
-    if (item != undefined && "isExpand" in item) {
-        item.isExpand = !item.isExpand
+function handleDirExpandClick(entry: MLayer) {
+    if ("isExpand" in entry) {
+        entry.isExpand = !entry.isExpand;
     }
 }
 
@@ -69,27 +71,57 @@ function handleVisiable(id: string) {
         item.isShow = !item.isShow;
     }
 }
+function selectStyle(entry: MLayer) {
+    if (entry.isSelect) {
+        return {
+            backgroundColor: "var(--el-color-primary-light-7)"
+        }
+    }
+    return {}
+}
+
+
+function setSelect(e: MouseEvent, entry: MLayer) {
+    if (selectedLayer?.value != undefined) {
+        if (e.shiftKey) {
+            if (entry.isSelect) {
+                selectedLayer.value = selectedLayer.value.filter((v) => v !== entry.id);
+            } else {
+                selectedLayer.value = [...selectedLayer.value, entry.id];
+            }
+        } else {
+            if (!e.shiftKey) {
+                selectedLayer.value = [];
+            }
+            if (!entry.isSelect) {
+                selectedLayer.value = [entry.id];
+            }
+        }
+    }
+}
+
 </script>
 
 <template>
-    <div v-for="(entry, index) in model" :key="entry.id + '_entry'">
+    <div v-for="(entry) in model" :key="entry.id + '_entry'">
         <div v-if="ifGroup(entry)" :style="paddingLeft()">
-            <div class="listEntry">
+            <div class="listEntry" :style="selectStyle(entry)" @click="(e) => setSelect(e, entry)">
                 <div class="previewDir">
                     <img src="/src/assets/IntreeFileOpen.svg" v-show="(entry as GroupLayer).isExpand">
                     <img src="/src/assets/IntreeFileFload.svg" v-show="!(entry as GroupLayer).isExpand">
                     <a>{{ showName(entry.name) }}</a>
                 </div>
                 <img src="/src/assets/IntrreeChevronRight.svg" v-show="!(entry as GroupLayer).isExpand"
-                    class="dirExpandIcon" @click="() => handleDirExpandClick(entry.id)">
+                    class="dirExpandIcon" @click="() => handleDirExpandClick(entry)">
                 <img src="/src/assets/IntreeChevronDown.svg" v-show="(entry as GroupLayer).isExpand"
-                    class="dirExpandIcon" @click="() => handleDirExpandClick(entry.id)">
+                    class="dirExpandIcon" @click="() => handleDirExpandClick(entry)">
             </div>
 
             <Layer v-model="(entry as GroupLayer).children" :howDeep="props.howDeep + 1"
                 v-if="(entry as GroupLayer).isExpand"></Layer>
         </div>
-        <div v-else :style="paddingLeft()" class="listEntry">
+        <div v-else :style="{ ...paddingLeft(), ...selectStyle(entry) }" class="listEntry"
+            @click="(e) => setSelect(e, entry)">
             <div class="preview">
                 <img :src="getPictureFromPictureLayer((entry as PictureLayer))" :width="10" :height="10">
                 <a>{{ showName(entry.name) }}</a>
@@ -109,6 +141,10 @@ function handleVisiable(id: string) {
 
     &:hover {
         background-color: var(--el-color-primary-light-7);
+    }
+
+    &:active {
+        background-color: var(--el-color-primary);
     }
 
     .preview {

@@ -3,7 +3,7 @@
  * @Date: 2024-03-27 18:03:33
  */
 import { Root, Layer, NormalLayer, Group } from "./LayerStruct";
-import { ref, shallowRef } from "vue";
+import { Ref, ref, shallowRef } from "vue";
 import { ImageAsset } from './ProjectAssets'
 import Psd, { NodeChild } from '@webtoon/psd'
 import UnDoStack from "../../UnDoStack/UnDoStack";
@@ -17,6 +17,11 @@ class Project {
 
 	unDoStack: UnDoStack
 
+	protected _currentSelectedLayer: string[] = []
+	set currentSelectedLayer(entry: string[]) {
+		this._currentSelectedLayer = entry;
+	}
+	get currentSelectedLayer() { return this._currentSelectedLayer }
 	//图片合集 内有texture
 	protected _assetsList: Map<string, ImageAsset> = new Map<string, ImageAsset>();
 
