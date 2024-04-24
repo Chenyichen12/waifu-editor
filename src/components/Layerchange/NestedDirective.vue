@@ -1,13 +1,11 @@
 <template>
-  {{ error }}
-  {{ manager.test }} 
   <!-- 测试 以后要删除 -->
-    <VueDraggable class="drag-area" tag="ul" v-model="manager._entrys.value" group="g1" @add="onAdd(modelValue,parentName)"  >
+    <VueDraggable class="drag-area" tag="ul" v-model="showList" group="g1" @add="onAdd(modelValue,parentName)"  >
       <!-- 导入了v-draggable -->
       <li v-for="el in modelValue" :key="el.name" class="list-item" >
           <!-- modelValue 数组中的每个元素创建一个带有特定样式和唯一键的列表项。 -->
           <!-- 按钮：用于显示和隐藏 -->
-          <p class="item-name" :class="{ 'active': el.isSelect, 'inactive': !el.isSelect }" @click="selectChild(el,manager)">
+          <p class="item-name" :class="{ 'active': el.isSelect, 'inactive': !el.isSelect }" @click="selectChild(el)">
             <!-- 这里有个问题，hide按钮和select功能似乎冲突了 -->
             <!-- button设置 -->
             <!-- <el-button type="primary" size="small":icon="Add" class="item-button" @click="el.addNewEntry(el)"/>
@@ -24,15 +22,11 @@
             <span> {{ el.isVisible ? 'Visible' : 'Hidden' }}</span>
             <!-- 判定是否改变 后面需要删掉 -->
           </p>
-        <nested-directive v-model="el.children" v-show="el.listExpand" :parent-name="el.name" :manager="manager" />
+        <nested-directive v-model="el.children" v-show="el.listExpand" :parent-name="el.name"  />
         <!-- （应该是递归）显示子个体 -->
       </li>
       {{ changebefore }}
       {{ changeafter }}
-      {{ manager._selectedEntry }}
-      
-      {{ checkSelect }}
-      <!-- 从这可以发现是很多个独立的manager -->
     </VueDraggable>    
   </template>
 
@@ -43,38 +37,13 @@
   import { vDraggable } from 'vue-draggable-plus'
   import { computed, ref,h, inject } from 'vue'
   import { ArrowRight,ArrowDown,View,Hide } from '@element-plus/icons-vue'
-  import layerChangeManager from './manager.ts'
-  
-  // let manager = new layerChangeManager()
-  let manager=inject('manager',layerChangeManager)
-  // 导入manager
+  import manager from './manager.ts'
+  import { Entry } from './Entry.ts'
 
-  let checkSelect = inject('checkSelect')
-  // 导入第二种方法的检查
-  
-  let error=ref("")
-  
-  if (!manager) {
-    error.value = 'No manager provided'
-  }
-
-// error为测试，之后删除
-
-// 列表函数与属性
-export  interface Entry {
-    name: string
-    children: Entry[]
-    parentName: string  // 用于查找父图层
-    isVisible: boolean //是否可见（小眼睛图标）
-    listExpand:boolean //是否展开（小三角图标）
-    isSelect:boolean //是否选中
-    }
-  // 这东西应该写在entry.ts里面
-
-export interface Props {
+  export interface Props {
     modelValue: Entry[],
     parentName: string,
-    manager: layerChangeManager
+    
   }
 //进行递归调用的东西  
 
@@ -85,7 +54,7 @@ export interface Props {
   }
 
   const emits = defineEmits<Emits>()
-  manager._entrys = computed({
+  const showList= computed({
     get: () => props.modelValue,
     set: value => emits('update:modelValue', value)
   })
@@ -100,7 +69,6 @@ export interface Props {
         changebefore=item.parentName
         changeafter=parentname
         item.parentName=parentname
-        // onLayerParentChange(callback:(preParent:layer, parent: layer,child: layer)=>void)
     }
     }
   }
@@ -111,44 +79,48 @@ export interface Props {
 
 // function selectIt(manager:layerChangeManager){
     
-//     function traverseTree(node: Entry) {
-//     if (node.isSelect) {
-//       manager._selectedEntry.push(node.name);
-//       }
-//     if (Array.isArray(node.children)) {
-//       for (let child of node.children) {
-//         traverseTree(child);
-//       }
-//       }
-//     }
-//   for (let entry of manager._entrys.value) {
-//     traverseTree(entry);
-//     }
+  //   function traverseTree(node: Entry) {
+  //   if (node.isSelect) {
+  //     manager._selectedEntry.push(node.name);
+  //     }
+  //   if (Array.isArray(node.children)) {
+  //     for (let child of node.children) {
+  //       traverseTree(child);
+  //     }
+  //     }
+  //   }
+  // for (let entry of manager._entrys.value) {
+  //   traverseTree(entry);
+  //   }
 //   }
 
 
-  function selectChild(el:Entry,manager:layerChangeManager){
-    el.isSelect=!el.isSelect  
-    for(let i in el.children){ 
-          let child = el.children[i]
-          // 能这样写？
-          selectChild(child,manager)
-          // if (child.isSelect) {
-          //   manager._selectedEntry.push(el.name)
-          // } 
-          // else {
-          //   let temp=ref(0)
-          //   for(let j in manager._selectedEntry){
-              
-          //     if(j === el.name) manager._selectedEntry.splice(temp.value,temp.value)
-          //     else temp.value=temp.value+1
-          //   }
-            
-          // }   
+  function selectChild(el:Entry){  
+    function traverseTree(node: Entry) {
+      node.isSelect=!node.isSelect
+    if (node.isSelect) {
+      manager._selectedEntry.push(node.name);
       }
-      checkSelect=true
-     }
+    
+    if (Array.isArray(node.children)) {
+      for (let child of node.children) {
+        traverseTree(child);
+      }
+      }
+    }
 
+    traverseTree(el);
+    }
+    // for(let i in el.children){ 
+    //       let child = el.children[i]
+    //       // 能这样写？
+    //       selectChild(child)
+    //       if (child.isSelect) {
+    //         manager._selectedEntry.push(el.name)
+    //       }    
+    //   }
+    //  }
+    
   // 图标函数
   const toggleVisibility = (item: Entry) => {item.isVisible = !item.isVisible; }; // 切换图层可见性
   // 对于每次点击按钮修改列表相应值

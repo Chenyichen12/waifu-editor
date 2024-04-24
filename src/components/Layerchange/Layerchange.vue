@@ -1,38 +1,38 @@
 <template>
   <div class="flex justify-between">
-    <NestedDirective v-model="manager._entrys.value" class="w-full"></NestedDirective>
-    
-    
+    <NestedDirective v-model="manager._entrys.value" class="w-full" parent-name="root"></NestedDirective>
+
     <preview-list :list="manager._entrys.value" />
     
       <!-- {{ intervalId }} -->
-  <p>{{ manager._selectedEntry }}</p>
+ <p>{{ manager._selectedEntry }}</p>
   <!-- 按理说能够显示正确的选择条目 -->
-  <p>{{ checkSelect }}</p>
+  <!-- <p>{{ checkSelect }}</p> -->
   <!-- 第二种方法的检查，当调用select函数时值应当改变 -->
+  </div>
+  <div>
+    {{ manager._entrys.value }}
   </div>
 </template>
 
 <script setup lang="ts">
-import { inject, ref,provide, watch } from 'vue'
+import { inject, ref,provide, watch, reactive } from 'vue'
 import NestedDirective from './NestedDirective.vue'
-import layerChangeManager from './manager.ts'
-import { Entry } from './NestedDirective.vue';
-import { selectionModeWithDefault } from 'element-plus/es/components/date-picker/src/props/shared.mjs';
+import manager from './manager.ts'
+import { Entry } from './Entry.ts';
 
 // 导入图层时又该如何进行修改？
 //导入图层时，遍历一次把所有parentname改对
-let manager=new layerChangeManager()
-provide ('manager',manager)
+
 // 为了能够在其他组件中使用manager，我将其提供出去
 
-let checkSelect: boolean = false
-provide ('checkSelect',checkSelect)
-// 第二种方法的检查，当调用select函数时值应当改变
+// let checkSelect: boolean = false
+// provide ('checkSelect',checkSelect)
+// // 第二种方法的检查，当调用select函数时值应当改变
 
-watch(() => checkSelect,() =>{
-  selectIt(manager);
-});
+// watch(() => checkSelect,() =>{
+//   selectIt();
+// });
 // 第二种方法
 
 // let intervalId= setInterval(() =>{
@@ -40,7 +40,17 @@ watch(() => checkSelect,() =>{
 // },1000);
 // 我甚至让它尝试不停的运行
 
-function selectIt(manager:layerChangeManager){
+let showList= reactive(manager._entrys)
+
+watch(showList,(newVal,oldVal) =>{
+  manager._entrys.value=newVal;
+  manager.test.value="yes!!!!"
+},{deep:true}),
+
+
+
+
+function selectIt(){
     
     function traverseTree(node: Entry) {
     if (node.isSelect) {

@@ -1,4 +1,4 @@
-import { Entry } from "./NestedDirective.vue";
+import { Entry } from "./Entry.ts";
 import {ref} from 'vue'
 
 class layerChangeManager {
@@ -15,6 +15,6 @@ class layerChangeManager {
     
     public _selectedEntry: string[]= []
     
-    public test="test" 
+    public test=ref("test") 
   }
-  export default layerChangeManager
+  export default new layerChangeManager()
