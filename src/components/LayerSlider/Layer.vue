@@ -12,6 +12,8 @@ const props = defineProps<{
 }>();
 
 const selectedLayer = inject<Ref<string[]>>("selectedLayer")
+const hiddenLayer = inject<Ref<string[]>>("hiddenLayer")
+
 const model = defineModel<MLayer[]>({
     required: true
 })
@@ -65,10 +67,12 @@ function handleDirExpandClick(entry: MLayer) {
     }
 }
 
-function handleVisiable(id: string) {
-    const item = model.value.find((v) => v.id === id);
-    if (item != undefined) {
-        item.isShow = !item.isShow;
+function handleVisiable(e: MouseEvent, entry: MLayer) {
+    e.stopPropagation();
+    if (entry.isShow && hiddenLayer != undefined) {
+        hiddenLayer.value = [...hiddenLayer.value, entry.id]
+    } else if (hiddenLayer != undefined) {
+        hiddenLayer.value = hiddenLayer.value.filter((v) => v !== entry.id);
     }
 }
 function selectStyle(entry: MLayer) {
@@ -127,9 +131,9 @@ function setSelect(e: MouseEvent, entry: MLayer) {
                 <a>{{ showName(entry.name) }}</a>
             </div>
             <img src="/src/assets/view.svg" v-show="entry.isShow" class="eyeIcon"
-                @click="() => handleVisiable(entry.id)">
+                @click="(e) => handleVisiable(e, entry)">
             <img src="/src/assets/viewHide.svg" v-show="!entry.isShow" class="eyeIcon"
-                @click="() => handleVisiable(entry.id)">
+                @click="(e) => handleVisiable(e, entry)">
         </div>
     </div>
 </template>

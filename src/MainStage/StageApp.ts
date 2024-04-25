@@ -102,8 +102,26 @@ class StageApp extends Application {
                 }
             }
 
-            this.layerContainer.addSelected(layerSelected);
-            this.morpherContainer.addSelectMorpher(morpherSelected);
+            this.layerContainer.setSelected(layerSelected);
+            this.morpherContainer.setSelectMorpher(morpherSelected);
+        })
+        project.onLayerVisiableChange((layerId: string[]) => {
+            this.layerContainer.showAllLayer();
+            this.morpherContainer.showAllLayer();
+            const layerSelected: StageLayer[] = [];
+            const morpherSelected: Morpher[] = [];
+            for (const id of layerId) {
+                const layer = this.layerContainer.getLayerById(id);
+                if (layer != undefined) {
+                    layerSelected.push(layer);
+                }
+                const morpher = this.morpherContainer.getMorpherById(id);
+                if (morpher != undefined) {
+                    morpherSelected.push(morpher);
+                }
+            }
+            this.layerContainer.addHideLayer(layerSelected);
+            this.morpherContainer.addHideLayer(morpherSelected);
         })
     }
 

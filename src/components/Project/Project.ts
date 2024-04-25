@@ -28,7 +28,6 @@ class Project {
 			listen(this._currentSelectedLayer);
 		}
 	}
-
 	protected selectionListener: ((selection: string[]) => void)[] = [];
 	onSelectionChange(callBack: (selection: string[]) => void) {
 		this.selectionListener.push(callBack);
@@ -37,6 +36,23 @@ class Project {
 		}
 	}
 	get currentSelectedLayer() { return this._currentSelectedLayer }
+
+	protected _hiddenLayer: string[] = [];
+	set hiddenLayer(list: string[]) {
+		this._hiddenLayer = list;
+		for (const listen of this.layerVisiableListener) {
+			listen(list);
+		}
+	}
+	protected layerVisiableListener: ((hidden: string[]) => void)[] = [];
+	onLayerVisiableChange(callBack: (hidden: string[]) => void) {
+		this.layerVisiableListener.push(callBack);
+		return () => {
+			this.layerVisiableListener = this.layerVisiableListener.filter((v) => v !== callBack)
+		}
+	}
+	get hiddenLayer() { return this._hiddenLayer }
+
 	//图片合集 内有texture
 	protected _assetsList: Map<string, ImageAsset> = new Map<string, ImageAsset>();
 

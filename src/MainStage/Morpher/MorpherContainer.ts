@@ -8,6 +8,7 @@ import { instanceApp } from "../StageApp";
 import RectMorpher from "./RectMorpher";
 import { xy } from "../TwoDType";
 import RotationMorpher from "./RotationMorpher";
+import Project from "../../components/Project/Project";
 
 class MorpherContainer extends Container {
     protected morphers: Morpher[];
@@ -92,6 +93,20 @@ class MorpherContainer extends Container {
             this.selectedMorphers.add(morphers);
             morphers.show = true;
         }
+        Project.instance.value!.currentSelectedLayer = [...this.selectedMorphers].map((v) => v.morpherId);
+    }
+
+    setSelectMorpher(morphers: Morpher | Morpher[]) {
+        this.removeAllSelect();
+        if (morphers instanceof Array) {
+            morphers.forEach((v) => {
+                this.selectedMorphers.add(v);
+                v.show = true;
+            })
+        } else {
+            this.selectedMorphers.add(morphers);
+            morphers.show = true;
+        }
     }
 
     removeAllSelect() {
@@ -137,6 +152,25 @@ class MorpherContainer extends Container {
         })
     }
     get selectedMorpher() { return [...this.selectedMorphers] }
+
+    protected _hiddenMorpher = new Set<Morpher>();
+
+    addHideLayer(layer: Morpher | Morpher[]) {
+        if (layer instanceof Array) {
+            layer.forEach((v) => {
+                this._hiddenMorpher.add(v)
+                v.show = false;
+            });
+        } else {
+            this._hiddenMorpher.add(layer);
+            layer.show = false;
+        }
+    }
+
+    showAllLayer() {
+        this._hiddenMorpher.forEach((v) => { v.show = true });
+        this._hiddenMorpher.clear();
+    }
 }
 
 export default MorpherContainer;

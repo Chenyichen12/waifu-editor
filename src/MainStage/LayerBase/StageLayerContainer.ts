@@ -13,6 +13,7 @@ class StageLayerContainer {
     protected _layers: StageLayer[] = []
     protected _selectedLayer = new Set<StageLayer>();
 
+    protected _hiddenLayer = new Set<StageLayer>();
     pointHitLayer(StagePos: xy): StageLayer | undefined {
         for (const layer of this._layers) {
             const p = layer.transformFormStage(StagePos);
@@ -39,6 +40,13 @@ class StageLayerContainer {
             this._selectedLayer.add(v);
         })
         Project.instance.value!.currentSelectedLayer = layers.map((v) => v.layerId);
+    }
+    setSelected(layers: StageLayer[]) {
+        this.removeAllSelected();
+        layers.forEach((v) => {
+            v.selected = true;
+            this._selectedLayer.add(v);
+        })
     }
 
     removeSelected(layers: StageLayer[]) {
@@ -91,6 +99,23 @@ class StageLayerContainer {
         return this._layers.filter((v) => {
             return v.show === true;
         })
+    }
+
+    addHideLayer(layer: StageLayer | StageLayer[]) {
+        if (layer instanceof Array) {
+            layer.forEach((v) => {
+                this._hiddenLayer.add(v)
+                v.show = false;
+            });
+        } else {
+            this._hiddenLayer.add(layer);
+            layer.show = false;
+        }
+    }
+
+    showAllLayer() {
+        this._layers.forEach((v) => { v.show = true });
+        this._hiddenLayer.clear();
     }
 
     setAllMeshVisible(isVisible: boolean) {

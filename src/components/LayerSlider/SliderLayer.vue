@@ -13,6 +13,7 @@ const RootGroup = ref<GroupLayer | undefined>(undefined);
 
 const selectLayer = ref<string[] | undefined>(undefined);
 
+const hiddenLayer = ref<string[] | undefined>(undefined);
 const onSelectionChange = (entry: string[]) => {
     if (RootGroup.value == undefined) {
         return;
@@ -27,6 +28,25 @@ const onSelectionChange = (entry: string[]) => {
             }
             if ("children" in child) {
                 addSelect((child as GroupLayer));
+            }
+        }
+    }
+}
+
+const onHiddenChange = (entry: string[]) => {
+    if (RootGroup.value == undefined) {
+        return;
+    }
+    addHidden(RootGroup.value);
+    function addHidden(layer: GroupLayer) {
+        for (const child of layer.children) {
+            if (entry.includes(child.id)) {
+                child.isShow = false;
+            } else {
+                child.isShow = true;
+            }
+            if ("children" in child) {
+                addHidden((child as GroupLayer));
             }
         }
     }
@@ -59,17 +79,25 @@ watch(Project.instance, (value) => {
     }, true);
     RootGroup.value.children = c;
     selectLayer.value = value.currentSelectedLayer;
+    hiddenLayer.value = value.hiddenLayer;
     value.onSelectionChange(onSelectionChange);
+    value.onLayerVisiableChange(onHiddenChange);
 })
 
 provide("selectedLayer", selectLayer);
+provide("hiddenLayer", hiddenLayer)
 
 watch(selectLayer, (value) => {
     if (RootGroup.value != undefined && value != undefined) {
-        Project.instance.value!.currentSelectedLayer = value!;
+        Project.instance.value!.currentSelectedLayer = value;
     }
 })
 
+watch(hiddenLayer, (value) => {
+    if (RootGroup.value != undefined && value != undefined) {
+        Project.instance.value!.hiddenLayer = value;
+    }
+})
 </script>
 
 <template>

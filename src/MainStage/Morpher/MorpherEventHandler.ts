@@ -226,7 +226,17 @@ class DragRectMorpherRect extends MorpherEventHandler {
     }
 
     handleMouseUpEvent(_e: MouseEvent): MorpherEventRes {
+        const entry = Project.instance.value!.entryManager.registerEntry(this.context.morpherId);
+        for (const en of entry) {
+
+            const bound = Project.instance.value!.root.bound;
+            const uvs = this.context.points.map((v) => ({ u: v.x / bound.width, v: v.y / bound.height }))
+            let rotation: number | undefined = undefined
+            en.setKeyData(this.context.morpherId, new KeyFrameData(en.currentValue, uvs, rotation));
+
+        }
         this.context.forEdgeRect.resizeFormPointList(this.context.points);
+
         this.changeToState(new MorpherSelectHandler(this.context));
         return MorpherEventRes.DEFAUT
     }
