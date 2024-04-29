@@ -40,7 +40,9 @@
     justify-content: center;
   }
   
-  /* .item-name {
-    margin-bottom:5px;
-  } */
+  .item-name {
+    /* margin-bottom:5px; */
+    display: flex;
+    align-items: center;
+  }
   

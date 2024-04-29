@@ -5,7 +5,7 @@
       <li v-for="el in modelValue" :key="el.name" class="list-item" >
           <!-- modelValue 数组中的每个元素创建一个带有特定样式和唯一键的列表项。 -->
           <!-- 按钮：用于显示和隐藏 -->
-          <p class="item-name" :class="{ 'active': el.isSelect, 'inactive': !el.isSelect }" @click="selectChild(el)">
+          <p class="item-name" >
             <!-- 这里有个问题，hide按钮和select功能似乎冲突了 -->
             <!-- button设置 -->
             <!-- <el-button type="primary" size="small":icon="Add" class="item-button" @click="el.addNewEntry(el)"/>
@@ -14,13 +14,14 @@
             <el-button type="primary" size="small":icon="ArrowRight" class="item-button" @click="toggleExpand(el)"/>
             <el-button type="primary" size="small":icon="Hide" class="item-button" @click="toggleVisibility(el)" />
             <!-- 想要实现图标在点击后改变 （未实现）-->
-            
+            <div class="item-name" :class="{ 'active': el.isSelect, 'inactive': !el.isSelect }" @click="selectChild(el)">
             {{ el.name }}
             <!-- {{ el.parentName=nowParent}}          -->
             {{ el.parentName }}   
             <!-- 显示每一行的name属性 -->
             <span> {{ el.isVisible ? 'Visible' : 'Hidden' }}</span>
             <!-- 判定是否改变 后面需要删掉 -->
+            </div>
           </p>
         <nested-directive v-model="el.children" v-show="el.listExpand" :parent-name="el.name"  />
         <!-- （应该是递归）显示子个体 -->
