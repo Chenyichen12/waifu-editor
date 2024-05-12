@@ -24,9 +24,6 @@
     
     
   },
-
-  
-
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
@@ -40,9 +37,4 @@
       "path": "./tsconfig.node.json"
     }
   ],
-
-    
-  
-
-
 }

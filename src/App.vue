@@ -10,17 +10,16 @@
 import { ElContainer, ElHeader, ElFooter, ElMain } from "element-plus";
 import TopBar from "./components/TopBar.vue";
 import Stage from "./components/MainStage/Stage.vue";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import Project from "./components/Project/Project.ts";
 // 添加了关键帧组件
 import FrameStage from "./components/FrameAnimatorStage/FrameStage.vue";
 import SliderLayer from "./components/LayerSlider/SliderLayer.vue";
-
-
+import LayerView from "./components/Layerchange/LayerView.vue";
 onMounted(async () => {
-  //仅用于测试，生产模式下要删除
-  const f = await fetch('/kuyaxi.psd')
-  await Project.initFromPsd(await f.blob());
+  // //仅用于测试，生产模式下要删除
+  // const f = await fetch('/kuyaxi.psd')
+  // await Project.initFromPsd(await f.blob());
 
   //注册快捷键
   document.addEventListener("keydown", (event: KeyboardEvent) => {
@@ -34,6 +33,8 @@ onMounted(async () => {
     }
   })
 })
+
+const activeName = ref("first");
 </script>
 
 <template>
@@ -42,11 +43,18 @@ onMounted(async () => {
       <TopBar />
     </el-header>
     <el-container class="main-stage">
-      <el-aside>
-        <SliderLayer></SliderLayer>
+      <el-aside width="500px" id="layerchage">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="变形器窗口" name="first">
+            <LayerView />
+          </el-tab-pane>
+          <el-tab-pane label="图层窗口" name="second">
+            <SliderLayer />
+          </el-tab-pane>
+
+        </el-tabs>
       </el-aside>
-      <el-aside>
-        <!-- 添加了关键帧组件 -->
+      <el-aside width="500px">
         <FrameStage />
       </el-aside>
       <el-main>
@@ -87,7 +95,7 @@ onMounted(async () => {
     border-style: none solid;
     border-color: var(--el-color-primary-light-8);
     margin: 0 1px;
-    width: 200px;
+    width: 500px;
   }
 
   .el-main {

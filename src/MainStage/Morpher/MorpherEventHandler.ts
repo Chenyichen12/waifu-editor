@@ -10,7 +10,7 @@ import { xy } from "../TwoDType";
 import Morpher from "./Morpher";
 import RectMorpher, { edge } from "./RectMorpher";
 import RotationMorpher from "./RotationMorpher";
-
+import mouseUrl from "/src/assets/arrow-repeat.svg"
 
 enum MorpherEventRes {
     DEFAUT,
@@ -154,7 +154,7 @@ class MorpherSelectHandler extends MorpherEventHandler {
                 instanceApp.value!.containerDom.style.cursor = "move";
                 return MorpherEventRes.DEFAUT;
             }
-            instanceApp.value!.containerDom.style.cursor = "url(/src/assets/arrow-repeat.svg) 12 12, auto"
+            instanceApp.value!.containerDom.style.cursor = `url("${mouseUrl}") 12 12, auto`
         }
         return MorpherEventRes.DEFAUT
     }

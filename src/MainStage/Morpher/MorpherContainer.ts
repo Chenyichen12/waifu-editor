@@ -20,7 +20,7 @@ class MorpherContainer extends Container {
         this.morphers = morphers;
     }
 
-    addRectMorphers(xDot: number, yDot: number) {
+    addRectMorphers(name: string, xDot: number, yDot: number) {
         const selectedLayer = instanceApp.value!.layerContainer.selectedLayer;
         const select = [...this.selectedMorphers, ...selectedLayer];
         if (select.length == 0) {
@@ -51,9 +51,15 @@ class MorpherContainer extends Container {
         this.morphers.push(newRectMorpher);
         this.addChild(newRectMorpher);
         this.selectedMorphers.add(newRectMorpher)
+
+        //project加入
+        const project = Project.instance.value;
+        if (project != null) {
+            project.treeEntryManager.value.addGroup({ name: name, id: newRectMorpher.morpherId, }, select.map((v) => v instanceof Morpher ? v.morpherId : v.layerId));
+        }
     }
 
-    addRotationMorpher() {
+    addRotationMorpher(name: string) {
         const selectedLayer = instanceApp.value!.layerContainer.selectedLayer;
         const select = [...this.selectedMorphers, ...selectedLayer];
         if (select.length == 0) {
@@ -82,6 +88,11 @@ class MorpherContainer extends Container {
         this.morphers.push(newRotation);
         this.addChild(newRotation);
         this.selectedMorphers.add(newRotation)
+        //project加入
+        const project = Project.instance.value;
+        if (project != null) {
+            project.treeEntryManager.value.addGroup({ name: name, id: newRotation.morpherId, }, select.map((v) => v instanceof Morpher ? v.morpherId : v.layerId));
+        }
     }
     addSelectMorpher(morphers: Morpher | Morpher[]) {
         if (morphers instanceof Array) {

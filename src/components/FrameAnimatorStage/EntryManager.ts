@@ -1,6 +1,5 @@
 import StageLayer from "../../MainStage/LayerBase/StageLayer";
 import Morpher from "../../MainStage/Morpher/Morpher";
-import RectMorpher from "../../MainStage/Morpher/RectMorpher";
 import { instanceApp } from "../../MainStage/StageApp";
 import Project from "../Project/Project";
 import AnimateEntry, { aroundKey } from "./AnimateEntry";

@@ -19,9 +19,10 @@
     "sass-loader": "^14.1.1",
     "uuid": "^9.0.1",
     "vue": "^3.4.19",
-    "vue-draggable-plus": "^0.4.0",
     "vue-tree-list": "^1.5.0",
-    "vuedraggable": "^2.24.3"
+    "vuedraggable": "^2.24.3",
+    "vue-draggable-plus": "^0.4.0",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.8",

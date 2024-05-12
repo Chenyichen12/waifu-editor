@@ -61,20 +61,18 @@ class AnimateRecordManager {
                     p1 = v.getCurrentValue(beforeNumber[i], name[0]);
                     p2 = v.getCurrentValue(afterNumber[i], name[0]);
                 } catch {
-                    debugger;
                     continue;
                 }
 
 
                 if (p1 == undefined || p2 == undefined) {
-                    debugger;
                     continue;
                 }
 
                 const move = p1.pointUvData.map((v, i) => {
                     return {
-                        u: p2.pointUvData[i].u - v.u,
-                        v: p2.pointUvData[i].v - v.v
+                        u: p2!.pointUvData[i].u - v.u,
+                        v: p2!.pointUvData[i].v - v.v
                     }
                 })
 

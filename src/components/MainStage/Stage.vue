@@ -7,6 +7,8 @@ import { computed, ref, shallowRef, watch } from "vue";
 import Project from "../Project/Project";
 import StageApp, { instanceApp } from '../../MainStage/StageApp'
 import EditMeshMode from "../../MainStage/EditMeshMode/EditMeshMode";
+import morpherDialog from "./morpherDialog.vue";
+import rotationDialog from "./rotationDialog.vue";
 const stageDomRef = ref<HTMLDivElement | null>(null)
 const isPenClick = ref(false);
 const editMode = shallowRef<EditMeshMode | undefined>(undefined);
@@ -20,7 +22,8 @@ const penReadyStyle = computed(() => {
     return {}
 })
 
-
+const showRectMorpherDialog = ref(false);
+const showRotationDialog = ref(false);
 watch(Project.instance, (v) => {
     if (v == null) return;
     const stage = new StageApp(stageDomRef.value!);
@@ -57,16 +60,18 @@ function handlePenButtonClick() {
     }
 }
 
-function handleRectMorpherAdd() {
+function handleRectMorpherAdd(name: string, xDot: number, yDot: number) {
     if (instanceApp.value != null) {
-        instanceApp.value.morpherContainer.addRectMorphers(3, 3);
+        instanceApp.value.morpherContainer.addRectMorphers(name, xDot, yDot);
     }
 }
-function handleRotationMorpherAdd() {
+function handleRotationMorpherAdd(name: string) {
     if (instanceApp.value != null) {
-        instanceApp.value.morpherContainer.addRotationMorpher();
+        instanceApp.value.morpherContainer.addRotationMorpher(name);
     }
 }
+
+
 </script>
 
 <template>
@@ -77,12 +82,18 @@ function handleRotationMorpherAdd() {
         <button @click="handlePenButtonClick" v-bind:style="penReadyStyle">
             <img src="/src/assets/vector-pen.svg" />
         </button>
-        <button @click="handleRectMorpherAdd">添加变形器</button>
-        <button @click="handleRotationMorpherAdd">添加旋转变形器</button>
+        <button @click="() => { showRectMorpherDialog = true }">添加变形器</button>
+        <button @click="() => { showRotationDialog = true }">添加旋转变形器</button>
     </div>
     <div class="container" tabindex="1" @keydown="handleKeyDown" @keyup="handleKeyUp">
         <div class="stage" ref="stageDomRef"></div>
     </div>
+    <morpherDialog v-if="showRectMorpherDialog"
+        v-bind:call-back="(name: string, xDot: number, yDot: number) => { handleRectMorpherAdd(name, xDot, yDot); showRectMorpherDialog = false; }">
+    </morpherDialog>
+    <rotationDialog v-if="showRotationDialog"
+        v-bind:call-back="(name: string) => { handleRotationMorpherAdd(name); showRotationDialog = false; }">
+    </rotationDialog>
 </template>
 
 <style lang='scss' scoped>

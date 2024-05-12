@@ -3,11 +3,12 @@
  * @Date: 2024-03-27 18:03:33
  */
 import { Root, Layer, NormalLayer, Group } from "./LayerStruct";
-import { ref, shallowRef } from "vue";
+import { Ref, ref, shallowRef } from "vue";
 import { ImageAsset } from './ProjectAssets'
 import Psd, { NodeChild } from '@webtoon/psd'
 import UnDoStack from "../../UnDoStack/UnDoStack";
 import EntryManager from "../FrameAnimatorStage/EntryManager";
+import TreeEntryManager from "../Layerchange/EntryManager";
 class Project {
 	protected static _instance = shallowRef<Project | null>(null);
 	name: string = "未命名";
@@ -55,6 +56,9 @@ class Project {
 
 	//图片合集 内有texture
 	protected _assetsList: Map<string, ImageAsset> = new Map<string, ImageAsset>();
+
+	public treeEntryManager: Ref<TreeEntryManager> = ref(new TreeEntryManager());
+
 
 	protected constructor() {
 		this.unDoStack = new UnDoStack();
@@ -108,6 +112,28 @@ class Project {
 						assetId: asset.assetId
 					})
 					res.push(newNormal);
+
+					const canvas = document.createElement('canvas');
+					const c = canvas.getContext('2d');
+					let url: string | undefined;
+					if (c != undefined) {
+						const image = new ImageData(asset.array!, asset.bound.width, asset.bound.height);
+						canvas.width = asset.bound.width;
+						canvas.height = asset.bound.height;
+						c.putImageData(image, 0, 0);
+						url = canvas.toDataURL()
+					}
+					newProject.treeEntryManager.value.children.push({
+						name: newNormal.name.value,
+						id: newNormal.layerId,
+						children: [],
+						isVisible: true,
+						listExpand: false,
+						isSelect: false,
+						parent: undefined,
+						type: "child",
+						imageUrl: url
+					})
 				}
 			}
 			return res;
