@@ -10,7 +10,6 @@ fn run_debug_script() -> std::io::Result<()> {
   use std::path::Path;
   use std::process::Command;
   let root = env::current_dir()?;
-
   let root = Path::join(&root, "../");
   if cfg!(target_os = "windows") {
     Command::new("cmd")

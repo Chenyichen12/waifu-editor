@@ -13,6 +13,7 @@
     "window:allow-start-dragging",
     "window:allow-toggle-maximize",
     "window:allow-internal-toggle-maximize",
+    "window:allow-start-dragging",
     "app:default",
     "image:default",
     "resources:default",
