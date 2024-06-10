@@ -23,5 +23,6 @@ module.exports = {
     'react/jsx-filename-extension': [1, { extensions: ['.tsx', '.ts'] }],
     'react/react-in-jsx-scope': 'off',
     'linebreak-style': [0, 'error', 'window'],
+    'jsx-a11y/click-events-have-key-events': 'off',
   },
 };

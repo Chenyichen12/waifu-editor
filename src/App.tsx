@@ -1,54 +1,38 @@
-import { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import reactLogo from './assets/react.svg';
-import './App.css';
+import { css, injectGlobal } from '@emotion/css';
+import TopBar from './TopBar.tsx';
+
+// eslint-disable-next-line no-unused-expressions
+injectGlobal`
+html,#root,body{
+  height: 100%;
+  margin: 0px;
+  
+}
+*{
+  user-select:none;
+}
+`;
+
+const buttonBarCss = css`
+height: 2rem;
+border-top: 1px solid rgb(152, 152, 152)
+`;
+const contentCss = css`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+`;
+const contentBody = css`
+  flex: 1;
+  background-color: white;
+`;
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState('');
-  const [name, setName] = useState('');
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke('greet', { name }));
-    invoke('get_debug_psd').then((res) => {
-      console.log(res);
-    });
-    console.log(11);
-  }
-
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank" rel="noreferrer">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg}</p>
+    <div className={contentCss}>
+      <TopBar />
+      <div className={contentBody} />
+      <div className={buttonBarCss} />
     </div>
   );
 }
