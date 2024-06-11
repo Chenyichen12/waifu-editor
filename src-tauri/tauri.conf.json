@@ -9,11 +9,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "decorations": false
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }

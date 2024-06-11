@@ -1,3 +1,4 @@
+mod app_build;
 mod commands;
 mod debug_build;
 #[tauri::command]
@@ -36,9 +37,17 @@ fn run_debug_script() -> std::io::Result<()> {
 fn main() {
   run_debug_script().expect("Can't open server");
   tauri::Builder::default()
+    .plugin(tauri_plugin_os::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_shell::init())
+    .setup(|app| {
+      #[cfg(target_os = "macos")]
+      return app_build::macos_appsetup(app);
+
+      #[cfg(not(target_os = "macos"))]
+      return app_build::window_appsetup(app);
+    })
     .invoke_handler(tauri::generate_handler![
       greet,
       debug_build::get_debug_psd,

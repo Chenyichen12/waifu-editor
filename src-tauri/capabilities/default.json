@@ -22,6 +22,8 @@
     "tray:default",
     "shell:allow-open",
     "fs:default",
-    "dialog:default"
+    "dialog:default",
+    "os:default",
+    "os:allow-platform"
   ]
 }
