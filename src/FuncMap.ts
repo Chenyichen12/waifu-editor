@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
+import hotkeys from 'hotkeys-js';
 import { osPlatform } from './AppInformation.ts';
 
 type menuItem = {
@@ -33,6 +34,24 @@ FuncMap.set('文件', [{
     console.log('save');
   },
 }]);
+
+// 注册快捷键
+function callShortCut(hotkey: string, menuName: string, itemName: string) {
+  let keyDown = false;
+  hotkeys(hotkey, {
+    single: true,
+    keyup: true,
+  }, (e) => {
+    if (e.type === 'keydown' && !keyDown) {
+      const item = FuncMap.get(menuName)?.find((value) => value.name === itemName);
+      item?.func();
+      keyDown = true;
+    }
+    if (e.type === 'keyup') {
+      keyDown = false;
+    }
+  });
+}
 // 当平台为macos时候才使用
 if (osPlatform === 'macos') {
   await listen('menu_event', (e) => {
@@ -42,18 +61,7 @@ if (osPlatform === 'macos') {
     item.func();
   });
 } else {
-  document.addEventListener('keydown', (e) => {
-    function callShortCut(menuName: string, itemName: string) {
-      e.preventDefault();
-      const item = FuncMap.get(menuName)?.find((value) => value.name === itemName);
-      item?.func();
-    }
-    if (e.ctrlKey && e.key === 's') {
-      callShortCut('文件', '保存');
-    }
-    if (e.ctrlKey && e.key === 'o') {
-      callShortCut('文件', '打开项目');
-    }
-  });
+  callShortCut('ctrl+s', '文件', '保存');
+  callShortCut('ctrl+o', '文件', '打开项目');
 }
 export default FuncMap;
