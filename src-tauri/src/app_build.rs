@@ -1,7 +1,9 @@
 use std::error::Error;
-use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+
 #[allow(dead_code)]
+#[cfg(target_os = "macos")]
 pub fn macos_appsetup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
+  use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
   let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
     .title("")
     .inner_size(800.0, 600.0);
@@ -32,7 +34,9 @@ pub fn macos_appsetup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
   Ok(())
 }
 #[allow(dead_code)]
+#[cfg(not(target_os = "macos"))]
 pub fn window_appsetup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
+  use tauri::{WebviewUrl, WebviewWindowBuilder};
   let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
     .title("")
     .inner_size(800.0, 600.0);
