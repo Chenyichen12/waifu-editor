@@ -1,5 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
+import { osPlatform } from './AppInformation.ts';
 
 type menuItem = {
     name: string,
@@ -31,5 +33,13 @@ FuncMap.set('文件', [{
     console.log('save');
   },
 }]);
-
+// 当平台为macos时候才使用
+if (osPlatform === 'macos') {
+  await listen('menu_event', (e) => {
+    const v = e.payload as string[];
+    const array = FuncMap.get(v[0]);
+    const item = array!.find((value) => v[1] === value.name)!;
+    item.func();
+  });
+}
 export default FuncMap;
