@@ -14,6 +14,7 @@
     "window:allow-toggle-maximize",
     "window:allow-internal-toggle-maximize",
     "window:allow-start-dragging",
+    "window:allow-is-maximized",
     "dialog:allow-open",
     "app:default",
     "image:default",

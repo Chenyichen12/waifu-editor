@@ -121,6 +121,7 @@ pub mod macos {
 #[allow(dead_code)]
 #[cfg(not(target_os = "macos"))]
 pub mod windows {
+  use std::error::Error;
   pub fn window_appsetup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
     use tauri::{WebviewUrl, WebviewWindowBuilder};
     let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())

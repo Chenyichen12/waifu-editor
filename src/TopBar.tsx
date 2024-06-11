@@ -1,7 +1,7 @@
 import { useClickOutside } from '@reactuses/core';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  BsXLg, BsApp, BsDashLg,
+  BsXLg, BsFullscreen, BsFullscreenExit, BsDashLg,
 } from 'react-icons/bs';
 import { getCurrent } from '@tauri-apps/api/webviewWindow';
 import {
@@ -56,6 +56,14 @@ function DropMenu({ name }: { name: string }) {
 }
 
 function TopBar() {
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  useEffect(() => {
+    const w = getCurrent();
+    w.onResized(async () => {
+      const ifFull = await w.isMaximized();
+      setIsFullScreen(ifFull);
+    });
+  }, []);
   return (
     <div
       className={topBarCss}
@@ -72,9 +80,7 @@ function TopBar() {
           flex: 1,
           height: '80%',
         }}
-        onMouseDown={async () => {
-          await getCurrent().startDragging();
-        }}
+        data-tauri-drag-region
       />
       <div className={rightMenu}>
         <div
@@ -82,12 +88,6 @@ function TopBar() {
           tabIndex={-1}
           role="button"
           aria-label="Minimize"
-          onMouseDown={(e) => {
-            e.stopPropagation();
-          }}
-          onMouseUp={(e) => {
-            e.stopPropagation();
-          }}
           onClick={() => {
             const w = getCurrent();
             w.minimize();
@@ -104,14 +104,8 @@ function TopBar() {
             const w = getCurrent();
             w.toggleMaximize();
           }}
-          onMouseUp={(e) => {
-            e.stopPropagation();
-          }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-          }}
         >
-          <BsApp />
+          {isFullScreen ? <BsFullscreen /> : <BsFullscreenExit /> }
         </div>
         <div
           className={closeBtnCss}

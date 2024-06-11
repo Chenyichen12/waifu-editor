@@ -41,5 +41,19 @@ if (osPlatform === 'macos') {
     const item = array!.find((value) => v[1] === value.name)!;
     item.func();
   });
+} else {
+  document.addEventListener('keydown', (e) => {
+    function callShortCut(menuName: string, itemName: string) {
+      e.preventDefault();
+      const item = FuncMap.get(menuName)?.find((value) => value.name === itemName);
+      item?.func();
+    }
+    if (e.ctrlKey && e.key === 's') {
+      callShortCut('文件', '保存');
+    }
+    if (e.ctrlKey && e.key === 'o') {
+      callShortCut('文件', '打开项目');
+    }
+  });
 }
 export default FuncMap;
