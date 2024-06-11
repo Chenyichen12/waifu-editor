@@ -43,10 +43,10 @@ fn main() {
     .plugin(tauri_plugin_shell::init())
     .setup(|app| {
       #[cfg(target_os = "macos")]
-      return app_build::macos_appsetup(app);
+      return app_build::macos::macos_appsetup(app);
 
       #[cfg(not(target_os = "macos"))]
-      return app_build::window_appsetup(app);
+      return app_build::windows::window_appsetup(app);
     })
     .invoke_handler(tauri::generate_handler![
       greet,
