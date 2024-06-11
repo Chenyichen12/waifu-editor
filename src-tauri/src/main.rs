@@ -1,3 +1,4 @@
+mod commands;
 mod debug_build;
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -9,6 +10,7 @@ fn run_debug_script() -> std::io::Result<()> {
   use std::env;
   use std::path::Path;
   use std::process::Command;
+  use std::time::Duration;
   let root = env::current_dir()?;
   let root = Path::join(&root, "../");
   if cfg!(target_os = "windows") {
@@ -22,11 +24,10 @@ fn run_debug_script() -> std::io::Result<()> {
   } else {
     Command::new("sh")
       .arg("-c")
-      .arg("pnpm")
-      .arg("run")
-      .arg("dev")
+      .arg("pnpm run dev")
       .current_dir(root)
       .spawn()?;
+    std::thread::sleep(Duration::from_secs(1));
   }
 
   Ok(())
@@ -35,9 +36,14 @@ fn run_debug_script() -> std::io::Result<()> {
 fn main() {
   run_debug_script().expect("Can't open server");
   tauri::Builder::default()
+    .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_shell::init())
-    .invoke_handler(tauri::generate_handler![greet, debug_build::get_debug_psd])
+    .invoke_handler(tauri::generate_handler![
+      greet,
+      debug_build::get_debug_psd,
+      commands::get_psd_resource,
+    ])
     .run(tauri::generate_context!())
     .expect("error");
 }

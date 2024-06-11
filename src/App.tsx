@@ -1,15 +1,22 @@
 import { css, injectGlobal } from '@emotion/css';
 import TopBar from './TopBar.tsx';
-
+import fontHeiUrl from './assets/SourceHanSansCN-Light.otf';
 // eslint-disable-next-line no-unused-expressions
 injectGlobal`
 html,#root,body{
   height: 100%;
   margin: 0px;
-  
+  @font-face {
+    font-family: fontHei;
+    src: url(${fontHeiUrl}) format("opentype");
+  } 
 }
 *{
   user-select:none;
+  -webkit-user-select: none;
+  cursor: default;
+  font-family: fontHei;
+
 }
 `;
 

@@ -1,82 +1,24 @@
-import { css, cx } from '@emotion/css';
 import { useClickOutside } from '@reactuses/core';
 import { useRef, useState } from 'react';
 import {
   BsXLg, BsApp, BsDashLg,
 } from 'react-icons/bs';
 import { getCurrent } from '@tauri-apps/api/webviewWindow';
+import {
+  dropMenuIem,
+  dropMenuContent, menuContent, topBarCss, leftMenu, rightMenu, miniBtnCss, closeBtnCss,
+} from './TopBarCss.tsx';
+import FuncMap from './FuncMap.ts';
 
-const topBarCss = css`
-display: flex;
-border-bottom: 1px solid rgb(152, 152, 152);
-justify-content: space-between;
-height: 2.5rem;
-align-items: center;
-`;
-const leftMenu = css`
-display: flex;
-padding-left: 10px;
-`;
-
-const rightMenu = css`
-  display:flex;
-  height: 100%;
-`;
-
-const menuContent = css`
-    padding: 0.4rem 0.8rem;
-    text-align: center;
-    border-radius: 0.5rem;
-    margin-right: 0.1rem;
-    position: relative;
-    &:hover{
-        background-color: rgb(168, 167, 167);
-    }
-    &:active{
-        background-color: rgb(120, 120, 120);
-    }
-`;
-
-const closeBtnCss = cx(menuContent, css`
-  font-size: large;
-  padding: 0px 0px;
-  border-radius: 0px;
-  aspect-ratio: 1/1;
-  margin: 0px;
-  height: 100%;
-  transition: background-color 0.1s linear;
-  background-color: white;
-  position: relative;
-  &:hover{
-    background-color: rgba(252, 51, 44, 1.0);
-  }
-  svg{
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%,-50%);
-  }
-`);
-
-const miniBtnCss = cx(closeBtnCss, css`
-  &:hover{
-    background-color: rgb(168, 167, 167);
-  }
-  &:active{
-        background-color: rgb(120, 120, 120);
-    }
-`);
-
-const dropMenuContent = css`
-    position: absolute;
-    top: 100%;
-    left: 0px;
-    background-color: rgb(218, 216, 216);
-    text-align: left;
-    border-radius: 0.3rem;
-    padding-top: 0.3rem;
-    min-width: 5rem;
-`;
+type content = {
+  name: string,
+  func: (()=>void)|(()=>Promise<void>)
+}
+function DropMenuContent({ contentList }: {contentList: content[]}) {
+  return (
+    contentList.map((v) => <div className={dropMenuIem} key={v.name} role="button" tabIndex={-1} onClick={v.func}>{v.name}</div>)
+  );
+}
 
 function DropMenu({ name }: { name: string }) {
   const [isShowDrop, setShowDrop] = useState(false);
@@ -91,6 +33,9 @@ function DropMenu({ name }: { name: string }) {
       role="button"
       tabIndex={-1}
       className={menuContent}
+      style={{
+        backgroundColor: isShowDrop ? 'rgb(219, 219, 219)' : '',
+      }}
       onClick={() => {
         setShowDrop(!isShowDrop);
       }}
@@ -102,7 +47,8 @@ function DropMenu({ name }: { name: string }) {
         }}
         className={dropMenuContent}
       >
-        sssss
+        {FuncMap.has(name)
+          ? <DropMenuContent contentList={FuncMap.get(name)!} /> : undefined}
       </div>
 
     </div>
