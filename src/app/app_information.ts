@@ -7,10 +7,12 @@ class AppInformation {
     this.osPlateform = undefined;
   }
 
+  // app platform
   get appOs():string {
     return this.osPlateform!;
   }
 
+  // run before the page
   async init() {
     this.osPlateform = await platform();
   }
