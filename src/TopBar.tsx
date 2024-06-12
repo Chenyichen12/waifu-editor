@@ -7,8 +7,8 @@ import { getCurrent } from '@tauri-apps/api/webviewWindow';
 import {
   dropMenuIem,
   dropMenuContent, menuContent, topBarCss, leftMenu, rightMenu, miniBtnCss, closeBtnCss,
-} from './TopBarCss.tsx';
-import FuncMap from './FuncMap.ts';
+} from './topbar_css.ts';
+import FuncMap from './app/func_map.ts';
 
 type content = {
   name: string,

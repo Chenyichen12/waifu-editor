@@ -1,7 +1,7 @@
 import { css, injectGlobal } from '@emotion/css';
 import TopBar from './TopBar.tsx';
 import fontHeiUrl from './assets/SourceHanSansCN-Light.otf';
-import { osPlatform } from './AppInformation.ts';
+import appInformation from './app/app_information.ts';
 // eslint-disable-next-line no-unused-expressions
 injectGlobal`
 html,#root,body{
@@ -38,7 +38,7 @@ const contentBody = css`
 function App() {
   return (
     <div className={contentCss}>
-      {osPlatform === 'macos' ? null : <TopBar />}
+      {appInformation.appOs === 'macos' ? null : <TopBar />}
       <div className={contentBody} />
       <div className={buttonBarCss} />
     </div>

@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
 import hotkeys from 'hotkeys-js';
-import { osPlatform } from './AppInformation.ts';
+import appInformation from './app_information.ts';
 
 type menuItem = {
     name: string,
@@ -53,7 +53,7 @@ function callShortCut(hotkey: string, menuName: string, itemName: string) {
   });
 }
 // 当平台为macos时候才使用
-if (osPlatform === 'macos') {
+if (appInformation.appOs === 'macos') {
   await listen('menu_event', (e) => {
     const v = e.payload as string[];
     const array = FuncMap.get(v[0]);
