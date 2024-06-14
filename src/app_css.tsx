@@ -30,4 +30,26 @@ export const contentCss = css({
 export const contentBody = css({
   flex: '1',
   backgroundColor: 'white',
+  display: 'flex',
+});
+
+export const subWindowMinWidth = 120;
+
+export const subWindowCss = css({
+  width: `${subWindowMinWidth + 50}px`,
+});
+
+export const barDivider = css({
+  width: '2px',
+  backgroundColor: 'black',
+  float: 'right',
+  height: '100%',
+  '&:hover': {
+    cursor: 'col-resize',
+  },
+});
+
+export const mainStageCss = css({
+  flex: '1',
+  backgroundColor: 'aqua',
 });
