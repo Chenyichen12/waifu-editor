@@ -4,6 +4,9 @@ interface ResizeComp{
     getMiniumWidth():number
 }
 
+/**
+ * the rightest element are always the first to shrink or expand then the second right
+ */
 class ResizeManager {
   private compList: ResizeComp[];
 
@@ -15,61 +18,62 @@ class ResizeManager {
     this.setTotalWidth(totalWidth);
   }
 
-  setTotalWidth(width: number, _where?: boolean) {
-    const resizeAmount = width - this.totalWidth;
-    this.totalWidth = width;
-    const [allCompWidth, allCompMinWidth] = this.compList.reduce(
-      (p, cur) => [p[0] + cur.getWidth(), p[1] + cur.getMiniumWidth()],
-      [0, 0],
-    );
-    if (allCompMinWidth > this.totalWidth) {
-      this.compList.forEach((v) => {
-        v.setWidth(v.getMiniumWidth());
-      });
-      return;
-    }
-    // always expand the rightmostcomp
-    if (resizeAmount >= 0) {
-      const leftMostComp = this.compList[this.compList.length - 1];
-      const rightCompLen = allCompWidth - leftMostComp.getWidth();
-      this.compList[this.compList.length - 1].setWidth(this.totalWidth - rightCompLen);
-    } else {
-      ResizeManager.shrinkComp(this.compList, -resizeAmount);
-    }
-  }
-
-  dragComp(comp:ResizeComp, dragAmount: number) {
-    const isShrink = dragAmount < 0;
-    const index = this.compList.findIndex((v) => v === comp);
-    if (index === -1 || index === this.compList.length - 1) {
-      throw new Error('no this comp');
-    }
-    const shrinkGroup = isShrink ? this.compList.slice(0, index)
-      : this.compList.slice(index + 1);
-    const originWidth = shrinkGroup.reduce((p, c) => p + c.getWidth(), 0);
-    ResizeManager.shrinkComp(shrinkGroup, Math.abs(dragAmount));
-    const afterWidth = shrinkGroup.reduce((p, c) => p + c.getWidth(), 0);
-
-    const widthAmount = originWidth - afterWidth;
-    if (isShrink) {
-      this.compList[index + 1].setWidth(this.compList[index + 1].getWidth() + widthAmount);
-    } else {
-      this.compList[index].setWidth(this.compList[index].getWidth() + widthAmount);
-    }
-  }
-
-  private static shrinkComp(compGroup: ResizeComp[], amount: number) {
-    const list = [...compGroup].reverse();
-    let yu = amount;
+  private static borrowWidth(amount: number, list: ResizeComp[]) {
+    let howMuch = amount;
     for (let index = 0; index < list.length; index += 1) {
       const element = list[index];
-      const howMuchResize = element.getWidth() - element.getMiniumWidth();
-      if (howMuchResize - yu >= 0) {
-        element.setWidth(element.getWidth() - yu);
-        return;
+      if (element.getWidth() - element.getMiniumWidth() >= howMuch) {
+        const target = element.getWidth() - howMuch;
+        element.setWidth(target);
+        return amount;
       }
+      howMuch -= element.getWidth() - element.getMiniumWidth();
       element.setWidth(element.getMiniumWidth());
-      yu -= howMuchResize;
+    }
+    return amount - howMuch;
+  }
+
+  // the container width relate to the windows width
+  // call when the window resize
+  setTotalWidth(width: number) {
+    if (this.compList.length === 0) {
+      this.totalWidth = width > 0 ? width : 0;
+      return;
+    }
+    if (width >= this.totalWidth) {
+      const amount = width - this.totalWidth;
+      const leftMost = this.compList[this.compList.length - 1];
+      leftMost.setWidth(leftMost.getWidth() + amount);
+      this.totalWidth = width;
+      return;
+    }
+    const minWidth = this.compList.reduce((v, p) => v + p.getMiniumWidth(), 0);
+    if (minWidth > width) {
+      this.compList.forEach((v) => v.setWidth(v.getMiniumWidth()));
+      this.totalWidth = minWidth;
+      return;
+    }
+    // resize the rightmost when shrink
+    const amount = ResizeManager.borrowWidth(this.totalWidth - width, [...this.compList].reverse());
+    this.totalWidth -= amount;
+  }
+
+  // don't resize the rightest comp it should always resize left one
+  setCompWidth(comp: ResizeComp, width:number) {
+    const index = this.compList.findIndex((v) => v === comp);
+    if (index === -1 || index === this.compList.length - 1) {
+      return;
+    }
+    const amount = width - comp.getWidth();
+    const shrinkGroup = amount >= 0 ? this.compList.slice(index + 1)
+      : this.compList.slice(0, index + 1);
+    if (amount >= 0) {
+      const bigger = ResizeManager.borrowWidth(amount, shrinkGroup);
+      comp.setWidth(comp.getWidth() + bigger);
+    } else {
+      const smaller = ResizeManager.borrowWidth(-amount, shrinkGroup);
+      const resizeComp = this.compList[index + 1];
+      resizeComp.setWidth(resizeComp.getWidth() + smaller);
     }
   }
 }
