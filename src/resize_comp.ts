@@ -59,19 +59,21 @@ class ResizeManager {
   }
 
   // don't resize the rightest comp it should always resize left one
-  setCompWidth(comp: ResizeComp, width:number) {
-    const index = this.compList.findIndex((v) => v === comp);
+  setCompWidth(comp: ResizeComp | number, width:number) {
+    const index = typeof comp === 'number' ? comp
+      : this.compList.findIndex((v) => v === comp);
     if (index === -1 || index === this.compList.length - 1) {
       return;
     }
-    const amount = width - comp.getWidth();
+    const current = this.compList[index];
+    const amount = width - current.getWidth();
     const shrinkGroup = amount >= 0 ? this.compList.slice(index + 1)
       : this.compList.slice(0, index + 1);
     if (amount >= 0) {
-      const bigger = ResizeManager.borrowWidth(amount, shrinkGroup);
-      comp.setWidth(comp.getWidth() + bigger);
+      const bigger = ResizeManager.borrowWidth(amount, [...shrinkGroup].reverse());
+      current.setWidth(current.getWidth() + bigger);
     } else {
-      const smaller = ResizeManager.borrowWidth(-amount, shrinkGroup);
+      const smaller = ResizeManager.borrowWidth(-amount, [...shrinkGroup].reverse());
       const resizeComp = this.compList[index + 1];
       resizeComp.setWidth(resizeComp.getWidth() + smaller);
     }

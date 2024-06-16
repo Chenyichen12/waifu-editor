@@ -25,5 +25,6 @@ module.exports = {
     'linebreak-style': [0, 'error', 'window'],
     'jsx-a11y/click-events-have-key-events': 'off',
     'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'react/require-default-props': [0],
   },
 };

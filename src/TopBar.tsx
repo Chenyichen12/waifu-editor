@@ -1,9 +1,12 @@
 import { useClickOutside } from '@reactuses/core';
 import { useEffect, useRef, useState } from 'react';
-import {
-  BsXLg, BsFullscreen, BsFullscreenExit, BsDashLg,
-} from 'react-icons/bs';
 import { getCurrent } from '@tauri-apps/api/webviewWindow';
+// assets
+import BsXLg from './assets/bs_icon/x-lg.svg';
+import BsFullscreen from './assets/bs_icon/fullscreen.svg';
+import BsFullscreenExit from './assets/bs_icon/fullscreen-exit.svg';
+import BsDashLg from './assets/bs_icon/dash-lg.svg';
+
 import {
   dropMenuIem,
   dropMenuContent, menuContent, topBarCss, leftMenu, rightMenu, miniBtnCss, closeBtnCss,
@@ -93,7 +96,7 @@ function TopBar() {
             w.minimize();
           }}
         >
-          <BsDashLg />
+          <img src={BsDashLg} alt="dash" />
         </div>
         <div
           className={miniBtnCss}
@@ -105,7 +108,7 @@ function TopBar() {
             w.toggleMaximize();
           }}
         >
-          {isFullScreen ? <BsFullscreen /> : <BsFullscreenExit /> }
+          {isFullScreen ? <img src={BsFullscreen} alt="full" /> : <img src={BsFullscreenExit} alt="full-exit" />}
         </div>
         <div
           className={closeBtnCss}
@@ -117,7 +120,7 @@ function TopBar() {
             w.close();
           }}
         >
-          <BsXLg />
+          <img src={BsXLg} alt="x" />
         </div>
 
       </div>

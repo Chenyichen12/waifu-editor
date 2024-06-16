@@ -21,8 +21,7 @@
     "@webtoon/psd": "^0.4.0",
     "hotkeys-js": "^3.13.7",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-icons": "^5.2.1"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": ">=2.0.0-beta.0",

@@ -44,7 +44,7 @@ export const closeBtnCss = cx(menuContent, css({
   '&:hover': {
     backgroundColor: 'rgba(252, 51, 44, 1.0)',
   },
-  svg: {
+  img: {
     position: 'absolute',
     left: '50%',
     top: '50%',

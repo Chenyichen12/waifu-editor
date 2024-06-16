@@ -1,6 +1,6 @@
 import { css, injectGlobal } from '@emotion/css';
 import fontHeiUrl from './assets/SourceHanSansCN-Light.otf';
-
+import BsArrowExpand from './assets/bs_icon/arrows-expand-vertical.svg';
 // eslint-disable-next-line no-unused-expressions
 injectGlobal`
 html,#root,body{
@@ -11,7 +11,7 @@ html,#root,body{
     src: url(${fontHeiUrl}) format("opentype");
   } 
 }
-*{
+#root{
   user-select:none;
   -webkit-user-select: none;
   cursor: default;
@@ -39,13 +39,14 @@ export const subWindowCss = css({
   width: `${subWindowMinWidth + 50}px`,
 });
 
+export const dragCursorStyle = `url(${BsArrowExpand}) 8 8, col-resize`;
 export const barDivider = css({
   width: '2px',
   backgroundColor: 'black',
   float: 'right',
   height: '100%',
   '&:hover': {
-    cursor: 'col-resize',
+    cursor: dragCursorStyle,
   },
 });
 
